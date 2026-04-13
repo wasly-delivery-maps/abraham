@@ -62,6 +62,16 @@ export default function DriverDashboard() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/auth");
+      toast.success("تم تسجيل الخروج بنجاح");
+    } catch (error) {
+      toast.error("فشل تسجيل الخروج");
+    }
+  };
+
   const orders = ordersQuery.data || [];
   const availableOrders = availableQuery.data || [];
   const activeOrders = orders.filter((o) => ["accepted", "picked_up", "in_transit", "arrived"].includes(o.status));
