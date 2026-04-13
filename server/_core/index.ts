@@ -43,6 +43,7 @@ async function startServer() {
   }
   
   const app = express();
+  app.set('trust proxy', true);
   const server = createServer(app);
   
   // Initialize Socket.IO for real-time location tracking

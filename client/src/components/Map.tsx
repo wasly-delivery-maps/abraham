@@ -88,12 +88,31 @@ declare global {
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || import.meta.env.VITE_FRONTEND_FORGE_API_KEY;
 
+let scriptLoadPromise: Promise<null> | null = null;
+
 function loadMapScript() {
-  return new Promise(resolve => {
+  if (scriptLoadPromise) return scriptLoadPromise;
+
+  scriptLoadPromise = new Promise(resolve => {
     if (window.google && window.google.maps) {
       resolve(null);
       return;
     }
+    
+    // Check if script already exists in document
+    const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]') || 
+                          document.querySelector('script[src*="/v1/maps/proxy/maps/api/js"]');
+    
+    if (existingScript) {
+      if (window.google && window.google.maps) {
+        resolve(null);
+      } else {
+        existingScript.addEventListener('load', () => resolve(null));
+        existingScript.addEventListener('error', () => resolve(null));
+      }
+      return;
+    }
+
     const script = document.createElement("script");
     const isProxy = !import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     const baseUrl = isProxy 
@@ -117,6 +136,8 @@ function loadMapScript() {
     };
     document.head.appendChild(script);
   });
+
+  return scriptLoadPromise;
 }
 
 interface MapViewProps {
