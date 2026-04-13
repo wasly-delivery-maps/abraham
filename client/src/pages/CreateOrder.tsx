@@ -126,7 +126,12 @@ export default function CreateOrder() {
             >
               <ChevronLeft className="h-5 w-5 rotate-180" />
             </Button>
-            <span className="text-xl font-black bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">طلب جديد</span>
+            <div className="flex items-center gap-2">
+                <div className="bg-white p-1 rounded-full shadow-md border border-orange-100 overflow-hidden">
+                  <img src="/logo.jpg" alt="وصلي" className="h-6 w-6 object-contain" />
+                </div>
+                <span className="text-xl font-black bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">طلب جديد</span>
+              </div>
           </div>
           <div className="flex items-center gap-2">
             {[1, 2, 3].map((num) => (

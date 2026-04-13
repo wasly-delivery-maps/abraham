@@ -197,7 +197,15 @@ export default function Auth() {
               >
                 منصة التوصيل رقم #1
               </motion.div>
-              <h1 className="text-7xl font-black tracking-tighter">وصلي</h1>
+              <div className="flex items-center gap-6">
+                <motion.div 
+                  className="bg-white p-3 rounded-[2rem] shadow-2xl border-4 border-white/20 overflow-hidden"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                >
+                  <img src="/logo.jpg" alt="وصلي" className="h-24 w-24 object-contain" />
+                </motion.div>
+                <h1 className="text-8xl font-black tracking-tighter">وصلي</h1>
+              </div>
               <p className="text-2xl font-medium opacity-90 leading-relaxed">
                 الجيل القادم من خدمات التوصيل الذكية والموثوقة في مصر.
               </p>

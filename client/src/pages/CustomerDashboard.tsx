@@ -147,7 +147,7 @@ export default function CustomerDashboard() {
                   className="bg-white p-1 rounded-full shadow-md border border-orange-100 overflow-hidden"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                 >
-                  <img src="/logo.jpg" alt="وصلي" className="h-5 w-5 object-contain" />
+                  <img src="/logo.jpg" alt="وصلي" className="h-8 w-8 object-contain" />
                 </motion.div>
                 <span className="text-xl font-black bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">وصلي</span>
               </div>

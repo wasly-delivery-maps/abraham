@@ -211,7 +211,12 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="text-center flex-1">
-              <h1 className="text-3xl sm:text-4xl font-bold mb-1">لوحة التحكم</h1>
+              <div className="flex items-center justify-center gap-4 mb-2">
+                <div className="bg-white p-1 rounded-xl shadow-md border border-orange-100 overflow-hidden">
+                  <img src="/logo.jpg" alt="وصلي" className="h-10 w-10 object-contain" />
+                </div>
+                <h1 className="text-3xl sm:text-4xl font-bold">لوحة التحكم</h1>
+              </div>
               <p className="text-white/90 text-sm sm:text-base">إدارة النظام والمستخدمين والطلبات</p>
             </div>
             <div className="flex items-center gap-2">
