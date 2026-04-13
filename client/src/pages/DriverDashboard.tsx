@@ -27,6 +27,7 @@ export default function DriverDashboard() {
 
   const updateStatusMutation = trpc.orders.updateOrderStatus.useMutation();
   const acceptOrderMutation = trpc.orders.acceptOrder.useMutation();
+  const completeOrderMutation = trpc.orders.completeOrder.useMutation();
 
   if (loading) {
     return (
@@ -43,12 +44,29 @@ export default function DriverDashboard() {
 
   const handleStatusUpdate = async (orderId: number, status: string) => {
     try {
-      await updateStatusMutation.mutateAsync({ orderId, status: status as any });
-      toast.success("تم تحديث حالة الطلب بنجاح 🚀");
+      if (status === "delivered") {
+        const result = await completeOrderMutation.mutateAsync({ orderId });
+        toast.success(result.message || "تم تسليم الطلب بنجاح ✅");
+      } else {
+        await updateStatusMutation.mutateAsync({ orderId, status: status as any });
+        toast.success("تم تحديث حالة الطلب بنجاح 🚀");
+      }
       ordersQuery.refetch();
-    } catch (error) {
-      toast.error("فشل في تحديث الحالة");
+    } catch (error: any) {
+      toast.error(error.message || "فشل في تحديث الحالة");
     }
+  };
+
+  const openGoogleMaps = (order: any, type: string) => {
+    const pickup = `${order.pickupLocation.latitude},${order.pickupLocation.longitude}`;
+    const destination = `${order.deliveryLocation.latitude},${order.deliveryLocation.longitude}`;
+    let url = "";
+    if (type === "pickup") {
+      url = `https://www.google.com/maps/dir/?api=1&destination=${pickup}&travelmode=driving`;
+    } else {
+      url = `https://www.google.com/maps/dir/?api=1&destination=${destination}&waypoints=${pickup}&travelmode=driving`;
+    }
+    window.open(url, "_blank");
   };
 
   const handleAcceptOrder = async (orderId: number) => {
@@ -76,6 +94,7 @@ export default function DriverDashboard() {
   const availableOrders = availableQuery.data || [];
   const activeOrders = orders.filter((o) => ["assigned", "accepted", "picked_up", "in_transit", "arrived"].includes(o.status));
   const completedOrders = orders.filter((o) => o.status === "delivered");
+  const completedTodayCount = orders.filter((o) => o.status === "delivered").length;
 
   const stats = [
     { label: "طلبات متاحة", value: availableOrders.length, icon: Package, color: "text-orange-600", bg: "bg-orange-50" },
@@ -161,21 +180,39 @@ export default function DriverDashboard() {
                   قبول الطلب الآن 🚀
                 </Button>
               )}
-	              {!isAvailable && (order.status === "assigned" || order.status === "accepted") && (
-	                <Button 
-	                  onClick={() => handleStatusUpdate(order.id, "picked_up")}
-	                  className="w-full py-7 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-black text-lg shadow-xl transition-all"
-	                >
-	                  تم استلام الطرد 📦
-	                </Button>
-	              )}
+              {!isAvailable && (order.status === "assigned" || order.status === "accepted") && (
+                <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    variant="outline"
+                    onClick={() => openGoogleMaps(order, "pickup")}
+                    className="py-7 rounded-2xl border-slate-200 text-slate-600 font-black text-sm hover:bg-slate-50"
+                  >
+                    <Navigation className="ml-2 h-4 w-4" /> موقع الاستلام
+                  </Button>
+                  <Button 
+                    onClick={() => handleStatusUpdate(order.id, "picked_up")}
+                    className="py-7 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-black text-sm shadow-xl transition-all"
+                  >
+                    تم الاستلام 📦
+                  </Button>
+                </div>
+              )}
               {!isAvailable && order.status === "picked_up" && (
-                <Button 
-                  onClick={() => handleStatusUpdate(order.id, "in_transit")}
-                  className="w-full py-7 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg shadow-xl transition-all"
-                >
-                  أنا في الطريق 🏁
-                </Button>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    variant="outline"
+                    onClick={() => openGoogleMaps(order, "delivery")}
+                    className="py-7 rounded-2xl border-slate-200 text-slate-600 font-black text-sm hover:bg-slate-50"
+                  >
+                    <Navigation className="ml-2 h-4 w-4" /> المسار الكامل
+                  </Button>
+                  <Button 
+                    onClick={() => handleStatusUpdate(order.id, "in_transit")}
+                    className="py-7 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm shadow-xl transition-all"
+                  >
+                    في الطريق 🏁
+                  </Button>
+                </div>
               )}
               {!isAvailable && order.status === "in_transit" && (
                 <Button 
