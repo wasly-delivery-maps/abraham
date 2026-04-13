@@ -273,12 +273,16 @@ class SDKServer {
       throw ForbiddenError("User not found");
     }
 
-    await db.upsertUser({
-      openId: user.openId,
-      phone: user.phone || undefined,
-      password: user.password || undefined,
-      lastSignedIn: signedInAt,
-    });
+    try {
+      await db.upsertUser({
+        openId: user.openId,
+        phone: user.phone || undefined,
+        password: user.password || undefined,
+        lastSignedIn: signedInAt,
+      });
+    } catch (e) {
+      console.warn("[Auth] Failed to update lastSignedIn", e);
+    }
 
     return user;
   }

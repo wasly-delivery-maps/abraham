@@ -38,31 +38,25 @@ let _useInMemory = false;
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db) {
+    const dbUrl = process.env.DATABASE_URL;
+    if (!dbUrl) {
+      console.warn("[Database] DATABASE_URL not set, falling back to in-memory database");
+      _useInMemory = true;
+      return null;
+    }
+
     try {
-      // Use mysql2 connection pool for TiDB
+      // Use mysql2 connection pool
       const mysql = await import('mysql2/promise');
-      const pool = mysql.createPool({
-        host: 'gateway01.eu-central-1.prod.aws.tidbcloud.com',
-        port: 4000,
-        user: '2TsznmHar2ue24f.root',
-        password: 'EcdJSdZ5TmFMDvyq',
-        database: 'test',
-        waitForConnections: true,
-        connectionLimit: 10,
-        queueLimit: 0,
-        ssl: {
-          rejectUnauthorized: false
-        },
-        enableKeepAlive: true,
-        keepAliveInitialDelaySeconds: 0,
-      });
+      const pool = mysql.createPool(dbUrl);
       _db = drizzle(pool);
       _useInMemory = false;
-      console.log("[Database] Connected to TiDB successfully");
+      console.log("[Database] Connected to database successfully");
     } catch (error: any) {
-      console.error("[Database] CRITICAL: Failed to connect to TiDB:", error.message || error);
-      // We do NOT fallback to in-memory here to ensure data consistency
-      throw new Error("Database connection failed");
+      console.error("[Database] CRITICAL: Failed to connect to database:", error.message || error);
+      console.log("[Database] Falling back to in-memory database");
+      _useInMemory = true;
+      return null;
     }
   }
   return _db;
@@ -214,18 +208,22 @@ export async function getUserByOpenId(openId: string) {
  */
 export async function getUserByPhone(phone: string) {
   const db = await getDb();
-  if (!db && !_useInMemory) {
-    console.warn("[Database] Cannot get user: database not available");
-    return undefined;
-  }
+  
+  // Normalize phone for lookup
+  const normalizedPhone = phone.startsWith('+') ? phone : (phone.startsWith('0') ? `+20${phone.substring(1)}` : `+20${phone}`);
 
   // In-memory implementation
   if (_useInMemory) {
-    return Array.from(inMemoryDB.users.values()).find(u => u.phone === phone);
+    return Array.from(inMemoryDB.users.values()).find(u => u.phone === normalizedPhone || u.phone === phone);
   }
 
   if (!db) return undefined;
-  const result = await db.select().from(users).where(eq(users.phone, phone)).limit(1);
+  
+  // Try both normalized and original phone
+  const result = await db.select().from(users).where(
+    sql`${users.phone} = ${normalizedPhone} OR ${users.phone} = ${phone}`
+  ).limit(1);
+  
   return result.length > 0 ? result[0] : undefined;
 }
 
