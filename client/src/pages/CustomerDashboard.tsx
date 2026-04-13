@@ -4,9 +4,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { MapPin, Plus, LogOut, User, Truck, Clock, DollarSign, X, Phone, Calendar, ChevronRight, Package, Search, CheckCircle2, Loader2, TrendingUp, Award, Zap, Navigation, Info } from "lucide-react";
+import { MapPin, Plus, LogOut, User, Truck, Clock, DollarSign, X, Phone, Calendar, ChevronRight, Package, Search, CheckCircle2, Loader2, TrendingUp, Award, Zap, Navigation, Info, MessageCircle } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
+import { ChatBox } from "@/components/ChatBox";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -54,6 +55,8 @@ export default function CustomerDashboard() {
   const [, navigate] = useLocation();
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatOrderId, setChatOrderId] = useState<number | null>(null);
 
   const ordersQuery = trpc.orders.getCustomerOrders.useQuery(undefined, {
     refetchInterval: 5000,
@@ -373,14 +376,27 @@ export default function CustomerDashboard() {
                                       </motion.div>
                                       <span className="text-xs font-bold text-slate-700">{order.assignedDriver.name}</span>
                                     </div>
-                                    <motion.a 
-                                      href={`tel:${order.assignedDriver.phone}`} 
-                                      className="text-orange-600 bg-white border border-orange-200 p-2 rounded-lg hover:bg-orange-50 transition-all"
-                                      whileHover={{ scale: 1.1 }}
-                                      whileTap={{ scale: 0.95 }}
-                                    >
-                                      <Phone className="h-4 w-4" />
-                                    </motion.a>
+                                    <div className="flex items-center gap-2">
+                                      <motion.button 
+                                        onClick={() => {
+                                          setChatOrderId(order.id);
+                                          setIsChatOpen(true);
+                                        }}
+                                        className="text-blue-600 bg-white border border-blue-200 p-2 rounded-lg hover:bg-blue-50 transition-all"
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.95 }}
+                                      >
+                                        <MessageCircle className="h-4 w-4" />
+                                      </motion.button>
+                                      <motion.a 
+                                        href={`tel:${order.assignedDriver.phone}`} 
+                                        className="text-orange-600 bg-white border border-orange-200 p-2 rounded-lg hover:bg-orange-50 transition-all"
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.95 }}
+                                      >
+                                        <Phone className="h-4 w-4" />
+                                      </motion.a>
+                                    </div>
                                   </motion.div>
                                 )}
                               </CardContent>
@@ -580,14 +596,28 @@ export default function CustomerDashboard() {
                           <p className="text-base font-black text-slate-900">{orderDetailsQuery.data.assignedDriver.name}</p>
                         </div>
                       </div>
-                      <motion.a 
-                        href={`tel:${orderDetailsQuery.data.assignedDriver.phone}`}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        className="h-12 w-12 bg-white rounded-xl flex items-center justify-center text-orange-600 shadow-sm border border-orange-100 hover:bg-orange-50 transition-all"
-                      >
-                        <Phone className="h-6 w-6" />
-                      </motion.a>
+                      <div className="flex items-center gap-2">
+                        <motion.button 
+                          onClick={() => {
+                            setChatOrderId(orderDetailsQuery.data!.id);
+                            setIsChatOpen(true);
+                            setIsDetailsOpen(false);
+                          }}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          className="h-12 w-12 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm border border-blue-100 hover:bg-blue-50 transition-all"
+                        >
+                          <MessageCircle className="h-6 w-6" />
+                        </motion.button>
+                        <motion.a 
+                          href={`tel:${orderDetailsQuery.data.assignedDriver.phone}`}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          className="h-12 w-12 bg-white rounded-xl flex items-center justify-center text-orange-600 shadow-sm border border-orange-100 hover:bg-orange-50 transition-all"
+                        >
+                          <Phone className="h-6 w-6" />
+                        </motion.a>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -618,6 +648,23 @@ export default function CustomerDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Chat Box */}
+      {isChatOpen && chatOrderId && (
+        <ChatBox
+          orderId={chatOrderId}
+          userId={user.id}
+          userRole="customer"
+          userName={user.name}
+          otherUserName={
+            orders.find(o => o.id === chatOrderId)?.assignedDriver?.name || 
+            orderDetailsQuery.data?.assignedDriver?.name || 
+            "السائق"
+          }
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+        />
+      )}
     </div>
   );
 }
