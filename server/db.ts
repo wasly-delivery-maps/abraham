@@ -42,11 +42,7 @@ export async function getDb() {
       // Use mysql2 connection pool for TiDB
       const mysql = await import('mysql2/promise');
       const pool = mysql.createPool({
-        host: 'gateway01.eu-central-1.prod.aws.tidbcloud.com',
-        port: 4000,
-        user: '2TsznmHar2ue24f.root',
-        password: 'EcdJSdZ5TmFMDvyq',
-        database: 'test',
+        uri: ENV.databaseUrl,
         waitForConnections: true,
         connectionLimit: 10,
         queueLimit: 0,
