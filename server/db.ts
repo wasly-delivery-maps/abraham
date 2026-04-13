@@ -33,14 +33,14 @@ const inMemoryDB: InMemoryDB = {
 };
 
 let _db: ReturnType<typeof drizzle> | null = null;
-let _useInMemory = true; // Default to in-memory
+let _useInMemory = false;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
-  if (!_db && process.env.DATABASE_URL) {
+  if (!_db) {
     try {
       // Use mysql2 connection pool for TiDB
-      const mysql = require('mysql2/promise');
+      const mysql = await import('mysql2/promise');
       const pool = mysql.createPool({
         host: 'gateway01.eu-central-1.prod.aws.tidbcloud.com',
         port: 4000,
@@ -50,7 +50,9 @@ export async function getDb() {
         waitForConnections: true,
         connectionLimit: 10,
         queueLimit: 0,
-        ssl: 'amazon',
+        ssl: {
+          rejectUnauthorized: false
+        },
         enableKeepAlive: true,
         keepAliveInitialDelaySeconds: 0,
       });
@@ -58,14 +60,10 @@ export async function getDb() {
       _useInMemory = false;
       console.log("[Database] Connected to TiDB successfully");
     } catch (error: any) {
-      console.warn("[Database] Failed to connect:", error.message || error);
-      console.log("[Database] Falling back to in-memory database");
-      _db = null;
-      _useInMemory = true;
+      console.error("[Database] CRITICAL: Failed to connect to TiDB:", error.message || error);
+      // We do NOT fallback to in-memory here to ensure data consistency
+      throw new Error("Database connection failed");
     }
-  } else if (!_db && !process.env.DATABASE_URL) {
-    console.log("[Database] DATABASE_URL not set, using in-memory database");
-    _useInMemory = true;
   }
   return _db;
 }
@@ -138,7 +136,7 @@ export async function upsertUser(user: InsertUser): Promise<any> {
       updateSet.password = user.password;
     }
 
-    const textFields = ["name", "email", "loginMethod"] as const;
+    const textFields = ["name", "email", "loginMethod", "avatarUrl"] as const;
     type TextField = (typeof textFields)[number];
 
     const assignNullable = (field: TextField) => {

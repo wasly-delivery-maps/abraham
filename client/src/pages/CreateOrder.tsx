@@ -274,7 +274,7 @@ export default function CreateOrder() {
       </motion.div>
 
       {/* Full Screen Map Container */}
-      <div className="flex-1 relative z-0">
+      <div className="flex-1 relative">
         <MapPicker
           onLocationSelect={(location) => {
             if (step === 'pickup') setPickupLocation(location);
@@ -284,7 +284,7 @@ export default function CreateOrder() {
         />
 
         {/* Floating Interaction Cards */}
-        <div className="absolute bottom-8 left-6 right-6 z-[9999] flex flex-col gap-4 pointer-events-none">
+        <div className="absolute bottom-8 left-6 right-6 z-50 flex flex-col gap-4 pointer-events-none">
           <AnimatePresence mode="wait">
             {step === 'pickup' && (
               <motion.div
@@ -295,7 +295,7 @@ export default function CreateOrder() {
                 transition={{ type: "spring", damping: 20, stiffness: 300 }}
                 className="pointer-events-auto"
               >
-                <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-3xl overflow-hidden hover:shadow-3xl transition-all pointer-events-auto">
+                <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-3xl overflow-hidden hover:shadow-3xl transition-all">
                   <CardContent className="p-8">
                     <motion.div 
                       className="flex items-center gap-4 mb-6"
@@ -357,7 +357,7 @@ export default function CreateOrder() {
                 transition={{ type: "spring", damping: 20, stiffness: 300 }}
                 className="pointer-events-auto"
               >
-                <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-3xl overflow-hidden hover:shadow-3xl transition-all pointer-events-auto">
+                <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-3xl overflow-hidden hover:shadow-3xl transition-all">
                   <CardContent className="p-8">
                     <motion.div 
                       className="flex items-center gap-4 mb-6"
@@ -417,7 +417,7 @@ export default function CreateOrder() {
                 animate={{ y: 0, opacity: 1, scale: 1 }}
                 exit={{ y: 100, opacity: 0, scale: 0.9 }}
                 transition={{ type: "spring", damping: 20, stiffness: 300 }}
-                className="max-h-[70vh] overflow-y-auto"
+                className="pointer-events-auto max-h-96 overflow-y-auto"
               >
                 <Card className="border-none shadow-2xl bg-white rounded-3xl overflow-hidden hover:shadow-3xl transition-all">
                   <CardContent className="p-8">
