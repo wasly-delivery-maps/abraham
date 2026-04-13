@@ -18,11 +18,14 @@ export default function DriverDashboard() {
   const [activeTab, setActiveTab] = useState("available");
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [driverLocation, setDriverLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   const ordersQuery = trpc.orders.getDriverOrders.useQuery(undefined, {
     enabled: !!user,
     refetchInterval: 10000,
   });
+
+  const updateLocationMutation = trpc.location.updateDriverLocation.useMutation();
 
   const orderDetailsQuery = trpc.orders.getOrderWithCustomer.useQuery(
     { orderId: selectedOrderId as number },
@@ -51,16 +54,37 @@ export default function DriverDashboard() {
     return null;
   }
 
+  // Track location like reference
+  useEffect(() => {
+    if (!user || user.role !== "driver") return;
+
+    if (navigator.geolocation) {
+      const watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setDriverLocation({ latitude, longitude });
+          updateLocationMutation.mutate({ latitude, longitude });
+        },
+        (error) => console.warn("Location error:", error),
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+      return () => navigator.geolocation.clearWatch(watchId);
+    }
+  }, [user]);
+
   const handleStatusUpdate = async (orderId: number, status: string) => {
     try {
       if (status === "delivered") {
         const result = await completeOrderMutation.mutateAsync({ orderId });
-        toast.success(result.message || "تم تسليم الطلب بنجاح ✅");
+        if ((result as any).isSuspended) {
+          toast.error(result.message);
+        } else {
+          toast.success(result.message || "تم تسليم الطلب بنجاح ✅");
+        }
       } else {
-        // Fix for "picked_up" and other statuses
         await updateStatusMutation.mutateAsync({ 
           orderId, 
-          status: status as "pending" | "assigned" | "accepted" | "picked_up" | "in_transit" | "arrived" | "delivered" | "cancelled" 
+          status: status as any
         });
         toast.success("تم تحديث حالة الطلب بنجاح 🚀");
       }
@@ -71,13 +95,18 @@ export default function DriverDashboard() {
   };
 
   const openGoogleMaps = (order: any, type: string) => {
+    const currentLocation = driverLocation 
+      ? `${driverLocation.latitude},${driverLocation.longitude}`
+      : "30.1200,31.4500";
+    
     const pickup = `${order.pickupLocation.latitude},${order.pickupLocation.longitude}`;
     const destination = `${order.deliveryLocation.latitude},${order.deliveryLocation.longitude}`;
+    
     let url = "";
     if (type === "pickup") {
-      url = `https://www.google.com/maps/dir/?api=1&destination=${pickup}&travelmode=driving`;
+      url = `https://www.google.com/maps/dir/?api=1&origin=${currentLocation}&destination=${pickup}&travelmode=driving`;
     } else {
-      url = `https://www.google.com/maps/dir/?api=1&destination=${destination}&waypoints=${pickup}&travelmode=driving`;
+      url = `https://www.google.com/maps/dir/?api=1&origin=${currentLocation}&destination=${destination}&waypoints=${pickup}&travelmode=driving`;
     }
     window.open(url, "_blank");
   };
