@@ -3,22 +3,31 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Navigation, Phone, Package, CheckCircle2, Clock, DollarSign, TrendingUp, User, LogOut, Loader2, ChevronRight, Truck, Map as MapIcon, ShieldCheck, Info, Zap, Route } from "lucide-react";
+import { MapPin, Navigation, Phone, Package, CheckCircle2, Clock, DollarSign, TrendingUp, User, LogOut, Loader2, ChevronRight, Truck, Map as MapIcon, ShieldCheck, Info, Zap, Route, MessageSquare } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { MapView } from "@/components/Map";
+import { ChatBox } from "@/components/ChatBox";
 
 export default function DriverDashboard() {
   const { user, loading, logout } = useAuth();
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("available");
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const ordersQuery = trpc.orders.getDriverOrders.useQuery(undefined, {
     enabled: !!user,
     refetchInterval: 10000,
   });
+
+  const orderDetailsQuery = trpc.orders.getOrderWithCustomer.useQuery(
+    { orderId: selectedOrderId as number },
+    { enabled: !!selectedOrderId }
+  );
 
   const availableQuery = trpc.orders.getAvailableOrders.useQuery(undefined, {
     enabled: !!user,
@@ -48,7 +57,11 @@ export default function DriverDashboard() {
         const result = await completeOrderMutation.mutateAsync({ orderId });
         toast.success(result.message || "تم تسليم الطلب بنجاح ✅");
       } else {
-        await updateStatusMutation.mutateAsync({ orderId, status: status as any });
+        // Fix for "picked_up" and other statuses
+        await updateStatusMutation.mutateAsync({ 
+          orderId, 
+          status: status as "pending" | "assigned" | "accepted" | "in_transit" | "arrived" | "delivered" | "cancelled" 
+        });
         toast.success("تم تحديث حالة الطلب بنجاح 🚀");
       }
       ordersQuery.refetch();
@@ -115,135 +128,210 @@ export default function DriverDashboard() {
     }
   };
 
-  const OrderCard = ({ order, isAvailable = false }: { order: any, isAvailable?: boolean }) => (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}>
-      <Card className="border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden mb-6 group hover:shadow-2xl transition-all duration-500">
-        <CardContent className="p-0">
-          <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-2xl bg-white shadow-sm flex items-center justify-center">
-                <Package className="h-5 w-5 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">رقم الطلب</p>
-                <p className="text-sm font-black text-slate-900">#{order.id}</p>
-              </div>
-            </div>
-            {getStatusBadge(order.status)}
-          </div>
+  const OrderCard = ({ order, isAvailable = false }: { order: any, isAvailable?: boolean }) => {
+    const isSelected = selectedOrderId === order.id;
+    const details = isSelected ? orderDetailsQuery.data : null;
 
-          <div className="p-8 space-y-8">
-            <div className="relative space-y-8">
-              <div className="absolute right-[11px] top-3 bottom-3 w-[2px] bg-gradient-to-b from-orange-500 via-slate-200 to-blue-500 rounded-full" />
-              
-              <div className="relative flex gap-6">
-                <div className="h-6 w-6 rounded-full bg-orange-500 border-4 border-white shadow-lg z-10 flex-shrink-0" />
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">نقطة الاستلام</p>
-                  <p className="text-sm font-bold text-slate-700 leading-relaxed">{order.pickupLocation.address}</p>
+    return (
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}>
+        <Card 
+          className={`border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden mb-6 group transition-all duration-500 ${isSelected ? 'ring-2 ring-orange-500' : 'hover:shadow-2xl'}`}
+          onClick={() => !isAvailable && setSelectedOrderId(order.id)}
+        >
+          <CardContent className="p-0">
+            <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-2xl bg-white shadow-sm flex items-center justify-center">
+                  <Package className="h-5 w-5 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">رقم الطلب</p>
+                  <p className="text-sm font-black text-slate-900">#{order.id}</p>
                 </div>
               </div>
-
-              <div className="relative flex gap-6">
-                <div className="h-6 w-6 rounded-full bg-blue-500 border-4 border-white shadow-lg z-10 flex-shrink-0" />
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">وجهة التسليم</p>
-                  <p className="text-sm font-bold text-slate-700 leading-relaxed">{order.deliveryLocation.address}</p>
-                </div>
-              </div>
+              {getStatusBadge(order.status)}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">أرباحك</p>
-                <p className="text-xl font-black text-orange-600">ج.م {order.price}</p>
-              </div>
-              <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">العميل</p>
-                <p className="text-sm font-black text-slate-900 truncate">{order.customer?.name || "عميل وصلي"}</p>
-              </div>
-            </div>
-
-            {order.notes && (
-              <div className="bg-orange-50/50 p-4 rounded-2xl border border-orange-100/50 flex gap-3">
-                <Info className="h-5 w-5 text-orange-500 flex-shrink-0" />
-                <p className="text-xs font-bold text-orange-800 leading-relaxed">{order.notes}</p>
+            {/* Interactive Map for Active Orders */}
+            {!isAvailable && isSelected && (
+              <div className="h-64 w-full bg-slate-100 relative">
+                <MapView
+                  className="h-full w-full"
+                  initialCenter={{ lat: order.pickupLocation.latitude, lng: order.pickupLocation.longitude }}
+                  onMapReady={(map) => {
+                    // Add Pickup Marker
+                    new google.maps.Marker({
+                      position: { lat: order.pickupLocation.latitude, lng: order.pickupLocation.longitude },
+                      map,
+                      title: "الاستلام",
+                      icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 10,
+                        fillColor: "#f97316",
+                        fillOpacity: 1,
+                        strokeColor: "#ffffff",
+                        strokeWeight: 2,
+                      }
+                    });
+                    // Add Delivery Marker
+                    new google.maps.Marker({
+                      position: { lat: order.deliveryLocation.latitude, lng: order.deliveryLocation.longitude },
+                      map,
+                      title: "التسليم",
+                      icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 10,
+                        fillColor: "#3b82f6",
+                        fillOpacity: 1,
+                        strokeColor: "#ffffff",
+                        strokeWeight: 2,
+                      }
+                    });
+                    // Draw Line
+                    new google.maps.Polyline({
+                      path: [
+                        { lat: order.pickupLocation.latitude, lng: order.pickupLocation.longitude },
+                        { lat: order.deliveryLocation.latitude, lng: order.deliveryLocation.longitude }
+                      ],
+                      geodesic: true,
+                      strokeColor: "#f97316",
+                      strokeOpacity: 0.6,
+                      strokeWeight: 3,
+                      map
+                    });
+                    
+                    const bounds = new google.maps.LatLngBounds();
+                    bounds.extend({ lat: order.pickupLocation.latitude, lng: order.pickupLocation.longitude });
+                    bounds.extend({ lat: order.deliveryLocation.latitude, lng: order.deliveryLocation.longitude });
+                    map.fitBounds(bounds);
+                  }}
+                />
               </div>
             )}
 
-            <div className="flex flex-col gap-3">
-              {isAvailable && (
-                <Button 
-                  onClick={() => handleAcceptOrder(order.id)}
-                  className="w-full py-7 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white font-black text-lg shadow-xl shadow-orange-100 transition-all"
-                >
-                  قبول الطلب الآن 🚀
-                </Button>
-              )}
-              {!isAvailable && (order.status === "assigned" || order.status === "accepted") && (
-                <div className="grid grid-cols-2 gap-3">
-                  <Button 
-                    variant="outline"
-                    onClick={() => openGoogleMaps(order, "pickup")}
-                    className="py-7 rounded-2xl border-slate-200 text-slate-600 font-black text-sm hover:bg-slate-50"
-                  >
-                    <Navigation className="ml-2 h-4 w-4" /> موقع الاستلام
-                  </Button>
-                  <Button 
-                    onClick={() => handleStatusUpdate(order.id, "picked_up")}
-                    className="py-7 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-black text-sm shadow-xl transition-all"
-                  >
-                    تم الاستلام 📦
-                  </Button>
+            <div className="p-8 space-y-8">
+              <div className="relative space-y-8">
+                <div className="absolute right-[11px] top-3 bottom-3 w-[2px] bg-gradient-to-b from-orange-500 via-slate-200 to-blue-500 rounded-full" />
+                
+                <div className="relative flex gap-6">
+                  <div className="h-6 w-6 rounded-full bg-orange-500 border-4 border-white shadow-lg z-10 flex-shrink-0" />
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">نقطة الاستلام</p>
+                    <p className="text-sm font-bold text-slate-700 leading-relaxed">{order.pickupLocation.address}</p>
+                  </div>
+                </div>
+
+                <div className="relative flex gap-6">
+                  <div className="h-6 w-6 rounded-full bg-blue-500 border-4 border-white shadow-lg z-10 flex-shrink-0" />
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">وجهة التسليم</p>
+                    <p className="text-sm font-bold text-slate-700 leading-relaxed">{order.deliveryLocation.address}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">أرباحك</p>
+                  <p className="text-xl font-black text-orange-600">ج.م {order.price}</p>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">العميل</p>
+                  <p className="text-sm font-black text-slate-900 truncate">{details?.customer?.name || order.customer?.name || "عميل وصلي"}</p>
+                </div>
+              </div>
+
+              {order.notes && (
+                <div className="bg-orange-50/50 p-4 rounded-2xl border border-orange-100/50 flex gap-3">
+                  <Info className="h-5 w-5 text-orange-500 flex-shrink-0" />
+                  <p className="text-xs font-bold text-orange-800 leading-relaxed">{order.notes}</p>
                 </div>
               )}
-              {!isAvailable && order.status === "picked_up" && (
-                <div className="grid grid-cols-2 gap-3">
+
+              <div className="flex flex-col gap-3">
+                {isAvailable && (
                   <Button 
-                    variant="outline"
-                    onClick={() => openGoogleMaps(order, "delivery")}
-                    className="py-7 rounded-2xl border-slate-200 text-slate-600 font-black text-sm hover:bg-slate-50"
+                    onClick={(e) => { e.stopPropagation(); handleAcceptOrder(order.id); }}
+                    className="w-full py-7 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white font-black text-lg shadow-xl shadow-orange-100 transition-all"
                   >
-                    <Navigation className="ml-2 h-4 w-4" /> المسار الكامل
+                    قبول الطلب الآن 🚀
                   </Button>
+                )}
+                {!isAvailable && (order.status === "assigned" || order.status === "accepted") && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button 
+                      variant="outline"
+                      onClick={(e) => { e.stopPropagation(); openGoogleMaps(order, "pickup"); }}
+                      className="py-7 rounded-2xl border-slate-200 text-slate-600 font-black text-sm hover:bg-slate-50"
+                    >
+                      <Navigation className="ml-2 h-4 w-4" /> موقع الاستلام
+                    </Button>
+                    <Button 
+                      onClick={(e) => { e.stopPropagation(); handleStatusUpdate(order.id, "picked_up"); }}
+                      className="py-7 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-black text-sm shadow-xl transition-all"
+                    >
+                      تم الاستلام 📦
+                    </Button>
+                  </div>
+                )}
+                {!isAvailable && order.status === "picked_up" && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button 
+                      variant="outline"
+                      onClick={(e) => { e.stopPropagation(); openGoogleMaps(order, "delivery"); }}
+                      className="py-7 rounded-2xl border-slate-200 text-slate-600 font-black text-sm hover:bg-slate-50"
+                    >
+                      <Navigation className="ml-2 h-4 w-4" /> المسار الكامل
+                    </Button>
+                    <Button 
+                      onClick={(e) => { e.stopPropagation(); handleStatusUpdate(order.id, "in_transit"); }}
+                      className="py-7 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm shadow-xl transition-all"
+                    >
+                      في الطريق 🏁
+                    </Button>
+                  </div>
+                )}
+                {!isAvailable && order.status === "in_transit" && (
                   <Button 
-                    onClick={() => handleStatusUpdate(order.id, "in_transit")}
-                    className="py-7 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm shadow-xl transition-all"
+                    onClick={(e) => { e.stopPropagation(); handleStatusUpdate(order.id, "arrived"); }}
+                    className="w-full py-7 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-black text-lg shadow-xl transition-all"
                   >
-                    في الطريق 🏁
+                    لقد وصلت للموقع 📍
                   </Button>
-                </div>
-              )}
-              {!isAvailable && order.status === "in_transit" && (
-                <Button 
-                  onClick={() => handleStatusUpdate(order.id, "arrived")}
-                  className="w-full py-7 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-black text-lg shadow-xl transition-all"
-                >
-                  لقد وصلت للموقع 📍
-                </Button>
-              )}
-              {!isAvailable && order.status === "arrived" && (
-                <Button 
-                  onClick={() => handleStatusUpdate(order.id, "delivered")}
-                  className="w-full py-7 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg shadow-xl transition-all"
-                >
-                  تم التسليم بنجاح ✅
-                </Button>
-              )}
-              
-              {order.customer?.phone && (
-                <a href={`tel:${order.customer.phone}`} className="w-full">
-                  <Button variant="outline" className="w-full py-7 rounded-2xl border-slate-200 text-slate-600 font-black text-lg hover:bg-slate-50">
-                    <Phone className="ml-2 h-5 w-5" /> اتصل بالعميل
+                )}
+                {!isAvailable && order.status === "arrived" && (
+                  <Button 
+                    onClick={(e) => { e.stopPropagation(); handleStatusUpdate(order.id, "delivered"); }}
+                    className="w-full py-7 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg shadow-xl transition-all"
+                  >
+                    تم التسليم بنجاح ✅
                   </Button>
-                </a>
-              )}
+                )}
+                
+                {/* Contact Actions */}
+                {!isAvailable && (details?.customer?.phone || order.customer?.phone) && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <a href={`tel:${details?.customer?.phone || order.customer.phone}`} className="w-full" onClick={(e) => e.stopPropagation()}>
+                      <Button variant="outline" className="w-full py-7 rounded-2xl border-slate-200 text-slate-600 font-black text-sm hover:bg-slate-50">
+                        <Phone className="ml-2 h-4 w-4" /> اتصل بالعميل
+                      </Button>
+                    </a>
+                    <Button 
+                      variant="outline" 
+                      onClick={(e) => { e.stopPropagation(); setSelectedOrderId(order.id); setIsChatOpen(true); }}
+                      className="w-full py-7 rounded-2xl border-slate-200 text-slate-600 font-black text-sm hover:bg-slate-50"
+                    >
+                      <MessageSquare className="ml-2 h-4 w-4" /> مراسلة
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-24" dir="rtl">
@@ -367,6 +455,19 @@ export default function DriverDashboard() {
           </AnimatePresence>
         </Tabs>
       </div>
+
+      {/* Chat Interface */}
+      {selectedOrderId && (
+        <ChatBox
+          orderId={selectedOrderId}
+          userId={user.id}
+          userRole="driver"
+          userName={user.name}
+          otherUserName={orderDetailsQuery.data?.customer?.name || "العميل"}
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+        />
+      )}
     </div>
   );
 }
