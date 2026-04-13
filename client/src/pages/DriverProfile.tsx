@@ -161,6 +161,23 @@ export default function DriverProfile() {
                 </div>
               </CardContent>
             </Card>
+
+            <Card className="border-none shadow-xl bg-blue-600 text-white rounded-[2.5rem] overflow-hidden">
+              <CardContent className="p-8">
+                <h3 className="text-lg font-black mb-4 flex items-center gap-3">
+                  <HelpCircle className="h-5 w-5" />
+                  الدعم الفني
+                </h3>
+                <p className="text-white/70 text-sm font-medium mb-6">هل تواجه مشكلة؟ تواصل مع فريق الدعم الآن</p>
+                <Button 
+                  onClick={() => navigate("/driver/support")}
+                  className="w-full bg-white hover:bg-blue-50 text-blue-600 h-14 rounded-2xl font-black text-lg shadow-xl transition-all"
+                >
+                  <HelpCircle className="h-5 w-5 ml-2" />
+                  اذهب للدعم الفني
+                </Button>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Settings */}

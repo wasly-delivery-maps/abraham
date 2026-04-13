@@ -69,7 +69,8 @@ export default function DriverDashboard() {
 
   const ordersQuery = trpc.orders.getDriverOrders.useQuery(undefined, {
     enabled: !!user && user.role === "driver",
-    refetchInterval: 10000,
+    refetchInterval: 15000,
+    staleTime: 5000,
   });
 
   const updateLocationMutation = trpc.location.updateDriverLocation.useMutation();
@@ -81,7 +82,8 @@ export default function DriverDashboard() {
 
   const availableQuery = trpc.orders.getAvailableOrders.useQuery(undefined, {
     enabled: !!user && user.role === "driver",
-    refetchInterval: 10000,
+    refetchInterval: 15000,
+    staleTime: 5000,
   });
 
   const updateStatusMutation = trpc.orders.updateOrderStatus.useMutation();
@@ -95,7 +97,9 @@ export default function DriverDashboard() {
     }
   }, [user, loading, navigate]);
 
-  // Track location
+  // Track location - Debounced to prevent excessive updates
+  const lastLocationUpdateRef = useRef<{ lat: number; lng: number; time: number } | null>(null);
+  
   useEffect(() => {
     if (!user || user.role !== "driver") return;
 
@@ -103,11 +107,20 @@ export default function DriverDashboard() {
       const watchId = navigator.geolocation.watchPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          setDriverLocation({ latitude, longitude });
-          updateLocationMutation.mutate({ latitude, longitude });
+          const now = Date.now();
+          
+          // Only update if location changed significantly or 30 seconds have passed
+          if (!lastLocationUpdateRef.current || 
+              now - lastLocationUpdateRef.current.time > 30000 ||
+              (Math.abs(latitude - lastLocationUpdateRef.current.lat) > 0.0001 ||
+               Math.abs(longitude - lastLocationUpdateRef.current.lng) > 0.0001)) {
+            lastLocationUpdateRef.current = { lat: latitude, lng: longitude, time: now };
+            setDriverLocation({ latitude, longitude });
+            updateLocationMutation.mutate({ latitude, longitude });
+          }
         },
         (error) => console.warn("Location error:", error),
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 5000 }
       );
       return () => navigator.geolocation.clearWatch(watchId);
     }

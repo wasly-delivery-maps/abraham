@@ -1,6 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import NotFound from "@/pages/NotFound";
 
 interface ProtectedRouteProps {
@@ -10,13 +10,28 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ component: Component, requiredRole }: ProtectedRouteProps) {
   const { user, loading, isAuthenticated } = useAuth();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
+  const navigationAttemptedRef = useRef(false);
 
   useEffect(() => {
-    if (!loading && !isAuthenticated && window.location.pathname !== "/auth") {
+    // Skip if still loading
+    if (loading) return;
+
+    // Skip if already authenticated and on correct path
+    if (isAuthenticated && user?.role === requiredRole) {
+      navigationAttemptedRef.current = false;
+      return;
+    }
+
+    // Prevent multiple navigation attempts
+    if (navigationAttemptedRef.current) return;
+
+    // Navigate to auth if not authenticated
+    if (!isAuthenticated && location !== "/auth") {
+      navigationAttemptedRef.current = true;
       navigate("/auth");
     }
-  }, [loading, isAuthenticated, navigate]);
+  }, [loading, isAuthenticated, user?.role, requiredRole, location, navigate]);
 
   if (loading) {
     return (
