@@ -1,30 +1,43 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Mail, Phone, MapPin, Star, Truck, LogOut, Home, HelpCircle } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { Label } from "@/components/ui/label";
+import { ArrowRight, Mail, Phone, MapPin, Truck, LogOut, User, Settings, ShieldCheck, ChevronLeft, Camera, Edit3, Save, X, MessageCircle, ShoppingBag, HelpCircle, Loader2, Star, TrendingUp } from "lucide-react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function DriverProfile() {
   const { user, loading, logout } = useAuth();
   const [, navigate] = useLocation();
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
-    phone: user?.phone || "",
+    name: "",
+    email: "",
+    phone: "",
   });
-  const ordersQuery = trpc.orders.getDriverOrders.useQuery();
+
+  useEffect(() => {
+    if (user) {
+      setEditData({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+      });
+    }
+  }, [user]);
+
+  const ordersQuery = trpc.orders.getDriverOrders.useQuery(undefined, { enabled: !!user });
   const updateProfileMutation = trpc.users.updateProfile.useMutation();
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-orange-50 to-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="h-12 w-12 text-orange-600 animate-spin" />
       </div>
     );
   }
@@ -43,7 +56,7 @@ export default function DriverProfile() {
   const handleSaveProfile = async () => {
     try {
       await updateProfileMutation.mutateAsync(editData);
-      toast.success("تم تحديث البيانات بنجاح");
+      toast.success("تم تحديث البيانات بنجاح ✨");
       setIsEditing(false);
     } catch (error) {
       toast.error("فشل في تحديث البيانات");
@@ -53,268 +66,184 @@ export default function DriverProfile() {
   const orders = ordersQuery.data || [];
   const completedOrders = orders.filter((o) => o.status === "delivered").length;
   const activeOrders = orders.filter((o) => !["delivered", "cancelled"].includes(o.status)).length;
-  const totalEarnings = orders
-    .filter((o) => o.status === "delivered")
-    .reduce((sum, o) => sum + (o.price || 0), 0);
+  const totalEarnings = orders.filter((o) => o.status === "delivered").reduce((sum, o) => sum + (o.price || 0), 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-background" dir="rtl">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-orange-600 via-orange-500 to-yellow-500 text-white py-8 shadow-lg">
-        <div className="container">
-          <div className="flex justify-between items-start">
-            <Link href="/driver/dashboard">
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
-                <ArrowRight className="h-4 w-4 ml-2" />
-                العودة
-              </Button>
-            </Link>
-            <h1 className="text-3xl font-bold">الملف الشخصي</h1>
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans" dir="rtl">
+      {/* Header Section */}
+      <div className="bg-slate-900 text-white pt-12 pb-32 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-orange-600/20 rounded-full -mr-48 -mt-48 blur-3xl" />
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="flex justify-between items-center mb-12">
+            <Button 
+              variant="ghost" 
+              className="text-white/60 hover:text-white hover:bg-white/10 rounded-2xl h-12 w-12 p-0"
+              onClick={() => navigate("/driver/dashboard")}
+            >
+              <ChevronLeft className="h-6 w-6 rotate-180" />
+            </Button>
+            <h1 className="text-xl font-black tracking-widest uppercase">ملف الكابتن</h1>
+            <Button 
+              variant="ghost" 
+              className="text-white/60 hover:text-rose-500 hover:bg-rose-500/10 rounded-2xl h-12 w-12 p-0"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="relative">
+              <div className="h-32 w-32 rounded-[2.5rem] bg-gradient-to-br from-orange-500 to-orange-700 p-1 shadow-2xl">
+                <div className="h-full w-full rounded-[2.3rem] bg-slate-900 flex items-center justify-center overflow-hidden">
+                  <Truck className="h-16 w-16 text-orange-500" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="text-center md:text-right">
+              <div className="flex items-center gap-3 justify-center md:justify-start mb-2">
+                <h2 className="text-4xl font-black">{user.name}</h2>
+                <Badge className={`px-4 py-1 rounded-full font-black text-[10px] uppercase tracking-widest ${
+                  user.accountStatus === "active" ? "bg-emerald-600/20 text-emerald-500" : "bg-rose-600/20 text-rose-500"
+                }`}>
+                  {user.accountStatus === "active" ? "حساب نشط" : "حساب معلق"}
+                </Badge>
+              </div>
+              <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                <Badge className="bg-orange-600/20 text-orange-500 border-none px-4 py-1 rounded-full font-black text-[10px] uppercase tracking-widest">
+                  كابتن وصلي
+                </Badge>
+                <Badge className="bg-white/10 text-white/60 border-none px-4 py-1 rounded-full font-black text-[10px] uppercase tracking-widest">
+                  ID: #{user.id}
+                </Badge>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="container py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Card */}
-          <div className="lg:col-span-1">
-            <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-white">
-              <CardContent className="pt-6">
-                <div className="text-center space-y-4">
-                  <div className="w-24 h-24 mx-auto bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center">
-                    <span className="text-4xl">🚗</span>
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{editData.name || "السائق"}</h2>
-                    <Badge className={`mt-2 ${
-                      user?.accountStatus === "active"
-                        ? "bg-green-500 text-white"
-                        : user?.accountStatus === "suspended"
-                        ? "bg-yellow-500 text-white"
-                        : "bg-red-500 text-white"
-                    }`}>
-                      {user?.accountStatus === "active"
-                        ? "نشط"
-                        : user?.accountStatus === "suspended"
-                        ? "معلق"
-                        : "موقوف"}
-                    </Badge>
-                  </div>
+      {/* Content Section */}
+      <div className="container mx-auto px-6 -mt-20 pb-20 relative z-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Stats */}
+          <div className="lg:col-span-4 space-y-6">
+            <Card className="border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden">
+              <CardContent className="p-8">
+                <h3 className="text-lg font-black text-slate-900 mb-8 flex items-center gap-3">
+                  <TrendingUp className="h-5 w-5 text-orange-600" />
+                  إحصائيات الأداء
+                </h3>
+                <div className="space-y-4">
+                  {[
+                    { label: "طلبات جارية", value: activeOrders, color: "text-orange-600", bg: "bg-orange-50" },
+                    { label: "طلبات مكتملة", value: completedOrders, color: "text-emerald-600", bg: "bg-emerald-50" },
+                    { label: "إجمالي الأرباح", value: `ج.م ${totalEarnings.toLocaleString()}`, color: "text-blue-600", bg: "bg-blue-50" }
+                  ].map((stat, i) => (
+                    <div key={i} className={`flex items-center justify-between p-4 ${stat.bg} rounded-2xl border border-slate-50`}>
+                      <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{stat.label}</span>
+                      <span className={`text-xl font-black ${stat.color}`}>{stat.value}</span>
+                    </div>
+                  ))}
                 </div>
+              </CardContent>
+            </Card>
 
-                {/* Contact Info */}
-                <div className="mt-6 space-y-3 border-t pt-6">
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-5 w-5 text-orange-600 flex-shrink-0" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">رقم الهاتف</p>
-                      <a href={`tel:${editData.phone}`} className="font-medium text-blue-600 hover:underline">
-                        {editData.phone}
-                      </a>
-                    </div>
-                  </div>
-                  {editData.email && (
-                    <div className="flex items-center gap-3">
-                      <Mail className="h-5 w-5 text-orange-600 flex-shrink-0" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">البريد الإلكتروني</p>
-                        <a href={`mailto:${editData.email}`} className="font-medium text-blue-600 hover:underline">
-                          {editData.email}
-                        </a>
-                      </div>
-                    </div>
-                  )}
+            <Card className="border-none shadow-xl bg-slate-900 text-white rounded-[2.5rem] overflow-hidden">
+              <CardContent className="p-8">
+                <h3 className="text-lg font-black mb-4 flex items-center gap-3">
+                  <Star className="h-5 w-5 text-orange-500" />
+                  العمولات المستحقة
+                </h3>
+                <div className="bg-white/10 p-6 rounded-2xl text-center">
+                  <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mb-2">رصيد العمولات</p>
+                  <p className="text-3xl font-black text-white">ج.م {parseFloat((user?.pendingCommission || "0").toString()).toFixed(2)}</p>
                 </div>
-
-                {/* Edit Button */}
-                {!isEditing ? (
-                  <Button
-                    onClick={() => setIsEditing(true)}
-                    className="w-full mt-6 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white"
-                  >
-                    تعديل البيانات
-                  </Button>
-                ) : (
-                  <div className="space-y-3 mt-6">
-                    <Input
-                      placeholder="الاسم"
-                      value={editData.name}
-                      onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                      className="text-right"
-                    />
-                    <Input
-                      placeholder="البريد الإلكتروني"
-                      type="email"
-                      value={editData.email}
-                      onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                      className="text-right"
-                    />
-                    <Input
-                      placeholder="رقم الهاتف"
-                      value={editData.phone}
-                      onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-                      className="text-right"
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={handleSaveProfile}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                        disabled={updateProfileMutation.isPending}
-                      >
-                        {updateProfileMutation.isPending ? "جاري الحفظ..." : "حفظ"}
-                      </Button>
-                      <Button onClick={() => setIsEditing(false)} variant="outline" className="flex-1">
-                        إلغاء
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Logout Button */}
-                <Button
-                  variant="outline"
-                  className="w-full mt-3 border-red-300 text-red-600 hover:bg-red-50"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="h-4 w-4 ml-2" />
-                  تسجيل خروج
-                </Button>
               </CardContent>
             </Card>
           </div>
 
-          {/* Statistics & Details */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card className="border-l-4 border-blue-500 bg-gradient-to-br from-blue-50 to-white">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Truck className="h-5 w-5 text-blue-600" />
-                    الطلبات النشطة
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-blue-600">{activeOrders}</div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-l-4 border-green-500 bg-gradient-to-br from-green-50 to-white">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Star className="h-5 w-5 text-green-600" />
-                    المكتملة
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-green-600">{completedOrders}</div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-l-4 border-yellow-500 bg-gradient-to-br from-yellow-50 to-white">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <span className="text-lg">💰</span>
-                    الأرباح
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-yellow-600">ج.م {totalEarnings.toFixed(2)}</div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-l-4 border-red-500 bg-gradient-to-br from-red-50 to-white">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <span className="text-lg">📊</span>
-                    العمولات المستحقة
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-red-600">ج.م {parseFloat((user?.pendingCommission || "0").toString()).toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground mt-2">3 جنيه لكل طلب</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Performance Card */}
-            <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-purple-600" />
-                  الأداء
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-sm font-medium">معدل الإنجاز</span>
-                    <span className="text-sm font-bold text-purple-600">
-                      {completedOrders + activeOrders > 0
-                        ? Math.round((completedOrders / (completedOrders + activeOrders)) * 100)
-                        : 0}
-                      %
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-gradient-to-r from-purple-600 to-purple-400 h-2 rounded-full transition-all"
-                      style={{
-                        width: `${
-                          completedOrders + activeOrders > 0
-                            ? (completedOrders / (completedOrders + activeOrders)) * 100
-                            : 0
-                        }%`,
-                      }}
-                    />
-                  </div>
+          {/* Settings */}
+          <div className="lg:col-span-8">
+            <Card className="border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden h-full">
+              <CardContent className="p-10">
+                <div className="flex justify-between items-center mb-12">
+                  <h3 className="text-2xl font-black text-slate-900 flex items-center gap-4">
+                    <Settings className="h-6 w-6 text-orange-600" />
+                    إعدادات الحساب
+                  </h3>
+                  {!isEditing && (
+                    <Button 
+                      onClick={() => setIsEditing(true)}
+                      className="bg-slate-100 hover:bg-orange-600 hover:text-white text-slate-600 font-black px-6 rounded-2xl transition-all"
+                    >
+                      <Edit3 className="h-4 w-4 ml-2" /> تعديل
+                    </Button>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                  <div>
-                    <p className="text-xs text-muted-foreground">إجمالي الطلبات</p>
-                    <p className="text-2xl font-bold text-gray-900">{orders.length}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">متوسط التقييم</p>
-                    <p className="text-2xl font-bold text-yellow-500">4.8 ⭐</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Support Center Card */}
-            <Card className="border-2 border-red-200 bg-gradient-to-br from-red-50 to-white">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <HelpCircle className="h-5 w-5 text-red-600" />
-                  مركز المساعدة والدعم
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-gray-700">
-                  هل تواجه أي مشاكل أو لديك استفسارات؟ تواصل معنا الآن!
-                </p>
-                <div className="bg-white p-4 rounded-lg border border-red-100">
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-6 w-6 text-red-600 flex-shrink-0" />
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">رقم الدعم الفني</p>
-                      <div className="flex gap-3 items-center">
-                        <a href="tel:01557564373" className="text-lg font-bold text-red-600 hover:underline">
-                          01557564373
-                        </a>
-                        <a href="https://wa.me/201557564373" target="_blank" rel="noopener noreferrer" className="text-sm text-green-600 hover:underline font-medium">
-                          واتس آب
-                        </a>
+                <div className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-4">الاسم الكامل</Label>
+                      <div className="relative">
+                        <User className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
+                        <Input 
+                          disabled={!isEditing}
+                          value={editData.name}
+                          onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                          className="h-16 pr-12 rounded-2xl border-slate-100 bg-slate-50/50 focus:ring-orange-500 font-bold text-slate-700"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-4">رقم الهاتف</Label>
+                      <div className="relative">
+                        <Phone className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
+                        <Input 
+                          disabled={!isEditing}
+                          value={editData.phone}
+                          onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                          className="h-16 pr-12 rounded-2xl border-slate-100 bg-slate-50/50 focus:ring-orange-500 font-bold text-slate-700"
+                        />
                       </div>
                     </div>
                   </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-4">البريد الإلكتروني</Label>
+                    <div className="relative">
+                      <Mail className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
+                      <Input 
+                        disabled={!isEditing}
+                        type="email"
+                        value={editData.email}
+                        onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                        className="h-16 pr-12 rounded-2xl border-slate-100 bg-slate-50/50 focus:ring-orange-500 font-bold text-slate-700"
+                      />
+                    </div>
+                  </div>
+
+                  <AnimatePresence>
+                    {isEditing && (
+                      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="flex gap-4 pt-8">
+                        <Button 
+                          onClick={handleSaveProfile}
+                          className="flex-1 bg-orange-600 hover:bg-orange-700 text-white h-16 rounded-2xl font-black text-lg shadow-xl transition-all"
+                        >
+                          حفظ التغييرات
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          onClick={() => setIsEditing(false)}
+                          className="flex-1 h-16 rounded-2xl font-black text-lg border-slate-200 text-slate-500"
+                        >
+                          إلغاء
+                        </Button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-                <p className="text-xs text-muted-foreground text-center">
-                  متاح 24/7 للإجابة على جميع استفساراتك
-                </p>
               </CardContent>
             </Card>
           </div>
