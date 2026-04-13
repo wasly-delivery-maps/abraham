@@ -74,7 +74,7 @@ export default function DriverDashboard() {
 
   const orders = ordersQuery.data || [];
   const availableOrders = availableQuery.data || [];
-  const activeOrders = orders.filter((o) => ["accepted", "picked_up", "in_transit", "arrived"].includes(o.status));
+  const activeOrders = orders.filter((o) => ["assigned", "accepted", "picked_up", "in_transit", "arrived"].includes(o.status));
   const completedOrders = orders.filter((o) => o.status === "delivered");
 
   const stats = [
@@ -85,8 +85,9 @@ export default function DriverDashboard() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "pending": return <Badge className="bg-orange-100 text-orange-600 border-none px-3 py-1 rounded-full font-black text-[10px]">متاح الآن</Badge>;
-      case "accepted": return <Badge className="bg-blue-100 text-blue-600 border-none px-3 py-1 rounded-full font-black text-[10px]">تم القبول</Badge>;
+	      case "pending": return <Badge className="bg-orange-100 text-orange-600 border-none px-3 py-1 rounded-full font-black text-[10px]">متاح الآن</Badge>;
+	      case "assigned":
+	      case "accepted": return <Badge className="bg-blue-100 text-blue-600 border-none px-3 py-1 rounded-full font-black text-[10px]">تم القبول</Badge>;
       case "picked_up": return <Badge className="bg-purple-100 text-purple-600 border-none px-3 py-1 rounded-full font-black text-[10px]">تم الاستلام</Badge>;
       case "in_transit": return <Badge className="bg-indigo-100 text-indigo-600 border-none px-3 py-1 rounded-full font-black text-[10px]">في الطريق</Badge>;
       case "arrived": return <Badge className="bg-amber-100 text-amber-600 border-none px-3 py-1 rounded-full font-black text-[10px]">وصلت</Badge>;
@@ -160,14 +161,14 @@ export default function DriverDashboard() {
                   قبول الطلب الآن 🚀
                 </Button>
               )}
-              {!isAvailable && order.status === "accepted" && (
-                <Button 
-                  onClick={() => handleStatusUpdate(order.id, "picked_up")}
-                  className="w-full py-7 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-black text-lg shadow-xl transition-all"
-                >
-                  تم استلام الطرد 📦
-                </Button>
-              )}
+	              {!isAvailable && (order.status === "assigned" || order.status === "accepted") && (
+	                <Button 
+	                  onClick={() => handleStatusUpdate(order.id, "picked_up")}
+	                  className="w-full py-7 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-black text-lg shadow-xl transition-all"
+	                >
+	                  تم استلام الطرد 📦
+	                </Button>
+	              )}
               {!isAvailable && order.status === "picked_up" && (
                 <Button 
                   onClick={() => handleStatusUpdate(order.id, "in_transit")}
