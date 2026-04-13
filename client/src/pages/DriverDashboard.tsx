@@ -147,9 +147,9 @@ export default function DriverDashboard() {
   const getStatusBadge = (status: string) => {
     switch (status) {
 	      case "pending": return <Badge className="bg-orange-100 text-orange-600 border-none px-3 py-1 rounded-full font-black text-[10px]">متاح الآن</Badge>;
-	      case "assigned":
-	      case "accepted": return <Badge className="bg-blue-100 text-blue-600 border-none px-3 py-1 rounded-full font-black text-[10px]">تم القبول</Badge>;
-      case "picked_up": return <Badge className="bg-purple-100 text-purple-600 border-none px-3 py-1 rounded-full font-black text-[10px]">تم الاستلام</Badge>;
+		      case "assigned":
+		      case "accepted": return <Badge className="bg-blue-100 text-blue-600 border-none px-3 py-1 rounded-full font-black text-[10px]">جاري التوجه للاستلام</Badge>;
+	      case "picked_up": return <Badge className="bg-purple-100 text-purple-600 border-none px-3 py-1 rounded-full font-black text-[10px]">تم استلام الشحنة</Badge>;
       case "in_transit": return <Badge className="bg-indigo-100 text-indigo-600 border-none px-3 py-1 rounded-full font-black text-[10px]">في الطريق</Badge>;
       case "arrived": return <Badge className="bg-amber-100 text-amber-600 border-none px-3 py-1 rounded-full font-black text-[10px]">وصلت</Badge>;
       case "delivered": return <Badge className="bg-emerald-100 text-emerald-600 border-none px-3 py-1 rounded-full font-black text-[10px]">تم التسليم</Badge>;
