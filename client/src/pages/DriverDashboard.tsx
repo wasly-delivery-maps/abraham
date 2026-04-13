@@ -60,7 +60,7 @@ export default function DriverDashboard() {
         // Fix for "picked_up" and other statuses
         await updateStatusMutation.mutateAsync({ 
           orderId, 
-          status: status as "pending" | "assigned" | "accepted" | "in_transit" | "arrived" | "delivered" | "cancelled" 
+          status: status as "pending" | "assigned" | "accepted" | "picked_up" | "in_transit" | "arrived" | "delivered" | "cancelled" 
         });
         toast.success("تم تحديث حالة الطلب بنجاح 🚀");
       }

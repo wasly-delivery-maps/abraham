@@ -52,6 +52,7 @@ export const orders = mysqlTable("orders", {
     "pending",
     "assigned",
     "accepted",
+    "picked_up",
     "in_transit",
     "arrived",
     "delivered",

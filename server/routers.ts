@@ -490,6 +490,7 @@ export const appRouter = router({
             "pending",
             "assigned",
             "accepted",
+            "picked_up",
             "in_transit",
             "arrived",
             "delivered",
