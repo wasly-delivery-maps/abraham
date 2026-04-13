@@ -13,7 +13,7 @@ export default function ProtectedRoute({ component: Component, requiredRole }: P
   const [, navigate] = useLocation();
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
+    if (!loading && !isAuthenticated && window.location.pathname !== "/auth") {
       navigate("/auth");
     }
   }, [loading, isAuthenticated, navigate]);

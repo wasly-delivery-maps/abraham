@@ -9,8 +9,52 @@ import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo, useEffect } from "react";
-import { MapView } from "@/components/Map";
 import { ChatBox } from "@/components/ChatBox";
+
+// Leaflet imports
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix Leaflet default icon issue
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+    iconUrl: icon,
+    shadowUrl: iconShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
+
+// Custom icons for Pickup and Delivery
+const pickupIcon = L.divIcon({
+  className: 'custom-div-icon',
+  html: `<div style="background-color: #f97316; width: 15px; height: 15px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.3);"></div>`,
+  iconSize: [15, 15],
+  iconAnchor: [7, 7]
+});
+
+const deliveryIcon = L.divIcon({
+  className: 'custom-div-icon',
+  html: `<div style="background-color: #3b82f6; width: 15px; height: 15px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.3);"></div>`,
+  iconSize: [15, 15],
+  iconAnchor: [7, 7]
+});
+
+// Helper component to fit bounds
+function FitBounds({ points }: { points: [number, number][] }) {
+  const map = useMap();
+  useEffect(() => {
+    if (points.length > 0) {
+      const bounds = L.latLngBounds(points);
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [points, map]);
+  return null;
+}
 
 export default function DriverDashboard() {
   const { user, loading, logout } = useAuth();
@@ -20,8 +64,11 @@ export default function DriverDashboard() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [driverLocation, setDriverLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
+  // Fix: Use a ref to track if we've already navigated to prevent flicker loops
+  const hasNavigatedRef = useRef(false);
+
   const ordersQuery = trpc.orders.getDriverOrders.useQuery(undefined, {
-    enabled: !!user,
+    enabled: !!user && user.role === "driver",
     refetchInterval: 10000,
   });
 
@@ -33,7 +80,7 @@ export default function DriverDashboard() {
   );
 
   const availableQuery = trpc.orders.getAvailableOrders.useQuery(undefined, {
-    enabled: !!user,
+    enabled: !!user && user.role === "driver",
     refetchInterval: 10000,
   });
 
@@ -41,20 +88,14 @@ export default function DriverDashboard() {
   const acceptOrderMutation = trpc.orders.acceptOrder.useMutation();
   const completeOrderMutation = trpc.orders.completeOrder.useMutation();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Loader2 className="h-12 w-12 text-orange-600 animate-spin" />
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!loading && (!user || user.role !== "driver") && !hasNavigatedRef.current) {
+      hasNavigatedRef.current = true;
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
 
-  if (!user || user.role !== "driver") {
-    navigate("/auth");
-    return null;
-  }
-
-  // Track location like reference
+  // Track location
   useEffect(() => {
     if (!user || user.role !== "driver") return;
 
@@ -71,6 +112,18 @@ export default function DriverDashboard() {
       return () => navigator.geolocation.clearWatch(watchId);
     }
   }, [user]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="h-12 w-12 text-orange-600 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user || user.role !== "driver") {
+    return null;
+  }
 
   const handleStatusUpdate = async (orderId: number, status: string) => {
     try {
@@ -94,7 +147,7 @@ export default function DriverDashboard() {
     }
   };
 
-  const openGoogleMaps = (order: any, type: string) => {
+  const openMaps = (order: any, type: string) => {
     const currentLocation = driverLocation 
       ? `${driverLocation.latitude},${driverLocation.longitude}`
       : "30.1200,31.4500";
@@ -136,7 +189,6 @@ export default function DriverDashboard() {
   const availableOrders = availableQuery.data || [];
   const activeOrders = orders.filter((o) => ["assigned", "accepted", "picked_up", "in_transit", "arrived"].includes(o.status));
   const completedOrders = orders.filter((o) => o.status === "delivered");
-  const completedTodayCount = orders.filter((o) => o.status === "delivered").length;
 
   const stats = [
     { label: "طلبات متاحة", value: availableOrders.length, icon: Package, color: "text-orange-600", bg: "bg-orange-50" },
@@ -146,10 +198,10 @@ export default function DriverDashboard() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-	      case "pending": return <Badge className="bg-orange-100 text-orange-600 border-none px-3 py-1 rounded-full font-black text-[10px]">متاح الآن</Badge>;
-		      case "assigned":
-		      case "accepted": return <Badge className="bg-blue-100 text-blue-600 border-none px-3 py-1 rounded-full font-black text-[10px]">جاري التوجه للاستلام</Badge>;
-	      case "picked_up": return <Badge className="bg-purple-100 text-purple-600 border-none px-3 py-1 rounded-full font-black text-[10px]">تم استلام الشحنة</Badge>;
+      case "pending": return <Badge className="bg-orange-100 text-orange-600 border-none px-3 py-1 rounded-full font-black text-[10px]">متاح الآن</Badge>;
+      case "assigned":
+      case "accepted": return <Badge className="bg-blue-100 text-blue-600 border-none px-3 py-1 rounded-full font-black text-[10px]">جاري التوجه للاستلام</Badge>;
+      case "picked_up": return <Badge className="bg-purple-100 text-purple-600 border-none px-3 py-1 rounded-full font-black text-[10px]">تم استلام الشحنة</Badge>;
       case "in_transit": return <Badge className="bg-indigo-100 text-indigo-600 border-none px-3 py-1 rounded-full font-black text-[10px]">في الطريق</Badge>;
       case "arrived": return <Badge className="bg-amber-100 text-amber-600 border-none px-3 py-1 rounded-full font-black text-[10px]">وصلت</Badge>;
       case "delivered": return <Badge className="bg-emerald-100 text-emerald-600 border-none px-3 py-1 rounded-full font-black text-[10px]">تم التسليم</Badge>;
@@ -160,6 +212,9 @@ export default function DriverDashboard() {
   const OrderCard = ({ order, isAvailable = false }: { order: any, isAvailable?: boolean }) => {
     const isSelected = selectedOrderId === order.id;
     const details = isSelected ? orderDetailsQuery.data : null;
+
+    const pickupPos: [number, number] = [order.pickupLocation.latitude, order.pickupLocation.longitude];
+    const deliveryPos: [number, number] = [order.deliveryLocation.latitude, order.deliveryLocation.longitude];
 
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}>
@@ -181,60 +236,16 @@ export default function DriverDashboard() {
               {getStatusBadge(order.status)}
             </div>
 
-            {/* Interactive Map for Active Orders */}
+            {/* Leaflet Map for Active Orders */}
             {!isAvailable && isSelected && (
-              <div className="h-64 w-full bg-slate-100 relative">
-                <MapView
-                  className="h-full w-full"
-                  initialCenter={{ lat: order.pickupLocation.latitude, lng: order.pickupLocation.longitude }}
-                  onMapReady={(map) => {
-                    // Add Pickup Marker
-                    new google.maps.Marker({
-                      position: { lat: order.pickupLocation.latitude, lng: order.pickupLocation.longitude },
-                      map,
-                      title: "الاستلام",
-                      icon: {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        scale: 10,
-                        fillColor: "#f97316",
-                        fillOpacity: 1,
-                        strokeColor: "#ffffff",
-                        strokeWeight: 2,
-                      }
-                    });
-                    // Add Delivery Marker
-                    new google.maps.Marker({
-                      position: { lat: order.deliveryLocation.latitude, lng: order.deliveryLocation.longitude },
-                      map,
-                      title: "التسليم",
-                      icon: {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        scale: 10,
-                        fillColor: "#3b82f6",
-                        fillOpacity: 1,
-                        strokeColor: "#ffffff",
-                        strokeWeight: 2,
-                      }
-                    });
-                    // Draw Line
-                    new google.maps.Polyline({
-                      path: [
-                        { lat: order.pickupLocation.latitude, lng: order.pickupLocation.longitude },
-                        { lat: order.deliveryLocation.latitude, lng: order.deliveryLocation.longitude }
-                      ],
-                      geodesic: true,
-                      strokeColor: "#f97316",
-                      strokeOpacity: 0.6,
-                      strokeWeight: 3,
-                      map
-                    });
-                    
-                    const bounds = new google.maps.LatLngBounds();
-                    bounds.extend({ lat: order.pickupLocation.latitude, lng: order.pickupLocation.longitude });
-                    bounds.extend({ lat: order.deliveryLocation.latitude, lng: order.deliveryLocation.longitude });
-                    map.fitBounds(bounds);
-                  }}
-                />
+              <div className="h-64 w-full bg-slate-100 relative z-0">
+                <MapContainer center={pickupPos} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  <Marker position={pickupPos} icon={pickupIcon} />
+                  <Marker position={deliveryPos} icon={deliveryIcon} />
+                  <Polyline positions={[pickupPos, deliveryPos]} color="#f97316" weight={3} opacity={0.6} />
+                  <FitBounds points={[pickupPos, deliveryPos]} />
+                </MapContainer>
               </div>
             )}
 
@@ -290,7 +301,7 @@ export default function DriverDashboard() {
                   <div className="grid grid-cols-2 gap-3">
                     <Button 
                       variant="outline"
-                      onClick={(e) => { e.stopPropagation(); openGoogleMaps(order, "pickup"); }}
+                      onClick={(e) => { e.stopPropagation(); openMaps(order, "pickup"); }}
                       className="py-7 rounded-2xl border-slate-200 text-slate-600 font-black text-sm hover:bg-slate-50"
                     >
                       <Navigation className="ml-2 h-4 w-4" /> موقع الاستلام
@@ -307,7 +318,7 @@ export default function DriverDashboard() {
                   <div className="grid grid-cols-2 gap-3">
                     <Button 
                       variant="outline"
-                      onClick={(e) => { e.stopPropagation(); openGoogleMaps(order, "delivery"); }}
+                      onClick={(e) => { e.stopPropagation(); openMaps(order, "delivery"); }}
                       className="py-7 rounded-2xl border-slate-200 text-slate-600 font-black text-sm hover:bg-slate-50"
                     >
                       <Navigation className="ml-2 h-4 w-4" /> المسار الكامل
@@ -337,7 +348,7 @@ export default function DriverDashboard() {
                   </Button>
                 )}
                 
-                {/* Contact Actions */}
+                {/* Contact Actions - Always visible if data exists */}
                 {!isAvailable && (details?.customer?.phone || order.customer?.phone) && (
                   <div className="grid grid-cols-2 gap-3">
                     <a href={`tel:${details?.customer?.phone || order.customer.phone}`} className="w-full" onClick={(e) => e.stopPropagation()}>
@@ -457,10 +468,10 @@ export default function DriverDashboard() {
                     <Truck className="h-10 w-10 text-slate-300" />
                   </div>
                   <h3 className="text-xl font-black text-slate-900 mb-2">لا توجد طلبات جارية</h3>
-                  <p className="text-slate-400 font-bold">اقبل طلباً من القائمة المتاحة للبدء في العمل</p>
+                  <p className="text-slate-400 font-bold">ابدأ بقبول الطلبات المتاحة لزيادة أرباحك</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6">
                   {activeOrders.map((order) => <OrderCard key={order.id} order={order} />)}
                 </div>
               )}
@@ -472,8 +483,8 @@ export default function DriverDashboard() {
                   <div className="h-20 w-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
                     <CheckCircle2 className="h-10 w-10 text-slate-300" />
                   </div>
-                  <h3 className="text-xl font-black text-slate-900 mb-2">لم تكتمل أي طلبات اليوم</h3>
-                  <p className="text-slate-400 font-bold">أكمل طلباتك لتظهر هنا في سجل الإنجازات</p>
+                  <h3 className="text-xl font-black text-slate-900 mb-2">لا توجد طلبات مكتملة</h3>
+                  <p className="text-slate-400 font-bold">أكمل طلباتك اليوم لتراها هنا</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -485,16 +496,12 @@ export default function DriverDashboard() {
         </Tabs>
       </div>
 
-      {/* Chat Interface */}
+      {/* Chat Box */}
       {selectedOrderId && (
-        <ChatBox
-          orderId={selectedOrderId}
-          userId={user.id}
-          userRole="driver"
-          userName={user.name}
-          otherUserName={orderDetailsQuery.data?.customer?.name || "العميل"}
-          isOpen={isChatOpen}
-          onClose={() => setIsChatOpen(false)}
+        <ChatBox 
+          orderId={selectedOrderId} 
+          isOpen={isChatOpen} 
+          onClose={() => setIsChatOpen(false)} 
         />
       )}
     </div>
