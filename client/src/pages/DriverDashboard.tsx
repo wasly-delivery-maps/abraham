@@ -10,6 +10,7 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { ChatBox } from "@/components/ChatBox";
+import { useChat } from "@/hooks/useChat";
 
 // Leaflet imports
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from 'react-leaflet';
@@ -56,16 +57,13 @@ function ChangeView({ bounds }: { bounds: L.LatLngBoundsExpression }) {
 }
 
 export default function DriverDashboard() {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("available");
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [driverLocation, setDriverLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const { unreadCounts } = useChat();
-
-  const ordersQuery = trpc.orders.getDriverOrders.useQuery(undefined, {
-    refetchInterval: 5000,
-  }); null>(null);
 
   const hasNavigatedRef = useRef(false);
 
