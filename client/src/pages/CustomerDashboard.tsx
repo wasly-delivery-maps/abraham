@@ -360,7 +360,7 @@ export default function CustomerDashboard() {
                                     </div>
                                   </div>
                                 </div>
-                                {order.assignedDriver && (
+                                {order.driverId && (
                                   <motion.div 
                                     className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between bg-gradient-to-r from-orange-50 to-transparent p-3 rounded-lg"
                                     initial={{ opacity: 0 }}
@@ -372,9 +372,9 @@ export default function CustomerDashboard() {
                                         className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white font-bold"
                                         whileHover={{ scale: 1.1 }}
                                       >
-                                        {order.assignedDriver.name.charAt(0)}
+                                        S
                                       </motion.div>
-                                      <span className="text-xs font-bold text-slate-700">{order.assignedDriver.name}</span>
+                                      <span className="text-xs font-bold text-slate-700">السائق</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                       <motion.button 
@@ -388,14 +388,7 @@ export default function CustomerDashboard() {
                                       >
                                         <MessageCircle className="h-4 w-4" />
                                       </motion.button>
-                                      <motion.a 
-                                        href={`tel:${order.assignedDriver.phone}`} 
-                                        className="text-orange-600 bg-white border border-orange-200 p-2 rounded-lg hover:bg-orange-50 transition-all"
-                                        whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.95 }}
-                                      >
-                                        <Phone className="h-4 w-4" />
-                                      </motion.a>
+                                      {/* Phone will be available in details dialog if needed, or we can use a generic call if we had the number */}
                                     </div>
                                   </motion.div>
                                 )}

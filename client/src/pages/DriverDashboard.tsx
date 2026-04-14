@@ -403,7 +403,7 @@ export default function DriverDashboard() {
                   </Button>
                 )}
                 
-                {!isAvailable && (
+                {!isAvailable && order.status !== "delivered" && (
                   <div className="grid grid-cols-2 gap-3">
                     {customerPhone && (
                       <a href={`tel:${customerPhone}`} className="w-full" onClick={(e) => e.stopPropagation()}>
