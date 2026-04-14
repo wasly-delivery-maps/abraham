@@ -360,7 +360,7 @@ export default function CustomerDashboard() {
                                     </div>
                                   </div>
                                 </div>
-                                {order.driver && (
+                                {(order.driver || order.driverId) && (
                                   <motion.div 
                                     className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between bg-gradient-to-r from-orange-50 to-transparent p-3 rounded-lg"
                                     initial={{ opacity: 0 }}
@@ -372,9 +372,9 @@ export default function CustomerDashboard() {
                                         className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white font-bold"
                                         whileHover={{ scale: 1.1 }}
                                       >
-                                        {order.driver.name?.charAt(0) || 'S'}
+                                        {order.driver?.name?.charAt(0) || 'S'}
                                       </motion.div>
-                                      <span className="text-xs font-bold text-slate-700">{order.driver.name || "السائق"}</span>
+                                      <span className="text-xs font-bold text-slate-700">{order.driver?.name || "السائق"}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                       <motion.button 
@@ -388,9 +388,9 @@ export default function CustomerDashboard() {
                                       >
                                         <MessageCircle className="h-4 w-4" />
                                       </motion.button>
-                                      {order.driver.phone && (
+                                      {(order.driver?.phone || order.driverPhone) && (
                                         <motion.a 
-                                          href={`tel:${order.driver.phone}`} 
+                                          href={`tel:${order.driver?.phone || order.driverPhone}`} 
                                           className="text-orange-600 bg-white border border-orange-200 p-2 rounded-lg hover:bg-orange-50 transition-all"
                                           whileHover={{ scale: 1.1 }}
                                           whileTap={{ scale: 0.95 }}
@@ -469,25 +469,59 @@ export default function CustomerDashboard() {
                                   <Calendar className="h-3.5 w-3.5" />
                                   {new Date(order.createdAt).toLocaleDateString('ar-EG')}
                                 </div>
-                                <motion.div
-                                  whileHover={{ scale: 1.05 }}
-                                  whileTap={{ scale: 0.95 }}
-                                >
-                                  <Button 
-                                    variant="outline" 
-                                    onClick={() => {
-                                      const repeatData = encodeURIComponent(JSON.stringify({
-                                        pickup: order.pickupLocation,
-                                        delivery: order.deliveryLocation,
-                                        notes: (order as any).notes || ""
-                                      }));
-                                      navigate(`/customer/create-order?repeat=${repeatData}`);
-                                    }}
-                                    className="w-full rounded-xl font-bold text-xs h-10 border-orange-200 text-orange-600 hover:bg-orange-50 transition-all"
+                                <div className="space-y-3">
+                                  <motion.div
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
                                   >
-                                    إعادة الطلب
-                                  </Button>
-                                </motion.div>
+                                    <Button 
+                                      variant="outline" 
+                                      onClick={() => {
+                                        const repeatData = encodeURIComponent(JSON.stringify({
+                                          pickup: order.pickupLocation,
+                                          delivery: order.deliveryLocation,
+                                          notes: (order as any).notes || ""
+                                        }));
+                                        navigate(`/customer/create-order?repeat=${repeatData}`);
+                                      }}
+                                      className="w-full rounded-xl font-bold text-xs h-10 border-orange-200 text-orange-600 hover:bg-orange-50 transition-all"
+                                    >
+                                      إعادة الطلب
+                                    </Button>
+                                  </motion.div>
+
+                                  {(order.driver || order.driverId) && (
+                                    <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                      <div className="flex items-center gap-2">
+                                        <div className="h-7 w-7 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-[10px] font-black">
+                                          {order.driver?.name?.charAt(0) || 'S'}
+                                        </div>
+                                        <span className="text-[10px] font-bold text-slate-600">{order.driver?.name || "السائق"}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <motion.button 
+                                          onClick={() => {
+                                            setChatOrderId(order.id);
+                                            setIsChatOpen(true);
+                                          }}
+                                          className="text-blue-600 bg-white border border-blue-100 p-1.5 rounded-lg hover:bg-blue-50 transition-all"
+                                          whileHover={{ scale: 1.1 }}
+                                        >
+                                          <MessageCircle className="h-3.5 w-3.5" />
+                                        </motion.button>
+                                        {(order.driver?.phone || order.driverPhone) && (
+                                          <motion.a 
+                                            href={`tel:${order.driver?.phone || order.driverPhone}`} 
+                                            className="text-orange-600 bg-white border border-orange-100 p-1.5 rounded-lg hover:bg-orange-50 transition-all"
+                                            whileHover={{ scale: 1.1 }}
+                                          >
+                                            <Phone className="h-3.5 w-3.5" />
+                                          </motion.a>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
                               </CardContent>
                             </Card>
                           </motion.div>
