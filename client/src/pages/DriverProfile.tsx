@@ -227,14 +227,14 @@ export default function DriverProfile() {
                 />
               </motion.div>
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.6, type: "spring" }}
               >
                 <Button 
                   size="icon"
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute -bottom-2 -right-2 h-10 w-10 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white shadow-xl border-4 border-slate-900 md:hidden"
+                  className="absolute -bottom-2 -right-2 h-10 w-10 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white shadow-xl border-4 border-slate-900 z-30"
                 >
                   <Camera className="h-5 w-5" />
                 </Button>
