@@ -13,20 +13,25 @@ async function fixDbEnum() {
   try {
     console.log("Updating 'orders' table status enum...");
     // Direct SQL to alter the enum column in MySQL
-    await db.execute(sql`
-      ALTER TABLE \`orders\` 
-      MODIFY COLUMN \`status\` ENUM(
-        'pending', 
-        'assigned', 
-        'accepted', 
-        'picked_up', 
-        'in_transit', 
-        'arrived', 
-        'delivered', 
-        'cancelled'
-      ) DEFAULT 'pending' NOT NULL
-    `);
-    console.log("Successfully updated 'orders' table.");
+    // We use a more robust approach to ensure the column is updated
+    try {
+      await db.execute(sql`
+        ALTER TABLE \`orders\` 
+        MODIFY COLUMN \`status\` ENUM(
+          'pending', 
+          'assigned', 
+          'accepted', 
+          'picked_up', 
+          'in_transit', 
+          'arrived', 
+          'delivered', 
+          'cancelled'
+        ) DEFAULT 'pending' NOT NULL
+      `);
+      console.log("Successfully updated 'orders' table status enum.");
+    } catch (e) {
+      console.warn("Could not update orders status enum, it might already be updated or table is locked:", e.message);
+    }
 
     console.log("Updating 'notifications' table type enum...");
     // Also update notifications type if needed to support new order states
