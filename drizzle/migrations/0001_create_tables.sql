@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `lastSignedIn` timestamp,
-  `loginMethod` varchar(64)
+  `loginMethod` varchar(64),
+  `avatarUrl` text
 );
 
 -- Create orders table
