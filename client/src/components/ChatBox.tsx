@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useChat } from "@/hooks/useChat";
+import { useChatContext } from "@/contexts/ChatContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,7 +27,7 @@ export function ChatBox({
   isOpen = true,
   onClose,
 }: ChatBoxProps) {
-  const { isConnected, messages, unreadCounts, joinChat, sendMessage, markAsRead, leaveChat } = useChat();
+  const { isConnected, messages, unreadCounts, joinChat, sendMessage, markAsRead, leaveChat } = useChatContext();
   const unreadCount = unreadCounts[orderId] || 0;
   const [messageText, setMessageText] = useState("");
   const [isLoading, setIsLoading] = useState(false);

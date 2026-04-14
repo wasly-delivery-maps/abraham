@@ -10,7 +10,7 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { ChatBox } from "@/components/ChatBox";
-import { useChat } from "@/hooks/useChat";
+import { useChatContext } from "@/contexts/ChatContext";
 
 // Leaflet imports
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from 'react-leaflet';
@@ -63,7 +63,7 @@ export default function DriverDashboard() {
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [driverLocation, setDriverLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-  const { unreadCounts } = useChat();
+  const { unreadCounts } = useChatContext();
 
   const hasNavigatedRef = useRef(false);
 

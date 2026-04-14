@@ -8,7 +8,7 @@ import { MapPin, Plus, LogOut, User, Truck, Clock, DollarSign, X, Phone, Calenda
 import { Link, useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { ChatBox } from "@/components/ChatBox";
-import { useChat } from "@/hooks/useChat";
+import { useChatContext } from "@/contexts/ChatContext";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -58,7 +58,7 @@ export default function CustomerDashboard() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatOrderId, setChatOrderId] = useState<number | null>(null);
-  const { unreadCounts } = useChat();
+  const { unreadCounts } = useChatContext();
 
   const ordersQuery = trpc.orders.getCustomerOrders.useQuery(undefined, {
     refetchInterval: 5000,
