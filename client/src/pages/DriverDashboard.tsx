@@ -11,33 +11,51 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { ChatBox } from "@/components/ChatBox";
 
-// Google Maps imports
-import { GoogleMap, useJsApiLoader, Marker, Polyline } from '@react-google-maps/api';
+// Leaflet imports
+import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyC0KKCwrnR2Bucn0jEwfGChVw1t1-PrZOk";
+// Fix Leaflet default icon issue
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
-const mapContainerStyle = {
-  width: '100%',
-  height: '100%'
-};
+let DefaultIcon = L.icon({
+    iconUrl: icon,
+    shadowUrl: iconShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
 
-const mapOptions = {
-  disableDefaultUI: true,
-  zoomControl: false,
-  styles: [
-    {
-      featureType: "poi",
-      elementType: "labels",
-      stylers: [{ visibility: "off" }]
+L.Marker.prototype.options.icon = DefaultIcon;
+
+// Custom icons for A and B
+const iconA = L.divIcon({
+  className: 'custom-div-icon',
+  html: "<div style='background-color:#f97316; color:white; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; border:3px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3);'>A</div>",
+  iconSize: [30, 30],
+  iconAnchor: [15, 15]
+});
+
+const iconB = L.divIcon({
+  className: 'custom-div-icon',
+  html: "<div style='background-color:#3b82f6; color:white; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; border:3px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3);'>B</div>",
+  iconSize: [30, 30],
+  iconAnchor: [15, 15]
+});
+
+// Component to auto-fit map bounds
+function ChangeView({ bounds }: { bounds: L.LatLngBoundsExpression }) {
+  const map = useMap();
+  useEffect(() => {
+    if (bounds) {
+      map.fitBounds(bounds, { padding: [50, 50] });
     }
-  ]
-};
+  }, [bounds, map]);
+  return null;
+}
 
 export default function DriverDashboard() {
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: GOOGLE_MAPS_API_KEY
-  });
   const { user, loading, logout } = useAuth();
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("available");
@@ -45,7 +63,6 @@ export default function DriverDashboard() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [driverLocation, setDriverLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
-  // Fix: Use a ref to track if we've already navigated to prevent flicker loops
   const hasNavigatedRef = useRef(false);
 
   const ordersQuery = trpc.orders.getDriverOrders.useQuery(undefined, {
@@ -78,7 +95,6 @@ export default function DriverDashboard() {
     }
   }, [user, loading, navigate]);
 
-  // Track location - Debounced to prevent excessive updates
   const lastLocationUpdateRef = useRef<{ lat: number; lng: number; time: number } | null>(null);
   
   useEffect(() => {
@@ -90,7 +106,6 @@ export default function DriverDashboard() {
           const { latitude, longitude } = position.coords;
           const now = Date.now();
           
-          // Only update if location changed significantly or 30 seconds have passed
           if (!lastLocationUpdateRef.current || 
               now - lastLocationUpdateRef.current.time > 30000 ||
               (Math.abs(latitude - lastLocationUpdateRef.current.lat) > 0.0001 ||
@@ -203,17 +218,18 @@ export default function DriverDashboard() {
     }
   };
 
-  // Helper function to validate coordinates
   const isValidCoordinate = (lat: any, lng: any): boolean => {
+    const l = typeof lat === 'string' ? parseFloat(lat) : lat;
+    const g = typeof lng === 'string' ? parseFloat(lng) : lng;
     return (
-      typeof lat === 'number' && 
-      typeof lng === 'number' && 
-      !isNaN(lat) && 
-      !isNaN(lng) && 
-      lat >= -90 && 
-      lat <= 90 && 
-      lng >= -180 && 
-      lng <= 180
+      typeof l === 'number' && 
+      typeof g === 'number' && 
+      !isNaN(l) && 
+      !isNaN(g) && 
+      l >= -90 && 
+      l <= 90 && 
+      g >= -180 && 
+      g <= 180
     );
   };
 
@@ -221,29 +237,20 @@ export default function DriverDashboard() {
     const isSelected = selectedOrderId === order.id;
     const details = orderDetailsQuery.data;
 
-    // Validate and parse coordinates
-    const pickupLat = typeof order.pickupLocation?.latitude === 'string' 
-      ? parseFloat(order.pickupLocation.latitude) 
-      : order.pickupLocation?.latitude;
-    const pickupLng = typeof order.pickupLocation?.longitude === 'string' 
-      ? parseFloat(order.pickupLocation.longitude) 
-      : order.pickupLocation?.longitude;
-    const deliveryLat = typeof order.deliveryLocation?.latitude === 'string' 
-      ? parseFloat(order.deliveryLocation.latitude) 
-      : order.deliveryLocation?.latitude;
-    const deliveryLng = typeof order.deliveryLocation?.longitude === 'string' 
-      ? parseFloat(order.deliveryLocation.longitude) 
-      : order.deliveryLocation?.longitude;
+    const pickupLat = typeof order.pickupLocation?.latitude === 'string' ? parseFloat(order.pickupLocation.latitude) : order.pickupLocation?.latitude;
+    const pickupLng = typeof order.pickupLocation?.longitude === 'string' ? parseFloat(order.pickupLocation.longitude) : order.pickupLocation?.longitude;
+    const deliveryLat = typeof order.deliveryLocation?.latitude === 'string' ? parseFloat(order.deliveryLocation.latitude) : order.deliveryLocation?.latitude;
+    const deliveryLng = typeof order.deliveryLocation?.longitude === 'string' ? parseFloat(order.deliveryLocation.longitude) : order.deliveryLocation?.longitude;
 
     const isPickupValid = isValidCoordinate(pickupLat, pickupLng);
     const isDeliveryValid = isValidCoordinate(deliveryLat, deliveryLng);
 
-    const pickupPos: [number, number] = [pickupLat, pickupLng];
-    const deliveryPos: [number, number] = [deliveryLat, deliveryLng];
-
-    // Get customer info from either details or order
     const customerName = details?.customer?.name || order.customer?.name || "عميل وصلي";
     const customerPhone = details?.customer?.phone || order.customer?.phone;
+
+    const bounds = isPickupValid && isDeliveryValid 
+      ? L.latLngBounds([pickupLat, pickupLng], [deliveryLat, deliveryLng])
+      : null;
 
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}>
@@ -265,41 +272,35 @@ export default function DriverDashboard() {
               {getStatusBadge(order.status)}
             </div>
 
-            {/* Google Map for Active Orders - Fixed */}
-            {!isAvailable && isLoaded && isPickupValid && isDeliveryValid && (
+            {/* Leaflet Map - Visible for ALL orders */}
+            {isPickupValid && isDeliveryValid && (
               <div className="h-64 w-full bg-slate-100 relative z-0">
-                <GoogleMap
-                  mapContainerStyle={mapContainerStyle}
-                  center={{ lat: pickupPos[0], lng: pickupPos[1] }}
-                  zoom={13}
-                  options={mapOptions}
+                <MapContainer 
+                  center={[pickupLat, pickupLng]} 
+                  zoom={13} 
+                  style={{ height: '100%', width: '100%' }}
+                  zoomControl={false}
+                  dragging={true}
+                  scrollWheelZoom={false}
                 >
-                  {isPickupValid && (
-                    <Marker 
-                      position={{ lat: pickupPos[0], lng: pickupPos[1] }} 
-                      label={{ text: "A", color: "white", fontWeight: "bold" }}
-                    />
-                  )}
-                  {isDeliveryValid && (
-                    <Marker 
-                      position={{ lat: deliveryPos[0], lng: deliveryPos[1] }} 
-                      label={{ text: "B", color: "white", fontWeight: "bold" }}
-                    />
-                  )}
-                  {isPickupValid && isDeliveryValid && (
-                    <Polyline 
-                      path={[
-                        { lat: pickupPos[0], lng: pickupPos[1] },
-                        { lat: deliveryPos[0], lng: deliveryPos[1] }
-                      ]}
-                      options={{
-                        strokeColor: "#f97316",
-                        strokeOpacity: 0.8,
-                        strokeWeight: 4,
-                      }}
-                    />
-                  )}
-                </GoogleMap>
+                  <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  />
+                  <Marker position={[pickupLat, pickupLng]} icon={iconA}>
+                    <Popup>نقطة الاستلام</Popup>
+                  </Marker>
+                  <Marker position={[deliveryLat, deliveryLng]} icon={iconB}>
+                    <Popup>وجهة التسليم</Popup>
+                  </Marker>
+                  <Polyline 
+                    positions={[[pickupLat, pickupLng], [deliveryLat, deliveryLng]]} 
+                    color="#f97316" 
+                    weight={4} 
+                    opacity={0.8}
+                  />
+                  {bounds && <ChangeView bounds={bounds} />}
+                </MapContainer>
               </div>
             )}
 
@@ -402,7 +403,6 @@ export default function DriverDashboard() {
                   </Button>
                 )}
                 
-                {/* Contact Actions - Always visible if data exists - FIXED */}
                 {!isAvailable && (
                   <div className="grid grid-cols-2 gap-3">
                     {customerPhone && (
@@ -561,7 +561,6 @@ export default function DriverDashboard() {
         </Tabs>
       </div>
 
-      {/* Chat Box */}
       {isChatOpen && selectedOrderId && (
         <ChatBox 
           orderId={selectedOrderId}
