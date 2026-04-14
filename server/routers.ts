@@ -7,7 +7,6 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import bcryptjs from "bcryptjs";
 import { sdk } from "./_core/sdk";
-import { storagePut } from "./storage";
 import type { Request, Response } from "express";
 import { notifyDriversOfNewOrder } from "./notifications";
 import { calculateOrderPrice, getCommissionPerOrder, shouldBlockDriver } from "../shared/pricing";
@@ -182,73 +181,43 @@ export const appRouter = router({
       if (!user) {
         throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
       }
+      return {
+        id: user.id,
+        phone: user.phone,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+        latitude: user.latitude ? parseFloat(user.latitude.toString()) : null,
+        longitude: user.longitude ? parseFloat(user.longitude.toString()) : null,
+      };
+    }),
+
+    // Update user profile
+    updateProfile: protectedProcedure
+      .input(
+        z.object({
+          name: z.string().min(2).optional(),
+          email: z.string().email().optional(),
+          phone: z.string().min(10).optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const updatedUser = await db.updateUserProfile(ctx.user.id, input);
+        if (!updatedUser) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+        }
         return {
-	        id: user.id,
-	        phone: user.phone,
-	        name: user.name,
-	        email: user.email,
-	        role: user.role,
-	        isActive: user.isActive,
-	        avatarUrl: user.avatarUrl,
-	        latitude: user.latitude ? parseFloat(user.latitude.toString()) : null,
-	        longitude: user.longitude ? parseFloat(user.longitude.toString()) : null,
-	      };
-	    }),
-
-	    // Update user profile
-	    updateProfile: protectedProcedure
-	      .input(
-	        z.object({
-	          name: z.string().min(2).optional(),
-	          email: z.string().email().optional(),
-	          phone: z.string().min(10).optional(),
-	          avatarUrl: z.string().optional(),
-	        })
-	      )
-	      .mutation(async ({ ctx, input }) => {
-	        const updatedUser = await db.updateUserProfile(ctx.user.id, input);
-	        if (!updatedUser) {
-	          throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
-	        }
-	        return {
-	          success: true,
-	          user: {
-	            id: updatedUser.id,
-	            phone: updatedUser.phone,
-	            name: updatedUser.name,
-	            email: updatedUser.email,
-	            role: updatedUser.role,
-	            avatarUrl: updatedUser.avatarUrl,
-	          },
-	        };
-	      }),
-
-	    // Upload avatar
-	    uploadAvatar: protectedProcedure
-	      .input(
-	        z.object({
-	          base64: z.string(),
-	          mimeType: z.string().default("image/jpeg"),
-	        })
-	      )
-	      .mutation(async ({ ctx, input }) => {
-	        try {
-	          const buffer = Buffer.from(input.base64.split(",")[1] || input.base64, "base64");
-	          const fileName = `avatars/${ctx.user.id}-${Date.now()}.jpg`;
-	          const { url } = await storagePut(fileName, buffer, input.mimeType);
-	          
-	          // Update user profile with new avatar URL
-	          await db.updateUserProfile(ctx.user.id, { avatarUrl: url });
-	          
-	          return { success: true, url };
-	        } catch (error) {
-	          console.error("[Upload] Failed to upload avatar:", error);
-	          throw new TRPCError({
-	            code: "INTERNAL_SERVER_ERROR",
-	            message: "فشل في رفع الصورة",
-	          });
-	        }
-	      }),
+          success: true,
+          user: {
+            id: updatedUser.id,
+            phone: updatedUser.phone,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            role: updatedUser.role,
+          },
+        };
+      }),
 
     // Get all users (Admin only)
     getAllUsers: protectedProcedure.query(async ({ ctx }) => {
