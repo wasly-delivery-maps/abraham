@@ -362,13 +362,15 @@ export default function DriverDashboard() {
                 )}
                 
                 {/* Contact Actions - Always visible if data exists */}
-                {!isAvailable && (details?.customer?.phone || order.customer?.phone) && (
+                {!isAvailable && (
                   <div className="grid grid-cols-2 gap-3">
-                    <a href={`tel:${details?.customer?.phone || order.customer?.phone}`} className="w-full" onClick={(e) => e.stopPropagation()}>
-                      <Button variant="outline" className="w-full py-7 rounded-2xl border-slate-200 text-slate-600 font-black text-sm hover:bg-slate-50">
-                        <Phone className="ml-2 h-4 w-4" /> اتصل بالعميل
-                      </Button>
-                    </a>
+                    {(details?.customer?.phone || order.customer?.phone) && (
+                      <a href={`tel:${details?.customer?.phone || order.customer?.phone}`} className="w-full" onClick={(e) => e.stopPropagation()}>
+                        <Button variant="outline" className="w-full py-7 rounded-2xl border-slate-200 text-slate-600 font-black text-sm hover:bg-slate-50">
+                          <Phone className="ml-2 h-4 w-4" /> اتصل بالعميل
+                        </Button>
+                      </a>
+                    )}
                     <Button 
                       variant="outline" 
                       onClick={(e) => { e.stopPropagation(); setSelectedOrderId(order.id); setIsChatOpen(true); }}
