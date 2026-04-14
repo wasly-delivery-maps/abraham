@@ -8,6 +8,7 @@ import { MapPin, Plus, LogOut, User, Truck, Clock, DollarSign, X, Phone, Calenda
 import { Link, useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { ChatBox } from "@/components/ChatBox";
+import { useChat } from "@/hooks/useChat";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
