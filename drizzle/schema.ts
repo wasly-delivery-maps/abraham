@@ -96,6 +96,7 @@ export const notifications = mysqlTable("notifications", {
     "order_assigned",
     "order_accepted",
     "order_in_transit",
+    "order_picked_up",
     "order_arrived",
     "order_delivered",
     "order_cancelled",

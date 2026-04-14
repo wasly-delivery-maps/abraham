@@ -323,7 +323,7 @@ export default function DriverDashboard() {
                       onClick={(e) => { e.stopPropagation(); handleStatusUpdate(order.id, "picked_up"); }}
                       className="py-7 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-black text-sm shadow-xl transition-all"
                     >
-                      في الطريق 📦
+                      تم استلام الشحنة 📦
                     </Button>
                   </div>
                 )}
@@ -340,7 +340,7 @@ export default function DriverDashboard() {
                       onClick={(e) => { e.stopPropagation(); handleStatusUpdate(order.id, "in_transit"); }}
                       className="py-7 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm shadow-xl transition-all"
                     >
-                      في الطريق 🏁
+                      بدء التحرك للتسليم 🏁
                     </Button>
                   </div>
                 )}

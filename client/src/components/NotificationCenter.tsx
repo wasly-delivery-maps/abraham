@@ -55,6 +55,16 @@ export function NotificationCenter() {
                       مقبول
                     </span>
                   )}
+                  {notif.type === "order_picked_up" && (
+                    <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+                      تم الاستلام
+                    </span>
+                  )}
+                  {notif.type === "order_in_transit" && (
+                    <span className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
+                      في الطريق
+                    </span>
+                  )}
                   {notif.type === "order_delivered" && (
                     <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                       تم التسليم

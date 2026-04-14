@@ -64,8 +64,9 @@ export function OrdersManagement({ orders: initialOrders }: { orders: Order[] })
       pending: "قيد الانتظار",
       assigned: "مسند",
       accepted: "مقبول",
-      in_delivery: "قيد التسليم",
-      delivered: "مسلم",
+      picked_up: "تم الاستلام",
+      in_transit: "في الطريق",
+      delivered: "تم التسليم",
       cancelled: "ملغى",
     };
     return labels[status] || status;
@@ -79,8 +80,10 @@ export function OrdersManagement({ orders: initialOrders }: { orders: Order[] })
         return "bg-blue-100 text-blue-800";
       case "accepted":
         return "bg-blue-100 text-blue-800";
-      case "in_delivery":
+      case "picked_up":
         return "bg-purple-100 text-purple-800";
+      case "in_transit":
+        return "bg-indigo-100 text-indigo-800";
       case "delivered":
         return "bg-green-100 text-green-800";
       case "cancelled":
@@ -124,8 +127,9 @@ export function OrdersManagement({ orders: initialOrders }: { orders: Order[] })
             <option value="pending">قيد الانتظار</option>
             <option value="assigned">مسند</option>
             <option value="accepted">مقبول</option>
-            <option value="in_delivery">قيد التسليم</option>
-            <option value="delivered">مسلم</option>
+            <option value="picked_up">تم الاستلام</option>
+            <option value="in_transit">في الطريق</option>
+            <option value="delivered">تم التسليم</option>
             <option value="cancelled">ملغى</option>
           </select>
         </div>

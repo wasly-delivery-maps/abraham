@@ -138,8 +138,9 @@ export default function AdminDashboard() {
       pending: "قيد الانتظار",
       assigned: "مسند",
       accepted: "مقبول",
-      in_delivery: "قيد التسليم",
-      delivered: "مسلم",
+      picked_up: "تم الاستلام",
+      in_transit: "في الطريق",
+      delivered: "تم التسليم",
       cancelled: "ملغى",
     };
     return labels[status] || status;
@@ -153,8 +154,10 @@ export default function AdminDashboard() {
         return "bg-blue-100 text-blue-800";
       case "accepted":
         return "bg-blue-100 text-blue-800";
-      case "in_delivery":
+      case "picked_up":
         return "bg-purple-100 text-purple-800";
+      case "in_transit":
+        return "bg-indigo-100 text-indigo-800";
       case "delivered":
         return "bg-green-100 text-green-800";
       case "cancelled":
