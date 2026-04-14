@@ -60,6 +60,7 @@ export default function Auth() {
     }));
   };
 
+  const utils = trpc.useUtils();
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -83,17 +84,24 @@ export default function Auth() {
         password: loginData.password,
       });
 
+      // تحديث بيانات المستخدم في tRPC cache فوراً لضمان التعرف على الجلسة
+      utils.auth.me.setData(undefined, result.user as any);
+      await utils.auth.me.invalidate();
+
       toast.success("مرحباً بك! تم تسجيل الدخول بنجاح");
 
       setLoginData({ phone: "", password: "" });
 
-      if (result.user?.role === "driver") {
-        navigate("/driver/dashboard");
-      } else if (result.user?.role === "admin") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/customer/dashboard");
-      }
+      // تأخير بسيط لضمان تحديث الحالة قبل الانتقال
+      setTimeout(() => {
+        if (result.user?.role === "driver") {
+          navigate("/driver/dashboard");
+        } else if (result.user?.role === "admin") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/customer/dashboard");
+        }
+      }, 100);
     } catch (error: any) {
       console.error("Login error:", error);
       const errorMessage = error?.message || "فشل تسجيل الدخول. يرجى التحقق من البيانات والمحاولة مرة أخرى.";
@@ -144,6 +152,10 @@ export default function Auth() {
         role: registerData.role as "customer" | "driver" | "admin",
       });
 
+      // تحديث بيانات المستخدم في tRPC cache فوراً لضمان التعرف على الجلسة
+      utils.auth.me.setData(undefined, result.user as any);
+      await utils.auth.me.invalidate();
+
       toast.success("مرحباً! تم إنشاء حسابك بنجاح");
 
       setRegisterData({
@@ -154,13 +166,16 @@ export default function Auth() {
         role: "customer",
       });
 
-      if (result.user?.role === "driver") {
-        navigate("/driver/dashboard");
-      } else if (result.user?.role === "admin") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/customer/dashboard");
-      }
+      // تأخير بسيط لضمان تحديث الحالة قبل الانتقال
+      setTimeout(() => {
+        if (result.user?.role === "driver") {
+          navigate("/driver/dashboard");
+        } else if (result.user?.role === "admin") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/customer/dashboard");
+        }
+      }, 100);
     } catch (error: any) {
       console.error("Register error:", error);
       const errorMessage = error?.message || "فشل التسجيل. يرجى التحقق من البيانات والمحاولة مرة أخرى.";

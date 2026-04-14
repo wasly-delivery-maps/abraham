@@ -18,7 +18,12 @@ export default function ProtectedRoute({ component: Component, requiredRole }: P
     if (loading) return;
 
     // Skip if already authenticated and on correct path
-    if (isAuthenticated && user?.role === requiredRole) {
+    if (isAuthenticated) {
+      if (requiredRole && user?.role !== requiredRole) {
+        // User is authenticated but doesn't have the required role
+        // We'll let the component render and show NotFound or handle it
+        return;
+      }
       navigationAttemptedRef.current = false;
       return;
     }
@@ -28,8 +33,14 @@ export default function ProtectedRoute({ component: Component, requiredRole }: P
 
     // Navigate to auth if not authenticated
     if (!isAuthenticated && location !== "/auth") {
-      navigationAttemptedRef.current = true;
-      navigate("/auth");
+      // Add a small delay to ensure session is properly checked
+      const timer = setTimeout(() => {
+        if (!isAuthenticated) {
+          navigationAttemptedRef.current = true;
+          navigate("/auth");
+        }
+      }, 500);
+      return () => clearTimeout(timer);
     }
   }, [loading, isAuthenticated, user?.role, requiredRole, location, navigate]);
 

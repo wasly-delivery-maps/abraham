@@ -60,6 +60,9 @@ export function useAuth(options?: UseAuthOptions) {
     logoutMutation.isPending,
   ]);
 
+  // تم تعطيل إعادة التوجيه التلقائي هنا لتجنب مشكلة تسجيل الدخول المزدوج.
+  // يتم التعامل مع حماية المسارات من خلال مكون ProtectedRoute في App.tsx.
+  /*
   useEffect(() => {
     if (!redirectOnUnauthenticated) return;
     if (meQuery.isLoading || logoutMutation.isPending) return;
@@ -75,6 +78,7 @@ export function useAuth(options?: UseAuthOptions) {
     meQuery.isLoading,
     state.user,
   ]);
+  */
 
   return {
     ...state,

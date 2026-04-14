@@ -18,7 +18,9 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
 
   if (!isUnauthorized) return;
 
-  window.location.href = getLoginUrl();
+  // تم تعطيل إعادة التوجيه التلقائي هنا لتجنب مشكلة تسجيل الدخول المزدوج.
+  // يتم التعامل مع حماية المسارات من خلال مكون ProtectedRoute في App.tsx.
+  console.warn("[Auth] Unauthorized access detected, but auto-redirect is disabled to prevent double login.");
 };
 
 queryClient.getQueryCache().subscribe(event => {
