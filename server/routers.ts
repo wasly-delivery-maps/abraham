@@ -232,6 +232,8 @@ export const appRouter = router({
         email: u.email,
         role: u.role,
         isActive: u.isActive,
+        accountStatus: u.accountStatus,
+        pendingCommission: u.pendingCommission ? parseFloat(u.pendingCommission.toString()) : 0,
         createdAt: u.createdAt,
       }));
     }),
@@ -897,6 +899,33 @@ export const appRouter = router({
    * Admin routes
    */
   admin: router({
+    // Get statistics (Admin only)
+    getStatistics: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+      }
+      return await db.getStatistics();
+    }),
+
+    // Get all users (Admin only)
+    getAllUsers: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+      }
+      const users = await db.getAllUsers();
+      return users.map((u) => ({
+        id: u.id,
+        phone: u.phone,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        isActive: u.isActive,
+        accountStatus: u.accountStatus,
+        pendingCommission: u.pendingCommission ? parseFloat(u.pendingCommission.toString()) : 0,
+        createdAt: u.createdAt,
+      }));
+    }),
+
     // Get all orders (Admin only)
     getAllOrders: protectedProcedure.query(async ({ ctx }) => {
       if (ctx.user.role !== "admin") {

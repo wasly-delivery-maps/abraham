@@ -604,10 +604,14 @@ export async function getStatistics() {
       .select({ sum: sql<number>`SUM(price)` })
       .from(orders);
 
-    const activeDrivers = await db
+    const totalUsers = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(users);
+
+    const totalDrivers = await db
       .select({ count: sql<number>`COUNT(*)` })
       .from(users)
-      .where(and(eq(users.role, "driver"), eq(users.isActive, true)));
+      .where(eq(users.role, "driver"));
 
     const totalCustomers = await db
       .select({ count: sql<number>`COUNT(*)` })
@@ -617,7 +621,8 @@ export async function getStatistics() {
     return {
       totalOrders: totalOrders[0]?.count || 0,
       totalRevenue: totalRevenue[0]?.sum || 0,
-      activeDrivers: activeDrivers[0]?.count || 0,
+      totalUsers: totalUsers[0]?.count || 0,
+      totalDrivers: totalDrivers[0]?.count || 0,
       totalCustomers: totalCustomers[0]?.count || 0,
     };
   } catch (error) {

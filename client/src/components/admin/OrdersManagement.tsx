@@ -23,7 +23,7 @@ export function OrdersManagement({ orders: initialOrders }: { orders: Order[] })
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [ordersWithNames, setOrdersWithNames] = useState<Order[]>([]);
   
-  const usersQuery = trpc.users.getAllUsers.useQuery();
+  const usersQuery = trpc.admin.getAllUsers.useQuery();
   const deleteOrderMutation = trpc.admin.deleteOrder.useMutation();
   
   useEffect(() => {

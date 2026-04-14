@@ -167,11 +167,12 @@ export default function AdminDashboard() {
     }
   };
 
-  const totalOrders = orders.length;
+  const totalOrders = stats?.totalOrders || orders.length;
   const completedOrders = orders.filter((o) => o.status === "delivered").length;
   const activeOrders = orders.filter((o) => !["delivered", "cancelled"].includes(o.status)).length;
-  const totalDrivers = users.filter((u) => u.role === "driver").length;
-  const totalCustomers = users.filter((u) => u.role === "customer").length;
+  const totalDrivers = stats?.totalDrivers || users.filter((u) => u.role === "driver").length;
+  const totalCustomers = stats?.totalCustomers || users.filter((u) => u.role === "customer").length;
+  const totalUsers = stats?.totalUsers || users.length;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-background" dir="rtl">
@@ -277,7 +278,7 @@ export default function AdminDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-blue-600">{users.length}</div>
+              <div className="text-3xl font-bold text-blue-600">{totalUsers}</div>
             </CardContent>
           </Card>
 
