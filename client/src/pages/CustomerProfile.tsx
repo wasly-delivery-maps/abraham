@@ -43,30 +43,76 @@ export default function CustomerProfile() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 15 * 1024 * 1024) {
-      toast.error("حجم الصورة يجب أن يكون أقل من 15 ميجابايت");
+    // We can now accept larger files because we will resize them locally
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("حجم الملف كبير جداً، يرجى اختيار صورة أقل من 20 ميجابايت");
       return;
     }
 
     setIsUploading(true);
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64 = (reader.result as string).split(",")[1];
-      try {
-        await uploadAvatarMutation.mutateAsync({
-          base64,
-          contentType: file.type,
+    
+    try {
+      // Create a promise to handle image resizing
+      const processImage = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const MAX_WIDTH = 360;
+              const MAX_HEIGHT = 360;
+              let width = img.width;
+              let height = img.height;
+
+              // Calculate cropping to make it square
+              let offsetX = 0;
+              let offsetY = 0;
+              if (width > height) {
+                offsetX = (width - height) / 2;
+                width = height;
+              } else {
+                offsetY = (height - width) / 2;
+                height = width;
+              }
+
+              canvas.width = MAX_WIDTH;
+              canvas.height = MAX_HEIGHT;
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                // Draw image cropped and resized
+                ctx.drawImage(img, offsetX, offsetY, width, height, 0, 0, MAX_WIDTH, MAX_HEIGHT);
+                // Export as JPEG with 0.7 quality to keep size very small
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                resolve(dataUrl.split(',')[1]);
+              } else {
+                reject(new Error("Could not get canvas context"));
+              }
+            };
+            img.onerror = () => reject(new Error("Failed to load image"));
+          };
+          reader.onerror = () => reject(new Error("Failed to read file"));
         });
-        toast.success("تم تحديث الصورة الشخصية بنجاح ✨");
-        utils.auth.me.invalidate();
-      } catch (error: any) {
-        const errorMessage = error.message || "فشل في رفع الصورة";
-        toast.error(errorMessage);
-      } finally {
-        setIsUploading(false);
-      }
-    };
-    reader.readAsDataURL(file);
+      };
+
+      const base64 = await processImage(file);
+      
+      await uploadAvatarMutation.mutateAsync({
+        base64,
+        contentType: "image/jpeg", // We converted it to jpeg
+      });
+      
+      toast.success("تم تحديث الصورة الشخصية وتصغيرها بنجاح ✨");
+      utils.auth.me.invalidate();
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      const errorMessage = error.message || "فشل في معالجة أو رفع الصورة";
+      toast.error(errorMessage);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   if (loading) {
