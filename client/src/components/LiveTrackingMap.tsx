@@ -20,6 +20,7 @@ export function LiveTrackingMap({
 }: LiveTrackingMapProps) {
   const { isConnected, driverLocations, trackDriver, stopTracking } = useLocationTracking();
   const [mapReady, setMapReady] = useState(false);
+  const [mapError, setMapError] = useState(false);
   const mapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<Record<string, google.maps.Marker>>({});
 
@@ -38,84 +39,165 @@ export function LiveTrackingMap({
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
 
-    const driverLocation = driverLocations.get(driverId);
-    if (!driverLocation) return;
+    try {
+      const driverLocation = driverLocations.get(driverId);
+      if (!driverLocation) return;
 
-    const map = mapRef.current;
-    const { latitude, longitude } = driverLocation;
+      const map = mapRef.current;
+      if (!map) return;
 
-    // Remove old driver marker
-    if (markersRef.current["driver"]) {
-      markersRef.current["driver"].setMap(null);
+      const { latitude, longitude } = driverLocation;
+
+      // Validate coordinates
+      if (typeof latitude !== 'number' || typeof longitude !== 'number' || 
+          isNaN(latitude) || isNaN(longitude)) {
+        console.warn("[Map] Invalid driver coordinates:", { latitude, longitude });
+        return;
+      }
+
+      // Remove old driver marker
+      if (markersRef.current["driver"]) {
+        try {
+          markersRef.current["driver"].setMap(null);
+        } catch (e) {
+          console.warn("[Map] Error removing old driver marker:", e);
+        }
+      }
+
+      // Add new driver marker
+      try {
+        const driverMarker = new google.maps.Marker({
+          position: { lat: latitude, lng: longitude },
+          map: map,
+          title: "موقع السائق",
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 12,
+            fillColor: "#FF6B35",
+            fillOpacity: 1,
+            strokeColor: "#fff",
+            strokeWeight: 2,
+          } as google.maps.Symbol,
+        });
+
+        markersRef.current["driver"] = driverMarker;
+
+        // Center map on driver
+        map.setCenter({ lat: latitude, lng: longitude });
+      } catch (e) {
+        console.error("[Map] Error adding driver marker:", e);
+      }
+    } catch (error) {
+      console.error("[Map] Error updating driver marker:", error);
+      setMapError(true);
     }
-
-    // Add new driver marker
-    const driverMarker = new google.maps.Marker({
-      position: { lat: latitude, lng: longitude },
-      map: map,
-      title: "موقع السائق",
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 12,
-        fillColor: "#FF6B35",
-        fillOpacity: 1,
-        strokeColor: "#fff",
-        strokeWeight: 2,
-      } as google.maps.Symbol,
-    });
-
-    markersRef.current["driver"] = driverMarker;
-
-    // Center map on driver
-    map.setCenter({ lat: latitude, lng: longitude });
   }, [driverLocations, driverId, mapReady]);
 
   // Add pickup and delivery markers
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
 
-    const map = mapRef.current;
+    try {
+      const map = mapRef.current;
+      if (!map) return;
 
-    // Pickup marker
-    if (markersRef.current["pickup"]) {
-      markersRef.current["pickup"].setMap(null);
-    }
-    const pickupMarker = new google.maps.Marker({
-      position: { lat: pickupLocation.latitude, lng: pickupLocation.longitude },
-      map: map,
-      title: "نقطة الاستلام",
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 10,
-        fillColor: "#4CAF50",
-        fillOpacity: 1,
-        strokeColor: "#fff",
-        strokeWeight: 2,
-      } as google.maps.Symbol,
-    });
-    markersRef.current["pickup"] = pickupMarker;
+      // Validate pickup location
+      if (!pickupLocation || typeof pickupLocation.latitude !== 'number' || 
+          typeof pickupLocation.longitude !== 'number' ||
+          isNaN(pickupLocation.latitude) || isNaN(pickupLocation.longitude)) {
+        console.warn("[Map] Invalid pickup location:", pickupLocation);
+        return;
+      }
 
-    // Delivery marker
-    if (markersRef.current["delivery"]) {
-      markersRef.current["delivery"].setMap(null);
+      // Validate delivery location
+      if (!deliveryLocation || typeof deliveryLocation.latitude !== 'number' || 
+          typeof deliveryLocation.longitude !== 'number' ||
+          isNaN(deliveryLocation.latitude) || isNaN(deliveryLocation.longitude)) {
+        console.warn("[Map] Invalid delivery location:", deliveryLocation);
+        return;
+      }
+
+      // Pickup marker
+      if (markersRef.current["pickup"]) {
+        try {
+          markersRef.current["pickup"].setMap(null);
+        } catch (e) {
+          console.warn("[Map] Error removing old pickup marker:", e);
+        }
+      }
+
+      try {
+        const pickupMarker = new google.maps.Marker({
+          position: { lat: pickupLocation.latitude, lng: pickupLocation.longitude },
+          map: map,
+          title: "نقطة الاستلام",
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 10,
+            fillColor: "#4CAF50",
+            fillOpacity: 1,
+            strokeColor: "#fff",
+            strokeWeight: 2,
+          } as google.maps.Symbol,
+        });
+        markersRef.current["pickup"] = pickupMarker;
+      } catch (e) {
+        console.error("[Map] Error adding pickup marker:", e);
+      }
+
+      // Delivery marker
+      if (markersRef.current["delivery"]) {
+        try {
+          markersRef.current["delivery"].setMap(null);
+        } catch (e) {
+          console.warn("[Map] Error removing old delivery marker:", e);
+        }
+      }
+
+      try {
+        const deliveryMarker = new google.maps.Marker({
+          position: { lat: deliveryLocation.latitude, lng: deliveryLocation.longitude },
+          map: map,
+          title: "نقطة التسليم",
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 10,
+            fillColor: "#2196F3",
+            fillOpacity: 1,
+            strokeColor: "#fff",
+            strokeWeight: 2,
+          } as google.maps.Symbol,
+        });
+        markersRef.current["delivery"] = deliveryMarker;
+      } catch (e) {
+        console.error("[Map] Error adding delivery marker:", e);
+      }
+    } catch (error) {
+      console.error("[Map] Error adding markers:", error);
+      setMapError(true);
     }
-    const deliveryMarker = new google.maps.Marker({
-      position: { lat: deliveryLocation.latitude, lng: deliveryLocation.longitude },
-      map: map,
-      title: "نقطة التسليم",
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 10,
-        fillColor: "#2196F3",
-        fillOpacity: 1,
-        strokeColor: "#fff",
-        strokeWeight: 2,
-      } as google.maps.Symbol,
-    });
-    markersRef.current["delivery"] = deliveryMarker;
   }, [mapReady, pickupLocation, deliveryLocation]);
 
   const driverLocation = driverLocations.get(driverId);
+
+  if (mapError) {
+    return (
+      <div className="space-y-4">
+        <Card className="p-4 bg-red-50 border-red-200">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-red-700">خطأ في الخريطة</h3>
+            <button 
+              onClick={() => setMapError(false)}
+              className="text-red-600 hover:text-red-800"
+            >
+              إعادة محاولة
+            </button>
+          </div>
+          <p className="text-red-600 mt-2">حدث خطأ أثناء تحميل الخريطة. يرجى المحاولة لاحقاً.</p>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -140,14 +222,20 @@ export function LiveTrackingMap({
         <div className="bg-gray-100 rounded-lg overflow-hidden h-96">
           <MapView
             onMapReady={(map: google.maps.Map) => {
-              mapRef.current = map;
-              setMapReady(true);
-              // Set initial center
-              map.setCenter({
-                lat: pickupLocation.latitude,
-                lng: pickupLocation.longitude,
-              });
-              map.setZoom(15);
+              try {
+                mapRef.current = map;
+                setMapReady(true);
+                setMapError(false);
+                // Set initial center
+                map.setCenter({
+                  lat: pickupLocation.latitude,
+                  lng: pickupLocation.longitude,
+                });
+                map.setZoom(15);
+              } catch (e) {
+                console.error("[Map] Error in onMapReady:", e);
+                setMapError(true);
+              }
             }}
           />
         </div>
