@@ -224,7 +224,7 @@ export default function DriverDashboard() {
 
   const OrderCard = ({ order, isAvailable = false }: { order: any, isAvailable?: boolean }) => {
     const isSelected = selectedOrderId === order.id;
-    const details = isSelected ? orderDetailsQuery.data : null;
+    const details = orderDetailsQuery.data;
 
     const pickupPos: [number, number] = [order.pickupLocation.latitude, order.pickupLocation.longitude];
     const deliveryPos: [number, number] = [order.deliveryLocation.latitude, order.deliveryLocation.longitude];
@@ -250,7 +250,7 @@ export default function DriverDashboard() {
             </div>
 
             {/* Leaflet Map for Active Orders */}
-            {!isAvailable && isSelected && (
+            {!isAvailable && (
               <div className="h-64 w-full bg-slate-100 relative z-0">
                 <MapContainer center={pickupPos} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -323,7 +323,7 @@ export default function DriverDashboard() {
                       onClick={(e) => { e.stopPropagation(); handleStatusUpdate(order.id, "picked_up"); }}
                       className="py-7 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-black text-sm shadow-xl transition-all"
                     >
-                      تم الاستلام 📦
+                      في الطريق 📦
                     </Button>
                   </div>
                 )}
