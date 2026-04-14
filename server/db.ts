@@ -326,12 +326,24 @@ export async function updateDriverLocation(
  */
 export async function updateUserProfile(
   userId: number,
-  data: { name?: string; email?: string; phone?: string }
+  data: { name?: string; email?: string; phone?: string; avatarUrl?: string }
 ) {
   const db = await getDb();
-  if (!db) {
+  if (!db && !_useInMemory) {
     console.warn("[Database] Cannot update user profile: database not available");
     return undefined;
+  }
+
+  // In-memory implementation
+  if (_useInMemory) {
+    const user = inMemoryDB.users.get(userId);
+    if (user) {
+      if (data.name !== undefined) user.name = data.name;
+      if (data.email !== undefined) user.email = data.email;
+      if (data.phone !== undefined) user.phone = data.phone;
+      if (data.avatarUrl !== undefined) user.avatarUrl = data.avatarUrl;
+    }
+    return user;
   }
 
   try {
@@ -339,12 +351,15 @@ export async function updateUserProfile(
     if (data.name !== undefined) updateSet.name = data.name;
     if (data.email !== undefined) updateSet.email = data.email;
     if (data.phone !== undefined) updateSet.phone = data.phone;
+    if (data.avatarUrl !== undefined) updateSet.avatarUrl = data.avatarUrl;
 
     if (Object.keys(updateSet).length === 0) {
       return await getUserById(userId);
     }
 
-    await db.update(users).set(updateSet).where(eq(users.id, userId));
+    if (db) {
+      await db.update(users).set(updateSet).where(eq(users.id, userId));
+    }
     return await getUserById(userId);
   } catch (error) {
     console.error("[Database] Failed to update user profile:", error);

@@ -29,6 +29,7 @@ export const users = mysqlTable("users", {
   totalCommission: decimal("totalCommission", { precision: 10, scale: 2 }).default("0").notNull(),
   totalDebt: decimal("totalDebt", { precision: 10, scale: 2 }).default("0").notNull(),
   isBlocked: boolean("isBlocked").default(false).notNull(),
+  avatarUrl: text("avatarUrl"),
   // عمولات السائق والحالة
   pendingCommission: decimal("pendingCommission", { precision: 10, scale: 2 }).default("0").notNull(), // عمولات مستحقة لم تدفع
   paidCommission: decimal("paidCommission", { precision: 10, scale: 2 }).default("0").notNull(), // عمولات مدفوعة

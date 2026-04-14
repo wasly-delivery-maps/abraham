@@ -3,12 +3,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ArrowRight, Mail, Phone, MapPin, Truck, LogOut, User, Settings, ShieldCheck, ChevronLeft, Camera, Edit3, Save, X, MessageCircle, ShoppingBag, HelpCircle, Loader2, Star, TrendingUp } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CommissionCard } from "@/components/CommissionCard";
 
@@ -34,6 +35,37 @@ export default function DriverProfile() {
 
   const ordersQuery = trpc.orders.getDriverOrders.useQuery(undefined, { enabled: !!user });
   const updateProfileMutation = trpc.users.updateProfile.useMutation();
+  const uploadAvatarMutation = trpc.users.uploadAvatar.useMutation();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("حجم الصورة كبير جداً (الحد الأقصى 5 ميجابايت)");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64 = reader.result as string;
+      try {
+        setIsUploading(true);
+        await uploadAvatarMutation.mutateAsync({
+          base64,
+          mimeType: file.type,
+        });
+        toast.success("تم تحديث الصورة الشخصية بنجاح");
+      } catch (error) {
+        toast.error("فشل في رفع الصورة");
+      } finally {
+        setIsUploading(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   if (loading) {
     return (
@@ -94,11 +126,34 @@ export default function DriverProfile() {
           </div>
 
           <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="relative">
-              <div className="h-32 w-32 rounded-[2.5rem] bg-gradient-to-br from-orange-500 to-orange-700 p-1 shadow-2xl">
-                <div className="h-full w-full rounded-[2.3rem] bg-slate-900 flex items-center justify-center overflow-hidden">
-                  <Truck className="h-16 w-16 text-orange-500" />
+            <div className="relative group">
+              <div className="h-32 w-32 rounded-[2.5rem] bg-gradient-to-br from-orange-500 to-orange-700 p-1 shadow-2xl relative">
+                <div className="h-full w-full rounded-[2.3rem] bg-slate-900 flex items-center justify-center overflow-hidden relative">
+                  {isUploading ? (
+                    <Loader2 className="h-12 w-12 text-orange-500 animate-spin" />
+                  ) : (
+                    <Avatar className="h-full w-full rounded-none">
+                      <AvatarImage src={(user as any)?.avatarUrl} className="object-cover" />
+                      <AvatarFallback className="bg-transparent">
+                        <Truck className="h-16 w-16 text-orange-500" />
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
                 </div>
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="absolute -bottom-2 -right-2 h-10 w-10 bg-orange-600 rounded-xl flex items-center justify-center shadow-lg hover:bg-orange-500 transition-all border-4 border-slate-900"
+                >
+                  <Camera className="h-5 w-5 text-white" />
+                </button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handleFileChange}
+                />
               </div>
             </div>
             
