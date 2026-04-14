@@ -343,31 +343,8 @@ export const appRouter = router({
         };
       }),
 
-    // Get orders by customer
-    getCustomerOrders: protectedProcedure.query(async ({ ctx }) => {
-      if (ctx.user.role !== "customer") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only customers can view their orders",
-        });
-      }
-
-      const orders = await db.getOrdersByCustomerId(ctx.user.id);
-      return orders.map((o) => ({
-        id: o.id,
-        status: o.status,
-        pickupLocation: o.pickupLocation,
-        deliveryLocation: o.deliveryLocation,
-        price: o.price ? parseFloat(o.price.toString()) : 0,
-        distance: o.distance ? parseFloat(o.distance.toString()) : 0,
-        estimatedTime: o.estimatedTime,
-        driverId: o.driverId,
-        createdAt: o.createdAt,
-      }));
-    }),
-
     // Get orders with driver details
-    getOrdersWithDriver: protectedProcedure.query(async ({ ctx }) => {
+    getCustomerOrders: protectedProcedure.query(async ({ ctx }) => {
       if (ctx.user.role !== "customer") {
         throw new TRPCError({
           code: "FORBIDDEN",

@@ -399,11 +399,8 @@ export default function DriverDashboard() {
                     onClick={(e) => { e.stopPropagation(); handleStatusUpdate(order.id, "delivered"); }}
                     className="w-full py-7 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg shadow-xl transition-all"
                   >
-                    تم التسليم بنجاح ✅
-                  </Button>
-                )}
-                
-                {!isAvailable && (
+                    تم التس                {/* Contact Actions - Only visible for active orders (not available and not delivered) */}
+                {!isAvailable && order.status !== "delivered" && (
                   <div className="grid grid-cols-2 gap-3">
                     {customerPhone && (
                       <a href={`tel:${customerPhone}`} className="w-full" onClick={(e) => e.stopPropagation()}>
@@ -420,8 +417,7 @@ export default function DriverDashboard() {
                       <MessageSquare className="ml-2 h-4 w-4" /> مراسلة
                     </Button>
                   </div>
-                )}
-              </div>
+                )}           </div>
             </div>
           </CardContent>
         </Card>
