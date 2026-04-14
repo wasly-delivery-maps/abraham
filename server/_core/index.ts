@@ -12,6 +12,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { setupLocationTracking } from "./locationTracking";
 import { setupOrderNotifications } from "./orderNotifications";
+import { setupChat } from "./chat";
 import { registerSSEConnection, sendNotificationToUser } from "../notifications";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -59,6 +60,9 @@ async function startServer() {
   
   // Setup order notifications
   setupOrderNotifications(io);
+
+  // Setup chat system
+  setupChat(io);
   
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));

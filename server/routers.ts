@@ -714,7 +714,7 @@ export const appRouter = router({
         }
 
         // Import pricing functions
-        const { getCommissionPerOrder, shouldBlockDriver } = await import("@shared/pricing");
+        const { getCommissionPerOrder, shouldBlockDriver } = await import("../shared/pricing");
         
         // Get commission amount
         const commission = getCommissionPerOrder();
@@ -728,17 +728,16 @@ export const appRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: "Driver not found" });
         }
 
-        const currentDebt = parseFloat(driver.totalDebt?.toString() || "0");
-        const currentCommission = parseFloat(driver.totalCommission?.toString() || "0");
-        const newDebt = currentDebt + commission;
-        const isSuspended = shouldBlockDriver(newDebt);
+        const currentPending = parseFloat(driver.pendingCommission?.toString() || "0");
+        const newPending = currentPending + commission;
+        const isSuspended = shouldBlockDriver(newPending);
 
         // Update driver record
         // تحديث العمولات المستحقة
         const updatedDriver = await db.updateDriverCommission(ctx.user.id, commission);
         
         // تحديث حالة الحساب إذا لزم الأمر
-        if (isSuspended) {
+        if (isSuspended && driver.accountStatus !== "disabled") {
           await db.updateAccountStatus(ctx.user.id, "disabled", "عمولات مستحقة تجاوزت 30 جنيه");
         }
 
@@ -769,11 +768,11 @@ export const appRouter = router({
         return {
           success: true,
           commission,
-          newDebt,
+          newDebt: newPending,
           isSuspended,
           message: isSuspended
             ? "تم إكمال الطلب. تم حظر حسابك بسبب تجاوز حد المديونية. يرجى الدفع عبر Vodafone Cash."
-            : `تم إكمال الطلب. تم خصم ${commission} جنيه عمولة. رصيدك المتبقي: ${newDebt} جنيه`,
+            : `تم إكمال الطلب. تم خصم ${commission} جنيه عمولة. رصيدك المتبقي: ${newPending} جنيه`,
         };
       }),
 
