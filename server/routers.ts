@@ -697,19 +697,19 @@ export const appRouter = router({
         if (ctx.user.role !== "driver") {
           throw new TRPCError({
             code: "FORBIDDEN",
-            message: "Only drivers can complete orders",
+            message: "فقط السائقون يمكنهم إكمال الطلبات",
           });
         }
 
         const order = await db.getOrderById(input.orderId);
         if (!order) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Order not found" });
+          throw new TRPCError({ code: "NOT_FOUND", message: "لم يتم العثور على الطلب" });
         }
 
         if (order.driverId !== ctx.user.id) {
           throw new TRPCError({
             code: "FORBIDDEN",
-            message: "You can only complete your own orders",
+            message: "يمكنك فقط إكمال طلباتك الخاصة",
           });
         }
 
@@ -722,7 +722,7 @@ export const appRouter = router({
         // Update driver debt and commission
         const driver = await db.getUserById(ctx.user.id);
         if (!driver) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Driver not found" });
+          throw new TRPCError({ code: "NOT_FOUND", message: "لم يتم العثور على السائق" });
         }
 
         const currentPending = parseFloat(driver.pendingCommission?.toString() || "0");
