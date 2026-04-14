@@ -43,8 +43,8 @@ export default function CustomerProfile() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("حجم الصورة يجب أن يكون أقل من 5 ميجابايت");
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("حجم الصورة يجب أن يكون أقل من 15 ميجابايت");
       return;
     }
 
