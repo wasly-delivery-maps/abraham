@@ -8,14 +8,18 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CommissionCard } from "@/components/CommissionCard";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function DriverProfile() {
   const { user, loading, logout } = useAuth();
   const [, navigate] = useLocation();
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const utils = trpc.useContext();
   const [editData, setEditData] = useState({
     name: "",
     email: "",
@@ -34,6 +38,78 @@ export default function DriverProfile() {
 
   const ordersQuery = trpc.orders.getDriverOrders.useQuery(undefined, { enabled: !!user });
   const updateProfileMutation = trpc.users.updateProfile.useMutation();
+  const uploadAvatarMutation = trpc.users.uploadAvatar.useMutation();
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("حجم الملف كبير جداً، يرجى اختيار صورة أقل من 20 ميجابايت");
+      return;
+    }
+
+    setIsUploading(true);
+    
+    try {
+      const processImage = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const MAX_WIDTH = 360;
+              const MAX_HEIGHT = 360;
+              let width = img.width;
+              let height = img.height;
+
+              let offsetX = 0;
+              let offsetY = 0;
+              if (width > height) {
+                offsetX = (width - height) / 2;
+                width = height;
+              } else {
+                offsetY = (height - width) / 2;
+                height = width;
+              }
+
+              canvas.width = MAX_WIDTH;
+              canvas.height = MAX_HEIGHT;
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                ctx.drawImage(img, offsetX, offsetY, width, height, 0, 0, MAX_WIDTH, MAX_HEIGHT);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                resolve(dataUrl.split(',')[1]);
+              } else {
+                reject(new Error("Could not get canvas context"));
+              }
+            };
+            img.onerror = () => reject(new Error("Failed to load image"));
+          };
+          reader.onerror = () => reject(new Error("Failed to read file"));
+        });
+      };
+
+      const base64 = await processImage(file);
+      
+      await uploadAvatarMutation.mutateAsync({
+        base64,
+        contentType: "image/jpeg",
+      });
+      
+      toast.success("تم تحديث صورة الكابتن وتصغيرها بنجاح ✨");
+      utils.auth.me.invalidate();
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      const errorMessage = error.message || "فشل في معالجة أو رفع الصورة";
+      toast.error(errorMessage);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -94,13 +170,76 @@ export default function DriverProfile() {
           </div>
 
           <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="relative">
-              <div className="h-32 w-32 rounded-[2.5rem] bg-gradient-to-br from-orange-500 to-orange-700 p-1 shadow-2xl">
+            <motion.div 
+              className="relative group"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            >
+              <motion.div 
+                className="h-32 w-32 rounded-[2.5rem] bg-gradient-to-br from-orange-500 to-orange-700 p-1 shadow-2xl relative overflow-hidden"
+                whileHover={{ 
+                  scale: 1.05, 
+                  rotate: [0, -2, 2, 0],
+                  boxShadow: "0px 0px 25px rgba(249, 115, 22, 0.5)"
+                }}
+                whileTap={{ scale: 0.95 }}
+                animate={{
+                  y: [0, -8, 0],
+                }}
+                transition={{
+                  y: {
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  },
+                  rotate: {
+                    duration: 0.5,
+                    repeat: 0
+                  }
+                }}
+              >
                 <div className="h-full w-full rounded-[2.3rem] bg-slate-900 flex items-center justify-center overflow-hidden">
-                  <Truck className="h-16 w-16 text-orange-500" />
+                  <Avatar className="h-full w-full rounded-none">
+                    <AvatarImage src={user.avatarUrl || ""} className="object-cover" />
+                    <AvatarFallback className="bg-slate-900 text-orange-500">
+                      <Truck className="h-16 w-16" />
+                    </AvatarFallback>
+                  </Avatar>
                 </div>
-              </div>
-            </div>
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer disabled:cursor-not-allowed"
+                >
+                  {isUploading ? (
+                    <Loader2 className="h-8 w-8 text-white animate-spin" />
+                  ) : (
+                    <Camera className="h-8 w-8 text-white" />
+                  )}
+                </button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handleFileChange}
+                />
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <Button 
+                  size="icon"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute -bottom-2 -right-2 h-10 w-10 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white shadow-xl border-4 border-slate-900 md:hidden"
+                >
+                  <Camera className="h-5 w-5" />
+                </Button>
+              </motion.div>
+            </motion.div>
             
             <div className="text-center md:text-right">
               <div className="flex items-center gap-3 justify-center md:justify-start mb-2">
