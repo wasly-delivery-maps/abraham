@@ -203,12 +203,47 @@ export default function DriverDashboard() {
     }
   };
 
+  // Helper function to validate coordinates
+  const isValidCoordinate = (lat: any, lng: any): boolean => {
+    return (
+      typeof lat === 'number' && 
+      typeof lng === 'number' && 
+      !isNaN(lat) && 
+      !isNaN(lng) && 
+      lat >= -90 && 
+      lat <= 90 && 
+      lng >= -180 && 
+      lng <= 180
+    );
+  };
+
   const OrderCard = ({ order, isAvailable = false }: { order: any, isAvailable?: boolean }) => {
     const isSelected = selectedOrderId === order.id;
     const details = orderDetailsQuery.data;
 
-    const pickupPos: [number, number] = [order.pickupLocation.latitude, order.pickupLocation.longitude];
-    const deliveryPos: [number, number] = [order.deliveryLocation.latitude, order.deliveryLocation.longitude];
+    // Validate and parse coordinates
+    const pickupLat = typeof order.pickupLocation?.latitude === 'string' 
+      ? parseFloat(order.pickupLocation.latitude) 
+      : order.pickupLocation?.latitude;
+    const pickupLng = typeof order.pickupLocation?.longitude === 'string' 
+      ? parseFloat(order.pickupLocation.longitude) 
+      : order.pickupLocation?.longitude;
+    const deliveryLat = typeof order.deliveryLocation?.latitude === 'string' 
+      ? parseFloat(order.deliveryLocation.latitude) 
+      : order.deliveryLocation?.latitude;
+    const deliveryLng = typeof order.deliveryLocation?.longitude === 'string' 
+      ? parseFloat(order.deliveryLocation.longitude) 
+      : order.deliveryLocation?.longitude;
+
+    const isPickupValid = isValidCoordinate(pickupLat, pickupLng);
+    const isDeliveryValid = isValidCoordinate(deliveryLat, deliveryLng);
+
+    const pickupPos: [number, number] = [pickupLat, pickupLng];
+    const deliveryPos: [number, number] = [deliveryLat, deliveryLng];
+
+    // Get customer info from either details or order
+    const customerName = details?.customer?.name || order.customer?.name || "عميل وصلي";
+    const customerPhone = details?.customer?.phone || order.customer?.phone;
 
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}>
@@ -230,8 +265,8 @@ export default function DriverDashboard() {
               {getStatusBadge(order.status)}
             </div>
 
-            {/* Google Map for Active Orders */}
-            {!isAvailable && isLoaded && pickupPos[0] && pickupPos[1] && (
+            {/* Google Map for Active Orders - Fixed */}
+            {!isAvailable && isLoaded && isPickupValid && isDeliveryValid && (
               <div className="h-64 w-full bg-slate-100 relative z-0">
                 <GoogleMap
                   mapContainerStyle={mapContainerStyle}
@@ -239,25 +274,31 @@ export default function DriverDashboard() {
                   zoom={13}
                   options={mapOptions}
                 >
-                  <Marker 
-                    position={{ lat: pickupPos[0], lng: pickupPos[1] }} 
-                    label={{ text: "A", color: "white", fontWeight: "bold" }}
-                  />
-                  <Marker 
-                    position={{ lat: deliveryPos[0], lng: deliveryPos[1] }} 
-                    label={{ text: "B", color: "white", fontWeight: "bold" }}
-                  />
-                  <Polyline 
-                    path={[
-                      { lat: pickupPos[0], lng: pickupPos[1] },
-                      { lat: deliveryPos[0], lng: deliveryPos[1] }
-                    ]}
-                    options={{
-                      strokeColor: "#f97316",
-                      strokeOpacity: 0.8,
-                      strokeWeight: 4,
-                    }}
-                  />
+                  {isPickupValid && (
+                    <Marker 
+                      position={{ lat: pickupPos[0], lng: pickupPos[1] }} 
+                      label={{ text: "A", color: "white", fontWeight: "bold" }}
+                    />
+                  )}
+                  {isDeliveryValid && (
+                    <Marker 
+                      position={{ lat: deliveryPos[0], lng: deliveryPos[1] }} 
+                      label={{ text: "B", color: "white", fontWeight: "bold" }}
+                    />
+                  )}
+                  {isPickupValid && isDeliveryValid && (
+                    <Polyline 
+                      path={[
+                        { lat: pickupPos[0], lng: pickupPos[1] },
+                        { lat: deliveryPos[0], lng: deliveryPos[1] }
+                      ]}
+                      options={{
+                        strokeColor: "#f97316",
+                        strokeOpacity: 0.8,
+                        strokeWeight: 4,
+                      }}
+                    />
+                  )}
                 </GoogleMap>
               </div>
             )}
@@ -270,7 +311,7 @@ export default function DriverDashboard() {
                   <div className="h-6 w-6 rounded-full bg-orange-500 border-4 border-white shadow-lg z-10 flex-shrink-0" />
                   <div className="space-y-1">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">نقطة الاستلام</p>
-                    <p className="text-sm font-bold text-slate-700 leading-relaxed">{order.pickupLocation.address}</p>
+                    <p className="text-sm font-bold text-slate-700 leading-relaxed">{order.pickupLocation?.address || "عنوان غير متاح"}</p>
                   </div>
                 </div>
 
@@ -278,7 +319,7 @@ export default function DriverDashboard() {
                   <div className="h-6 w-6 rounded-full bg-blue-500 border-4 border-white shadow-lg z-10 flex-shrink-0" />
                   <div className="space-y-1">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">وجهة التسليم</p>
-                    <p className="text-sm font-bold text-slate-700 leading-relaxed">{order.deliveryLocation.address}</p>
+                    <p className="text-sm font-bold text-slate-700 leading-relaxed">{order.deliveryLocation?.address || "عنوان غير متاح"}</p>
                   </div>
                 </div>
               </div>
@@ -286,11 +327,11 @@ export default function DriverDashboard() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">أرباحك</p>
-                  <p className="text-xl font-black text-orange-600">ج.م {order.price}</p>
+                  <p className="text-xl font-black text-orange-600">ج.م {order.price || 0}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">العميل</p>
-                  <p className="text-sm font-black text-slate-900 truncate">{details?.customer?.name || order.customer?.name || "عميل وصلي"}</p>
+                  <p className="text-sm font-black text-slate-900 truncate">{customerName}</p>
                 </div>
               </div>
 
@@ -361,11 +402,11 @@ export default function DriverDashboard() {
                   </Button>
                 )}
                 
-                {/* Contact Actions - Always visible if data exists */}
+                {/* Contact Actions - Always visible if data exists - FIXED */}
                 {!isAvailable && (
                   <div className="grid grid-cols-2 gap-3">
-                    {(details?.customer?.phone || order.customer?.phone) && (
-                      <a href={`tel:${details?.customer?.phone || order.customer?.phone}`} className="w-full" onClick={(e) => e.stopPropagation()}>
+                    {customerPhone && (
+                      <a href={`tel:${customerPhone}`} className="w-full" onClick={(e) => e.stopPropagation()}>
                         <Button variant="outline" className="w-full py-7 rounded-2xl border-slate-200 text-slate-600 font-black text-sm hover:bg-slate-50">
                           <Phone className="ml-2 h-4 w-4" /> اتصل بالعميل
                         </Button>
@@ -470,11 +511,13 @@ export default function DriverDashboard() {
                     <Clock className="h-10 w-10 text-slate-300" />
                   </div>
                   <h3 className="text-xl font-black text-slate-900 mb-2">لا توجد طلبات متاحة حالياً</h3>
-                  <p className="text-slate-400 font-bold">سنقوم بإشعارك فور ظهور طلبات جديدة في منطقتك</p>
+                  <p className="text-slate-500 text-sm">سيتم إخطارك فور توفر طلب جديد</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {availableOrders.map((order) => <OrderCard key={order.id} order={order} isAvailable={true} />)}
+                <div>
+                  {availableOrders.map((order) => (
+                    <OrderCard key={order.id} order={order} isAvailable={true} />
+                  ))}
                 </div>
               )}
             </TabsContent>
@@ -486,11 +529,13 @@ export default function DriverDashboard() {
                     <Truck className="h-10 w-10 text-slate-300" />
                   </div>
                   <h3 className="text-xl font-black text-slate-900 mb-2">لا توجد طلبات جارية</h3>
-                  <p className="text-slate-400 font-bold">ابدأ بقبول الطلبات المتاحة لزيادة أرباحك</p>
+                  <p className="text-slate-500 text-sm">اقبل طلباً لبدء التوصيل</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-6">
-                  {activeOrders.map((order) => <OrderCard key={order.id} order={order} />)}
+                <div>
+                  {activeOrders.map((order) => (
+                    <OrderCard key={order.id} order={order} isAvailable={false} />
+                  ))}
                 </div>
               )}
             </TabsContent>
@@ -501,12 +546,14 @@ export default function DriverDashboard() {
                   <div className="h-20 w-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
                     <CheckCircle2 className="h-10 w-10 text-slate-300" />
                   </div>
-                  <h3 className="text-xl font-black text-slate-900 mb-2">لا توجد طلبات مكتملة</h3>
-                  <p className="text-slate-400 font-bold">أكمل طلباتك اليوم لتراها هنا</p>
+                  <h3 className="text-xl font-black text-slate-900 mb-2">لم تكمل أي طلبات بعد</h3>
+                  <p className="text-slate-500 text-sm">ابدأ بقبول الطلبات المتاحة</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {completedOrders.map((order) => <OrderCard key={order.id} order={order} />)}
+                <div>
+                  {completedOrders.map((order) => (
+                    <OrderCard key={order.id} order={order} isAvailable={false} />
+                  ))}
                 </div>
               )}
             </TabsContent>
@@ -515,15 +562,12 @@ export default function DriverDashboard() {
       </div>
 
       {/* Chat Box */}
-      {selectedOrderId && user && (
+      {isChatOpen && selectedOrderId && (
         <ChatBox 
-          orderId={selectedOrderId} 
-          userId={user.id}
-          userRole="driver"
-          userName={user.name || "سائق"}
+          orderId={selectedOrderId}
+          otherUserId={selectedOrder?.customerId}
           otherUserName={otherUserName}
-          isOpen={isChatOpen} 
-          onClose={() => setIsChatOpen(false)} 
+          onClose={() => setIsChatOpen(false)}
         />
       )}
     </div>

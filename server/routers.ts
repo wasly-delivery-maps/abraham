@@ -329,54 +329,59 @@ export const appRouter = router({
           distance,
           estimatedTime,
           notes: input.notes,
-          status: "pending",
         });
 
-        // Send notifications to drivers about new order
-        // Extract order ID from result (could be insertId or id depending on DB implementation)
-        const orderId = (result as any)?.insertId || (result as any)?.id;
-        if (orderId) {
-          try {
-            await notifyDriversOfNewOrder(
-              orderId,
-              input.pickupLocation.address,
-              input.deliveryLocation.address
-            );
-          } catch (error) {
-            console.error("[Orders] Failed to send driver notifications:", error);
-            // Don't throw error - order creation should succeed even if notifications fail
-          }
-        }
+        // Notify drivers about new order
+        await notifyDriversOfNewOrder(result.id, `طلب جديد بقيمة ج.م ${calculatedPrice}`);
 
-        return result;
+        return {
+          success: true,
+          orderId: result.id,
+          price: calculatedPrice,
+          distance,
+          estimatedTime,
+        };
       }),
 
-    // Get customer orders
-     getCustomerOrders: protectedProcedure.query(async ({ ctx }) => {
+    // Get orders by customer
+    getCustomerOrders: protectedProcedure.query(async ({ ctx }) => {
       if (ctx.user.role !== "customer") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Only customers can view their orders",
         });
       }
+
       const orders = await db.getOrdersByCustomerId(ctx.user.id);
-      
-      // Load driver data for each order
+      return orders.map((o) => ({
+        id: o.id,
+        status: o.status,
+        pickupLocation: o.pickupLocation,
+        deliveryLocation: o.deliveryLocation,
+        price: o.price ? parseFloat(o.price.toString()) : 0,
+        distance: o.distance ? parseFloat(o.distance.toString()) : 0,
+        estimatedTime: o.estimatedTime,
+        driverId: o.driverId,
+        createdAt: o.createdAt,
+      }));
+    }),
+
+    // Get orders with driver details
+    getOrdersWithDriver: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== "customer") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only customers can view their orders",
+        });
+      }
+
+      const orders = await db.getOrdersByCustomerId(ctx.user.id);
       const ordersWithDriver = await Promise.all(
         orders.map(async (o) => {
-          let assignedDriver = null;
+          let driver = null;
           if (o.driverId) {
-            const driver = await db.getUserById(o.driverId);
-            if (driver) {
-              assignedDriver = {
-                id: driver.id,
-                name: driver.name,
-                phone: driver.phone,
-                email: driver.email,
-              };
-            }
+            driver = await db.getUserById(o.driverId);
           }
-          
           return {
             id: o.id,
             status: o.status,
@@ -385,10 +390,12 @@ export const appRouter = router({
             price: o.price ? parseFloat(o.price.toString()) : 0,
             distance: o.distance ? parseFloat(o.distance.toString()) : 0,
             estimatedTime: o.estimatedTime,
-            driverId: o.driverId,
-            assignedDriver,
+            driver: driver ? {
+              id: driver.id,
+              name: driver.name,
+              phone: driver.phone,
+            } : null,
             createdAt: o.createdAt,
-            deliveredAt: o.deliveredAt,
           };
         })
       );
@@ -406,17 +413,30 @@ export const appRouter = router({
       }
 
       const orders = await db.getOrdersByDriverId(ctx.user.id);
-      return orders.map((o) => ({
-        id: o.id,
-        status: o.status,
-        pickupLocation: o.pickupLocation,
-        deliveryLocation: o.deliveryLocation,
-        price: o.price ? parseFloat(o.price.toString()) : 0,
-        distance: o.distance ? parseFloat(o.distance.toString()) : 0,
-        estimatedTime: o.estimatedTime,
-        customerId: o.customerId,
-        createdAt: o.createdAt,
-      }));
+      const ordersWithCustomer = await Promise.all(
+        orders.map(async (o) => {
+          // Get customer details
+          const customer = await db.getUserById(o.customerId);
+          return {
+            id: o.id,
+            status: o.status,
+            pickupLocation: o.pickupLocation,
+            deliveryLocation: o.deliveryLocation,
+            price: o.price ? parseFloat(o.price.toString()) : 0,
+            distance: o.distance ? parseFloat(o.distance.toString()) : 0,
+            estimatedTime: o.estimatedTime,
+            customerId: o.customerId,
+            customer: customer ? {
+              id: customer.id,
+              name: customer.name,
+              phone: customer.phone,
+            } : null,
+            notes: o.notes,
+            createdAt: o.createdAt,
+          };
+        })
+      );
+      return ordersWithCustomer;
     }),
 
     // Get available orders for drivers
@@ -468,11 +488,10 @@ export const appRouter = router({
           });
         }
 
-        // Can only cancel if order is pending or assigned (not yet in transit)
-        if (["in_transit", "arrived", "delivered", "cancelled"].includes(order.status)) {
+        if (order.status !== "pending" && order.status !== "assigned") {
           throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `Cannot cancel order with status: ${order.status}`,
+            code: "CONFLICT",
+            message: "Cannot cancel order in current status",
           });
         }
 
@@ -768,36 +787,9 @@ export const appRouter = router({
           newDebt: newPending,
           isSuspended,
           message: isSuspended
-            ? "تم إكمال الطلب. تم حظر حسابك بسبب تجاوز حد المديونية. يرجى الدفع عبر Vodafone Cash."
-            : `تم إكمال الطلب. تم خصم ${commission} جنيه عمولة. رصيدك المتبقي: ${newPending} جنيه`,
+            ? `تم إيقاف حسابك بسبب عمولات مستحقة بقيمة ج.م ${newPending.toFixed(2)}`
+            : "تم تسليم الطلب بنجاح ✅",
         };
-      }),
-
-    // Rate driver
-    rateDriver: protectedProcedure
-      .input(
-        z.object({
-          orderId: z.number(),
-          rating: z.number().min(1).max(5),
-          comment: z.string().optional(),
-        })
-      )
-      .mutation(async ({ ctx, input }) => {
-        const order = await db.getOrderById(input.orderId);
-        if (!order) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Order not found" });
-        }
-
-        if (order.customerId !== ctx.user.id) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Only the customer can rate the driver",
-          });
-        }
-
-        await db.rateOrder(input.orderId, input.rating, input.comment);
-
-        return { success: true };
       }),
   }),
 
@@ -902,10 +894,10 @@ export const appRouter = router({
   }),
 
   /**
-   * Admin Management Routes
+   * Admin routes
    */
   admin: router({
-    // Get all orders
+    // Get all orders (Admin only)
     getAllOrders: protectedProcedure.query(async ({ ctx }) => {
       if (ctx.user.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
@@ -914,59 +906,18 @@ export const appRouter = router({
       const orders = await db.getAllOrders();
       return orders.map((o) => ({
         id: o.id,
-        status: o.status,
         customerId: o.customerId,
         driverId: o.driverId,
+        status: o.status,
+        pickupLocation: o.pickupLocation,
+        deliveryLocation: o.deliveryLocation,
         price: o.price ? parseFloat(o.price.toString()) : 0,
+        distance: o.distance ? parseFloat(o.distance.toString()) : 0,
         createdAt: o.createdAt,
       }));
     }),
 
-    // Get statistics
-    getStatistics: protectedProcedure.query(async ({ ctx }) => {
-      if (ctx.user.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
-      }
-
-      const stats = await db.getStatistics();
-      return stats;
-    }),
-    // Get all users
-    getAllUsers: protectedProcedure.query(async ({ ctx }) => {
-      if (ctx.user.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
-      }
-
-      const users = await db.getAllUsers();
-      return users.map((u) => ({
-        id: u.id,
-        name: u.name,
-        phone: u.phone,
-        role: u.role,
-        accountStatus: u.accountStatus,
-        pendingCommission: parseFloat(u.pendingCommission?.toString() || "0"),
-        paidCommission: parseFloat(u.paidCommission?.toString() || "0"),
-        createdAt: u.createdAt,
-      }));
-    }),
-
-    // Get suspended drivers
-    getSuspendedDrivers: protectedProcedure.query(async ({ ctx }) => {
-      if (ctx.user.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
-      }
-
-      const drivers = await db.getSuspendedDrivers();
-      return drivers.map((d) => ({
-        id: d.id,
-        name: d.name,
-        phone: d.phone,
-        accountStatus: d.accountStatus,
-        pendingCommission: parseFloat(d.pendingCommission?.toString() || "0"),
-      }));
-    }),
-
-    // Update account status (suspend/resume)
+    // Update user account status (Admin only)
     updateAccountStatus: protectedProcedure
       .input(
         z.object({
@@ -975,34 +926,27 @@ export const appRouter = router({
           reason: z.string().optional(),
         })
       )
-      .mutation(async ({ input, ctx }) => {
+      .mutation(async ({ ctx, input }) => {
         if (ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
         }
 
-        const user = await db.updateAccountStatus(input.userId, input.status, input.reason);
+        const user = await db.getUserById(input.userId);
         if (!user) {
           throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
         }
 
-        // Send real-time notifications
+        await db.updateAccountStatus(input.userId, input.status, input.reason);
+
+        // Send notification to user
         const app = (ctx.req as any)?.app;
         if (app?.sendNotificationToUser) {
-          if (input.status === "active") {
-            app.sendNotificationToUser(input.userId, {
-              type: "commission_resumed",
-              title: "تم تفعيل الحساب",
-              message: "تم تفعيل حسابك بنجاح. يمكنك الآن استقبال الطلبات الجديدة",
-              timestamp: new Date().toISOString(),
-            });
-          } else if (input.status === "disabled") {
-            app.sendNotificationToUser(input.userId, {
-              type: "commission_suspended",
-              title: "تم إيقاف الحساب",
-              message: input.reason || "تم إيقاف حسابك من قبل الإدارة",
-              timestamp: new Date().toISOString(),
-            });
-          }
+          app.sendNotificationToUser(input.userId, {
+            type: "account_status_changed",
+            title: "تم إيقاف الحساب",
+            message: input.reason || "تم إيقاف حسابك من قبل الإدارة",
+            timestamp: new Date().toISOString(),
+          });
         }
 
         return {
