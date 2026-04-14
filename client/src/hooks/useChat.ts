@@ -21,6 +21,8 @@ export function useChat() {
   const [unreadCounts, setUnreadCounts] = useState<Record<number, number>>({});
 
   useEffect(() => {
+    if (!user?.id) return;
+
     // Initialize Socket.IO connection
     const socket = io(window.location.origin, {
       transports: ["websocket"],
@@ -35,6 +37,9 @@ export function useChat() {
     socket.on("connect", () => {
       console.log("[Chat] Connected to chat server");
       setIsConnected(true);
+      if (user?.id) {
+        socket.emit("chat:subscribe", { userId: user.id });
+      }
     });
 
     socket.on("disconnect", () => {
@@ -55,7 +60,11 @@ export function useChat() {
     // Receive new message
     socket.on("chat:message-received", (message: ChatMessage) => {
       console.log("[Chat] New message received:", message);
-      setMessages((prev) => [...prev, message]);
+      setMessages((prev) => {
+        // Avoid duplicates
+        if (prev.some(m => m.id === message.id)) return prev;
+        return [...prev, message];
+      });
       
       // Update unread count for the specific order if not read and not from current user
       if (!message.read && message.senderId !== user?.id) {
@@ -64,6 +73,16 @@ export function useChat() {
           [message.orderId]: (prev[message.orderId] || 0) + 1
         }));
       }
+    });
+
+    // Receive notification for new message (when not in chat room)
+    socket.on("chat:new-message-notification", (message: ChatMessage) => {
+      console.log("[Chat] New message notification received:", message);
+      // Only update unread count if we don't already have this message
+      setUnreadCounts((prev) => ({
+        ...prev,
+        [message.orderId]: (prev[message.orderId] || 0) + 1
+      }));
     });
 
     // Messages marked as read

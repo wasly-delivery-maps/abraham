@@ -27,6 +27,13 @@ export function setupChat(io: SocketIOServer) {
   io.on("connection", (socket: Socket) => {
     console.log(`[Chat] Client connected: ${socket.id}`);
 
+    // User joins their personal notification room
+    socket.on("chat:subscribe", (data: { userId: number }) => {
+      const { userId } = data;
+      socket.join(`chat:user:${userId}`);
+      console.log(`[Chat] User ${userId} subscribed to personal chat notifications`);
+    });
+
     // User joins chat room for an order
     socket.on("chat:join", async (data: { orderId: number; userId: number; userRole: "customer" | "driver"; userName: string }) => {
       try {
@@ -106,6 +113,14 @@ export function setupChat(io: SocketIOServer) {
 
         // Broadcast message to all users in the chat room
         io.to(`chat:order:${orderId}`).emit("chat:message-received", chatMessage);
+
+        // Also send to the other party's personal room for notification
+        if (chatRoom) {
+          const otherPartyId = userRole === "customer" ? chatRoom.driverId : chatRoom.customerId;
+          if (otherPartyId) {
+            io.to(`chat:user:${otherPartyId}`).emit("chat:new-message-notification", chatMessage);
+          }
+        }
 
         console.log(`[Chat] Message sent in order ${orderId} by ${userRole} ${userId}`);
       } catch (error) {
