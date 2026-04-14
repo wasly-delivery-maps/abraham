@@ -242,15 +242,28 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ ctx, input }) => {
-        const { storagePut } = await import("./storage");
-        const buffer = Buffer.from(input.base64, "base64");
-        const fileName = `avatars/${ctx.user.id}-${Date.now()}.${input.contentType.split("/")[1]}`;
-        
-        const { url } = await storagePut(fileName, buffer, input.contentType);
-        
-        await db.updateUserProfile(ctx.user.id, { avatarUrl: url });
-        
-        return { success: true, url };
+        console.log(`[Upload] Starting avatar upload for user ${ctx.user.id}`);
+        try {
+          const { storagePut } = await import("./storage");
+          const buffer = Buffer.from(input.base64, "base64");
+          const fileName = `avatars/${ctx.user.id}-${Date.now()}.${input.contentType.split("/")[1]}`;
+          
+          console.log(`[Upload] File name: ${fileName}, Content type: ${input.contentType}, Size: ${buffer.length} bytes`);
+          
+          const { url } = await storagePut(fileName, buffer, input.contentType);
+          console.log(`[Upload] Storage upload successful, URL: ${url}`);
+          
+          await db.updateUserProfile(ctx.user.id, { avatarUrl: url });
+          console.log(`[Upload] Database update successful for user ${ctx.user.id}`);
+          
+          return { success: true, url };
+        } catch (error: any) {
+          console.error(`[Upload] FAILED for user ${ctx.user.id}:`, error.message || error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: `فشل رفع الصورة: ${error.message || "خطأ غير معروف"}`,
+          });
+        }
       }),
 
     // Get all users (Admin only)

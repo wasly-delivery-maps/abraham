@@ -59,8 +59,9 @@ export default function CustomerProfile() {
         });
         toast.success("تم تحديث الصورة الشخصية بنجاح ✨");
         utils.auth.me.invalidate();
-      } catch (error) {
-        toast.error("فشل في رفع الصورة");
+      } catch (error: any) {
+        const errorMessage = error.message || "فشل في رفع الصورة";
+        toast.error(errorMessage);
       } finally {
         setIsUploading(false);
       }
