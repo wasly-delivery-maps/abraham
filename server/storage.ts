@@ -1,18 +1,15 @@
 // Preconfigured storage helpers for Manus WebDev templates
-// Uses the Biz-provided storage proxy (Authorization: Bearer <token>)
-
+// Uses the Biz-provided storage proxy if available, otherwise falls back to Base64 data URLs
 import { ENV } from './_core/env';
 
 type StorageConfig = { baseUrl: string; apiKey: string };
 
-function getStorageConfig(): StorageConfig {
+function getStorageConfig(): StorageConfig | null {
   const baseUrl = ENV.forgeApiUrl;
   const apiKey = ENV.forgeApiKey;
 
   if (!baseUrl || !apiKey) {
-    throw new Error(
-      "Storage proxy credentials missing: set BUILT_IN_FORGE_API_URL and BUILT_IN_FORGE_API_KEY"
-    );
+    return null;
   }
 
   return { baseUrl: baseUrl.replace(/\/+$/, ""), apiKey };
@@ -72,7 +69,22 @@ export async function storagePut(
   data: Buffer | Uint8Array | string,
   contentType = "application/octet-stream"
 ): Promise<{ key: string; url: string }> {
-  const { baseUrl, apiKey } = getStorageConfig();
+  const config = getStorageConfig();
+  
+  // Fallback to Base64 if storage proxy is not configured
+  if (!config) {
+    console.log("[Storage] Storage proxy not configured, falling back to Base64 data URL");
+    let base64: string;
+    if (typeof data === "string") {
+      base64 = Buffer.from(data).toString("base64");
+    } else {
+      base64 = Buffer.from(data as any).toString("base64");
+    }
+    const url = `data:${contentType};base64,${base64}`;
+    return { key: relKey, url };
+  }
+
+  const { baseUrl, apiKey } = config;
   const key = normalizeKey(relKey);
   const uploadUrl = buildUploadUrl(baseUrl, key);
   const formData = toFormData(data, contentType, key.split("/").pop() ?? key);
@@ -93,7 +105,16 @@ export async function storagePut(
 }
 
 export async function storageGet(relKey: string): Promise<{ key: string; url: string; }> {
-  const { baseUrl, apiKey } = getStorageConfig();
+  const config = getStorageConfig();
+  if (!config) {
+    // If it's a data URL, return it directly
+    if (relKey.startsWith("data:")) {
+      return { key: "base64", url: relKey };
+    }
+    throw new Error("Storage proxy not configured and key is not a data URL");
+  }
+
+  const { baseUrl, apiKey } = config;
   const key = normalizeKey(relKey);
   return {
     key,
