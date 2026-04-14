@@ -51,6 +51,23 @@ async function fixDbEnum() {
     `);
     console.log("Successfully updated 'notifications' table.");
 
+    console.log("Checking for 'avatarUrl' column in 'users' table...");
+    try {
+      await db.execute(sql`
+        ALTER TABLE \`users\` 
+        ADD COLUMN IF NOT EXISTS \`avatarUrl\` TEXT
+      `);
+      console.log("Successfully added 'avatarUrl' column to 'users' table.");
+    } catch (e) {
+      // MySQL doesn't support ADD COLUMN IF NOT EXISTS directly in some versions, 
+      // so we handle the error if it already exists
+      if (e.message.includes("Duplicate column name")) {
+        console.log("'avatarUrl' column already exists.");
+      } else {
+        console.warn("Could not add 'avatarUrl' column:", e.message);
+      }
+    }
+
     console.log("All fixes applied successfully!");
     process.exit(0);
   } catch (error) {
