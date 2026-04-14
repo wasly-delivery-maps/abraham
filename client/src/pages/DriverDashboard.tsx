@@ -11,52 +11,33 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { ChatBox } from "@/components/ChatBox";
 
-// Leaflet imports
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+// Google Maps imports
+import { GoogleMap, useJsApiLoader, Marker, Polyline } from '@react-google-maps/api';
 
-// Fix Leaflet default icon issue
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+const GOOGLE_MAPS_API_KEY = "AIzaSyC0KKCwrnR2Bucn0jEwfGChVw1t1-PrZOk";
 
-let DefaultIcon = L.icon({
-    iconUrl: icon,
-    shadowUrl: iconShadow,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41]
-});
+const mapContainerStyle = {
+  width: '100%',
+  height: '100%'
+};
 
-L.Marker.prototype.options.icon = DefaultIcon;
-
-// Custom icons for Pickup and Delivery
-const pickupIcon = L.divIcon({
-  className: 'custom-div-icon',
-  html: `<div style="background-color: #f97316; width: 15px; height: 15px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.3);"></div>`,
-  iconSize: [15, 15],
-  iconAnchor: [7, 7]
-});
-
-const deliveryIcon = L.divIcon({
-  className: 'custom-div-icon',
-  html: `<div style="background-color: #3b82f6; width: 15px; height: 15px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.3);"></div>`,
-  iconSize: [15, 15],
-  iconAnchor: [7, 7]
-});
-
-// Helper component to fit bounds
-function FitBounds({ points }: { points: [number, number][] }) {
-  const map = useMap();
-  useEffect(() => {
-    if (points.length > 0) {
-      const bounds = L.latLngBounds(points);
-      map.fitBounds(bounds, { padding: [50, 50] });
+const mapOptions = {
+  disableDefaultUI: true,
+  zoomControl: false,
+  styles: [
+    {
+      featureType: "poi",
+      elementType: "labels",
+      stylers: [{ visibility: "off" }]
     }
-  }, [points, map]);
-  return null;
-}
+  ]
+};
 
 export default function DriverDashboard() {
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY
+  });
   const { user, loading, logout } = useAuth();
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("available");
@@ -249,16 +230,35 @@ export default function DriverDashboard() {
               {getStatusBadge(order.status)}
             </div>
 
-            {/* Leaflet Map for Active Orders */}
-            {!isAvailable && (
+            {/* Google Map for Active Orders */}
+            {!isAvailable && isLoaded && (
               <div className="h-64 w-full bg-slate-100 relative z-0">
-                <MapContainer center={pickupPos} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  <Marker position={pickupPos} icon={pickupIcon} />
-                  <Marker position={deliveryPos} icon={deliveryIcon} />
-                  <Polyline positions={[pickupPos, deliveryPos]} color="#f97316" weight={3} opacity={0.6} />
-                  <FitBounds points={[pickupPos, deliveryPos]} />
-                </MapContainer>
+                <GoogleMap
+                  mapContainerStyle={mapContainerStyle}
+                  center={{ lat: pickupPos[0], lng: pickupPos[1] }}
+                  zoom={13}
+                  options={mapOptions}
+                >
+                  <Marker 
+                    position={{ lat: pickupPos[0], lng: pickupPos[1] }} 
+                    label={{ text: "A", color: "white", fontWeight: "bold" }}
+                  />
+                  <Marker 
+                    position={{ lat: deliveryPos[0], lng: deliveryPos[1] }} 
+                    label={{ text: "B", color: "white", fontWeight: "bold" }}
+                  />
+                  <Polyline 
+                    path={[
+                      { lat: pickupPos[0], lng: pickupPos[1] },
+                      { lat: deliveryPos[0], lng: deliveryPos[1] }
+                    ]}
+                    options={{
+                      strokeColor: "#f97316",
+                      strokeOpacity: 0.8,
+                      strokeWeight: 4,
+                    }}
+                  />
+                </GoogleMap>
               </div>
             )}
 
