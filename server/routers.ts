@@ -10,6 +10,7 @@ import { sdk } from "./_core/sdk";
 import type { Request, Response } from "express";
 import { notifyDriversOfNewOrder } from "./notifications";
 import { calculateOrderPrice, getCommissionPerOrder, shouldBlockDriver } from "../shared/pricing";
+import { updateChatRoomParticipants } from "./_core/chat";
 
 export const appRouter = router({
   system: systemRouter,
@@ -548,6 +549,7 @@ export const appRouter = router({
         // If driver is accepting the order, assign it to them first
         if (ctx.user.role === "driver" && input.status === "accepted" && !order.driverId) {
           await db.assignOrderToDriver(input.orderId, ctx.user.id);
+          updateChatRoomParticipants(input.orderId, order.customerId, ctx.user.id);
         }
 
         // Verify permissions
@@ -708,6 +710,9 @@ export const appRouter = router({
         // Assign order to driver
         await db.assignOrderToDriver(input.orderId, ctx.user.id);
         await db.updateOrderStatus(input.orderId, "assigned");
+
+        // Update chat room participants to ensure notifications work
+        updateChatRoomParticipants(input.orderId, order.customerId, ctx.user.id);
 
         return { success: true };
       }),

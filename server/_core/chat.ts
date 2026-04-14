@@ -178,6 +178,26 @@ export function setupChat(io: SocketIOServer) {
   console.log("[Chat] Chat system initialized");
 }
 
+// Helper function to get or create chat room and update participant IDs
+export function updateChatRoomParticipants(orderId: number, customerId?: number, driverId?: number) {
+  let chatRoom = activeChatRooms.get(orderId);
+  if (!chatRoom) {
+    chatRoom = {
+      orderId,
+      customerId: customerId || 0,
+      driverId: driverId || 0,
+      messages: [],
+      createdAt: new Date(),
+    };
+    activeChatRooms.set(orderId, chatRoom);
+  }
+  
+  if (customerId) chatRoom.customerId = customerId;
+  if (driverId) chatRoom.driverId = driverId;
+  
+  return chatRoom;
+}
+
 // Helper function to get chat room
 export function getChatRoom(orderId: number): ChatRoom | undefined {
   return activeChatRooms.get(orderId);
