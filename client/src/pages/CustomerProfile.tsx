@@ -157,9 +157,9 @@ export default function CustomerProfile() {
                     <span className="font-black text-sm">اتصل بنا</span>
                     <Phone className="h-5 w-5" />
                   </a>
-                  <a href="https://wa.me/201557564373" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-white/10 hover:bg-white/20 p-4 rounded-2xl transition-all">
+                  <a href="https://wa.me/201557564373" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-emerald-500 hover:bg-emerald-600 p-4 rounded-2xl transition-all">
                     <span className="font-black text-sm">واتساب</span>
-                    <MessageCircle className="h-5 w-5" />
+                    <MessageCircle className="h-5 w-5 fill-white" />
                   </a>
                 </div>
               </CardContent>
