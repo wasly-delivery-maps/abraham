@@ -345,7 +345,14 @@ export async function updateUserProfile(
       return await getUserById(userId);
     }
 
-    await db.update(users).set(updateSet).where(eq(users.id, userId));
+    if (db) {
+      await db.update(users).set(updateSet).where(eq(users.id, userId));
+    } else if (_useInMemory) {
+      const user = inMemoryDB.users.get(userId);
+      if (user) {
+        Object.assign(user, updateSet);
+      }
+    }
     return await getUserById(userId);
   } catch (error) {
     console.error("[Database] Failed to update user profile:", error);

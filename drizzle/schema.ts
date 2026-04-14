@@ -9,8 +9,15 @@ import {
   boolean,
   datetime,
   json,
+  customType,
 } from "drizzle-orm/mysql-core";
-import { unique } from "drizzle-orm/mysql-core";
+import { unique, sql } from "drizzle-orm/mysql-core";
+
+const longtext = customType<{ data: string }>({
+  dataType() {
+    return "longtext";
+  },
+});
 
 /**
  * Users table - Core user data for customers, drivers, and admins
@@ -37,7 +44,7 @@ export const users = mysqlTable("users", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn"),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  avatarUrl: text("avatarUrl"),
+  avatarUrl: longtext("avatarUrl"),
 });
 
 /**
