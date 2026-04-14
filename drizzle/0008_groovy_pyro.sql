@@ -1,0 +1,3 @@
+ALTER TABLE `notifications` MODIFY COLUMN `type` enum('order_assigned','order_accepted','order_in_transit','order_picked_up','order_arrived','order_delivered','order_cancelled','new_order_available','system') NOT NULL DEFAULT 'system';--> statement-breakpoint
+ALTER TABLE `orders` MODIFY COLUMN `status` enum('pending','assigned','accepted','picked_up','in_transit','arrived','delivered','cancelled') NOT NULL DEFAULT 'pending';--> statement-breakpoint
+ALTER TABLE `users` ADD `avatarUrl` text;
