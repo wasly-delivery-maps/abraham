@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 interface ChatMessage {
   id?: string;
@@ -13,6 +14,7 @@ interface ChatMessage {
 }
 
 export function useChat() {
+  const { user } = useAuth();
   const socketRef = useRef<Socket | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -45,8 +47,8 @@ export function useChat() {
       console.log("[Chat] Received chat history:", data.messages.length, "messages");
       setMessages(data.messages);
       
-      // Update unread count for this specific order
-      const unread = data.messages.filter((msg) => !msg.read).length;
+      // Update unread count for this specific order (only messages from others)
+      const unread = data.messages.filter((msg) => !msg.read && msg.senderId !== user?.id).length;
       setUnreadCounts(prev => ({ ...prev, [data.orderId]: unread }));
     });
 
@@ -55,8 +57,8 @@ export function useChat() {
       console.log("[Chat] New message received:", message);
       setMessages((prev) => [...prev, message]);
       
-      // Update unread count for the specific order if not read
-      if (!message.read) {
+      // Update unread count for the specific order if not read and not from current user
+      if (!message.read && message.senderId !== user?.id) {
         setUnreadCounts((prev) => ({
           ...prev,
           [message.orderId]: (prev[message.orderId] || 0) + 1
@@ -77,7 +79,7 @@ export function useChat() {
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [user?.id]);
 
   // Join chat room
   const joinChat = useCallback((orderId: number, userId: number, userRole: "customer" | "driver", userName: string) => {
