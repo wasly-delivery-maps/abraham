@@ -345,7 +345,7 @@ export const appRouter = router({
         };
       }),
 
-    // Get orders by customer
+       // Get customer orders
     getCustomerOrders: protectedProcedure.query(async ({ ctx }) => {
       if (ctx.user.role !== "customer") {
         throw new TRPCError({
@@ -355,17 +355,34 @@ export const appRouter = router({
       }
 
       const orders = await db.getOrdersByCustomerId(ctx.user.id);
-      return orders.map((o) => ({
-        id: o.id,
-        status: o.status,
-        pickupLocation: o.pickupLocation,
-        deliveryLocation: o.deliveryLocation,
-        price: o.price ? parseFloat(o.price.toString()) : 0,
-        distance: o.distance ? parseFloat(o.distance.toString()) : 0,
-        estimatedTime: o.estimatedTime,
-        driverId: o.driverId,
-        createdAt: o.createdAt,
-      }));
+      const ordersWithDriver = await Promise.all(
+        orders.map(async (o) => {
+          let driver = null;
+          let driverPhone = null;
+          if (o.driverId) {
+            driver = await db.getUserById(o.driverId);
+            driverPhone = driver?.phone || null;
+          }
+          return {
+            id: o.id,
+            status: o.status,
+            pickupLocation: o.pickupLocation,
+            deliveryLocation: o.deliveryLocation,
+            price: o.price ? parseFloat(o.price.toString()) : 0,
+            distance: o.distance ? parseFloat(o.distance.toString()) : 0,
+            estimatedTime: o.estimatedTime,
+            driverId: o.driverId,
+            driver: driver ? {
+              id: driver.id,
+              name: driver.name,
+              phone: driver.phone,
+            } : null,
+            driverPhone: driverPhone,
+            createdAt: o.createdAt,
+          };
+        })
+      );
+      return ordersWithDriver;
     }),
 
     // Get orders with driver details
@@ -381,8 +398,10 @@ export const appRouter = router({
       const ordersWithDriver = await Promise.all(
         orders.map(async (o) => {
           let driver = null;
+          let driverPhone = null;
           if (o.driverId) {
             driver = await db.getUserById(o.driverId);
+            driverPhone = driver?.phone || null;
           }
           return {
             id: o.id,
@@ -397,6 +416,7 @@ export const appRouter = router({
               name: driver.name,
               phone: driver.phone,
             } : null,
+            driverPhone: driverPhone,
             createdAt: o.createdAt,
           };
         })
@@ -581,6 +601,19 @@ export const appRouter = router({
           });
         }
 
+        // Get driver details if assigned
+        let assignedDriver = null;
+        if (order.driverId) {
+          const driver = await db.getUserById(order.driverId);
+          if (driver) {
+            assignedDriver = {
+              id: driver.id,
+              name: driver.name,
+              phone: driver.phone,
+            };
+          }
+        }
+
         return {
           id: order.id,
           status: order.status,
@@ -591,6 +624,7 @@ export const appRouter = router({
           estimatedTime: order.estimatedTime,
           customerId: order.customerId,
           driverId: order.driverId,
+          assignedDriver: assignedDriver,
           notes: order.notes,
           rating: order.rating,
           ratingComment: order.ratingComment,
@@ -614,23 +648,24 @@ export const appRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: "Customer not found" });
         }
 
-        return {
-          id: order.id,
-          status: order.status,
-          pickupLocation: order.pickupLocation,
-          deliveryLocation: order.deliveryLocation,
-          price: order.price ? parseFloat(order.price.toString()) : 0,
-          distance: order.distance ? parseFloat(order.distance.toString()) : 0,
-          estimatedTime: order.estimatedTime,
-          notes: order.notes,
-          customer: {
-            id: customer.id,
-            name: customer.name,
-            phone: customer.phone,
-            email: customer.email,
-          },
-          createdAt: order.createdAt,
-        };
+      return {
+        id: order.id,
+        status: order.status,
+        pickupLocation: order.pickupLocation,
+        deliveryLocation: order.deliveryLocation,
+        price: order.price ? parseFloat(order.price.toString()) : 0,
+        distance: order.distance ? parseFloat(order.distance.toString()) : 0,
+        estimatedTime: order.estimatedTime,
+        notes: order.notes,
+        customer: {
+          id: customer.id,
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email,
+        },
+        customerPhone: customer.phone,
+        createdAt: order.createdAt,
+      };
       }),
 
     // Accept order by driver (First-come, first-served)
