@@ -174,8 +174,35 @@ export default function CustomerProfile() {
           </div>
 
           <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="relative group">
-              <div className="h-32 w-32 rounded-[2.5rem] bg-gradient-to-br from-orange-500 to-orange-700 p-1 shadow-2xl relative overflow-hidden">
+            <motion.div 
+              className="relative group"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            >
+              <motion.div 
+                className="h-32 w-32 rounded-[2.5rem] bg-gradient-to-br from-orange-500 to-orange-700 p-1 shadow-2xl relative overflow-hidden"
+                whileHover={{ 
+                  scale: 1.05, 
+                  rotate: [0, -2, 2, 0],
+                  boxShadow: "0px 0px 25px rgba(249, 115, 22, 0.5)"
+                }}
+                whileTap={{ scale: 0.95 }}
+                animate={{
+                  y: [0, -8, 0],
+                }}
+                transition={{
+                  y: {
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  },
+                  rotate: {
+                    duration: 0.5,
+                    repeat: 0
+                  }
+                }}
+              >
                 <div className="h-full w-full rounded-[2.3rem] bg-slate-900 flex items-center justify-center overflow-hidden">
                   <Avatar className="h-full w-full rounded-none">
                     <AvatarImage src={user.avatarUrl || ""} className="object-cover" />
@@ -202,15 +229,21 @@ export default function CustomerProfile() {
                   accept="image/*" 
                   onChange={handleFileChange}
                 />
-              </div>
-              <Button 
-                size="icon"
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute -bottom-2 -right-2 h-10 w-10 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white shadow-xl border-4 border-slate-900 md:hidden"
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
               >
-                <Camera className="h-5 w-5" />
-              </Button>
-            </div>
+                <Button 
+                  size="icon"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute -bottom-2 -right-2 h-10 w-10 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white shadow-xl border-4 border-slate-900 md:hidden"
+                >
+                  <Camera className="h-5 w-5" />
+                </Button>
+              </motion.div>
+            </motion.div>
             
             <div className="text-center md:text-right">
               <div className="flex items-center gap-3 justify-center md:justify-start mb-2">
