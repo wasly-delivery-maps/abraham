@@ -231,7 +231,7 @@ export default function DriverDashboard() {
             </div>
 
             {/* Google Map for Active Orders */}
-            {!isAvailable && isLoaded && (
+            {!isAvailable && isLoaded && pickupPos[0] && pickupPos[1] && (
               <div className="h-64 w-full bg-slate-100 relative z-0">
                 <GoogleMap
                   mapContainerStyle={mapContainerStyle}
