@@ -19,7 +19,15 @@ export const appRouter = router({
    * Authentication routes
    */
   auth: router({
-    me: publicProcedure.query((opts) => opts.ctx.user),
+    me: publicProcedure.query(async (opts) => {
+      if (!opts.ctx.user) return null;
+      const user = await db.getUserById(opts.ctx.user.id);
+      if (!user) return null;
+      return {
+        ...opts.ctx.user,
+        avatarUrl: user.avatarUrl,
+      };
+    }),
     
     // Register new user
     register: publicProcedure
@@ -86,6 +94,7 @@ export const appRouter = router({
             name: user.name,
             email: user.email,
             role: user.role,
+            avatarUrl: user.avatarUrl,
           },
         };
       }),
@@ -159,6 +168,7 @@ export const appRouter = router({
             name: user.name,
             email: user.email,
             role: user.role,
+            avatarUrl: user.avatarUrl,
           },
         };
       }),
@@ -189,6 +199,7 @@ export const appRouter = router({
         email: user.email,
         role: user.role,
         isActive: user.isActive,
+        avatarUrl: user.avatarUrl,
         latitude: user.latitude ? parseFloat(user.latitude.toString()) : null,
         longitude: user.longitude ? parseFloat(user.longitude.toString()) : null,
       };
@@ -201,6 +212,7 @@ export const appRouter = router({
           name: z.string().min(2).optional(),
           email: z.string().email().optional(),
           phone: z.string().min(10).optional(),
+          avatarUrl: z.string().optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -216,8 +228,29 @@ export const appRouter = router({
             name: updatedUser.name,
             email: updatedUser.email,
             role: updatedUser.role,
+            avatarUrl: updatedUser.avatarUrl,
           },
         };
+      }),
+
+    // Upload avatar
+    uploadAvatar: protectedProcedure
+      .input(
+        z.object({
+          base64: z.string(),
+          contentType: z.string(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { storagePut } = await import("./storage");
+        const buffer = Buffer.from(input.base64, "base64");
+        const fileName = `avatars/${ctx.user.id}-${Date.now()}.${input.contentType.split("/")[1]}`;
+        
+        const { url } = await storagePut(fileName, buffer, input.contentType);
+        
+        await db.updateUserProfile(ctx.user.id, { avatarUrl: url });
+        
+        return { success: true, url };
       }),
 
     // Get all users (Admin only)

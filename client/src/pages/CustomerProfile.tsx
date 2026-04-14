@@ -3,18 +3,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, Mail, Phone, MapPin, Truck, LogOut, User, Settings, ShieldCheck, ChevronLeft, Camera, Edit3, Save, X, MessageCircle, ShoppingBag, HelpCircle, Loader2 } from "lucide-react";
+import { ArrowRight, Mail, Phone, MapPin, Truck, LogOut, User, Settings, ShieldCheck, ChevronLeft, Camera, Edit3, Save, X, MessageCircle, ShoppingBag, HelpCircle, Loader2, Upload } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function CustomerProfile() {
   const { user, loading, logout } = useAuth();
   const [, navigate] = useLocation();
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [editData, setEditData] = useState({
     name: "",
     email: "",
@@ -31,8 +34,39 @@ export default function CustomerProfile() {
     }
   }, [user]);
 
+  const utils = trpc.useUtils();
   const ordersQuery = trpc.orders.getCustomerOrders.useQuery(undefined, { enabled: !!user });
   const updateProfileMutation = trpc.users.updateProfile.useMutation();
+  const uploadAvatarMutation = trpc.users.uploadAvatar.useMutation();
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("حجم الصورة يجب أن يكون أقل من 5 ميجابايت");
+      return;
+    }
+
+    setIsUploading(true);
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64 = (reader.result as string).split(",")[1];
+      try {
+        await uploadAvatarMutation.mutateAsync({
+          base64,
+          contentType: file.type,
+        });
+        toast.success("تم تحديث الصورة الشخصية بنجاح ✨");
+        utils.auth.me.invalidate();
+      } catch (error) {
+        toast.error("فشل في رفع الصورة");
+      } finally {
+        setIsUploading(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   if (loading) {
     return (
@@ -93,12 +127,42 @@ export default function CustomerProfile() {
           </div>
 
           <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="relative">
-              <div className="h-32 w-32 rounded-[2.5rem] bg-gradient-to-br from-orange-500 to-orange-700 p-1 shadow-2xl">
+            <div className="relative group">
+              <div className="h-32 w-32 rounded-[2.5rem] bg-gradient-to-br from-orange-500 to-orange-700 p-1 shadow-2xl relative overflow-hidden">
                 <div className="h-full w-full rounded-[2.3rem] bg-slate-900 flex items-center justify-center overflow-hidden">
-                  <User className="h-16 w-16 text-orange-500" />
+                  <Avatar className="h-full w-full rounded-none">
+                    <AvatarImage src={user.avatarUrl || ""} className="object-cover" />
+                    <AvatarFallback className="bg-slate-900 text-orange-500">
+                      <User className="h-16 w-16" />
+                    </AvatarFallback>
+                  </Avatar>
                 </div>
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer disabled:cursor-not-allowed"
+                >
+                  {isUploading ? (
+                    <Loader2 className="h-8 w-8 text-white animate-spin" />
+                  ) : (
+                    <Camera className="h-8 w-8 text-white" />
+                  )}
+                </button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handleFileChange}
+                />
               </div>
+              <Button 
+                size="icon"
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute -bottom-2 -right-2 h-10 w-10 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white shadow-xl border-4 border-slate-900 md:hidden"
+              >
+                <Camera className="h-5 w-5" />
+              </Button>
             </div>
             
             <div className="text-center md:text-right">
