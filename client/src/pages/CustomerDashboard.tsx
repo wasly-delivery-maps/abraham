@@ -693,7 +693,7 @@ export default function CustomerDashboard() {
           userRole="customer"
           userName={user.name}
           otherUserName={
-            orders.find(o => o.id === chatOrderId)?.assignedDriver?.name || 
+            orders.find(o => o.id === chatOrderId)?.driver?.name || 
             orderDetailsQuery.data?.assignedDriver?.name || 
             "السائق"
           }

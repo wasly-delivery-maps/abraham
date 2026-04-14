@@ -564,8 +564,11 @@ export default function DriverDashboard() {
       {isChatOpen && selectedOrderId && (
         <ChatBox 
           orderId={selectedOrderId}
-          otherUserId={selectedOrder?.customerId}
+          userId={user.id}
+          userRole="driver"
+          userName={user.name}
           otherUserName={otherUserName}
+          isOpen={isChatOpen}
           onClose={() => setIsChatOpen(false)}
         />
       )}
