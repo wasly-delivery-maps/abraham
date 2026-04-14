@@ -56,12 +56,16 @@ function ChangeView({ bounds }: { bounds: L.LatLngBoundsExpression }) {
 }
 
 export default function DriverDashboard() {
-  const { user, loading, logout } = useAuth();
+  const { user, logout } = useAuth();
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("available");
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [driverLocation, setDriverLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const { unreadCounts } = useChat();
+
+  const ordersQuery = trpc.orders.getDriverOrders.useQuery(undefined, {
+    refetchInterval: 5000,
+  }); null>(null);
 
   const hasNavigatedRef = useRef(false);
 
@@ -415,9 +419,12 @@ export default function DriverDashboard() {
                     <Button 
                       variant="outline" 
                       onClick={(e) => { e.stopPropagation(); setSelectedOrderId(order.id); setIsChatOpen(true); }}
-                      className="w-full py-7 rounded-2xl border-slate-200 text-slate-600 font-black text-sm hover:bg-slate-50"
+                      className="relative w-full py-7 rounded-2xl border-slate-200 text-slate-600 font-black text-sm hover:bg-slate-50"
                     >
                       <MessageSquare className="ml-2 h-4 w-4" /> مراسلة
+                      {unreadCounts[order.id] > 0 && (
+                        <span className="absolute top-4 right-4 h-3 w-3 bg-red-500 rounded-full border-2 border-white animate-pulse" />
+                      )}
                     </Button>
                   </div>
                 )}

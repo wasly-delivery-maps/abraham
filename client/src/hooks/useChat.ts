@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 
 interface ChatMessage {
@@ -16,7 +16,7 @@ export function useChat() {
   const socketRef = useRef<Socket | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadCounts, setUnreadCounts] = useState<Record<number, number>>({});
 
   useEffect(() => {
     // Initialize Socket.IO connection
@@ -44,7 +44,10 @@ export function useChat() {
     socket.on("chat:history", (data: { orderId: number; messages: ChatMessage[] }) => {
       console.log("[Chat] Received chat history:", data.messages.length, "messages");
       setMessages(data.messages);
-      updateUnreadCount(data.messages);
+      
+      // Update unread count for this specific order
+      const unread = data.messages.filter((msg) => !msg.read).length;
+      setUnreadCounts(prev => ({ ...prev, [data.orderId]: unread }));
     });
 
     // Receive new message
@@ -52,33 +55,23 @@ export function useChat() {
       console.log("[Chat] New message received:", message);
       setMessages((prev) => [...prev, message]);
       
-      // Update unread count
+      // Update unread count for the specific order if not read
       if (!message.read) {
-        setUnreadCount((prev) => prev + 1);
+        setUnreadCounts((prev) => ({
+          ...prev,
+          [message.orderId]: (prev[message.orderId] || 0) + 1
+        }));
       }
-    });
-
-    // User joined notification
-    socket.on("chat:user-joined", (data: { orderId: number; userId: number; userRole: string; userName: string }) => {
-      console.log(`[Chat] ${data.userRole} ${data.userName} joined the chat`);
-    });
-
-    // User left notification
-    socket.on("chat:user-left", (data: { orderId: number; userId: number; userRole: string; userName: string }) => {
-      console.log(`[Chat] ${data.userRole} ${data.userName} left the chat`);
     });
 
     // Messages marked as read
     socket.on("chat:messages-read", (data: { orderId: number; userId: number }) => {
       console.log("[Chat] Messages marked as read by user:", data.userId);
       setMessages((prev) =>
-        prev.map((msg) => (msg.senderId !== data.userId ? { ...msg, read: true } : msg))
+        prev.map((msg) => (msg.orderId === data.orderId && msg.senderId !== data.userId ? { ...msg, read: true } : msg))
       );
-    });
-
-    // Error handling
-    socket.on("error", (error) => {
-      console.error("[Chat] Error:", error);
+      // Reset unread count for this order
+      setUnreadCounts(prev => ({ ...prev, [data.orderId]: 0 }));
     });
 
     return () => {
@@ -86,20 +79,15 @@ export function useChat() {
     };
   }, []);
 
-  const updateUnreadCount = (msgs: ChatMessage[]) => {
-    const unread = msgs.filter((msg) => !msg.read).length;
-    setUnreadCount(unread);
-  };
-
   // Join chat room
-  const joinChat = (orderId: number, userId: number, userRole: "customer" | "driver", userName: string) => {
+  const joinChat = useCallback((orderId: number, userId: number, userRole: "customer" | "driver", userName: string) => {
     if (socketRef.current) {
       socketRef.current.emit("chat:join", { orderId, userId, userRole, userName });
     }
-  };
+  }, []);
 
   // Send message
-  const sendMessage = (orderId: number, userId: number, userRole: "customer" | "driver", userName: string, message: string) => {
+  const sendMessage = useCallback((orderId: number, userId: number, userRole: "customer" | "driver", userName: string, message: string) => {
     if (socketRef.current) {
       socketRef.current.emit("chat:send-message", {
         orderId,
@@ -109,26 +97,27 @@ export function useChat() {
         message,
       });
     }
-  };
+  }, []);
 
   // Mark messages as read
-  const markAsRead = (orderId: number, userId: number) => {
+  const markAsRead = useCallback((orderId: number, userId: number) => {
     if (socketRef.current) {
       socketRef.current.emit("chat:mark-read", { orderId, userId });
+      setUnreadCounts(prev => ({ ...prev, [orderId]: 0 }));
     }
-  };
+  }, []);
 
   // Leave chat room
-  const leaveChat = (orderId: number, userId: number, userRole: "customer" | "driver", userName: string) => {
+  const leaveChat = useCallback((orderId: number, userId: number, userRole: "customer" | "driver", userName: string) => {
     if (socketRef.current) {
       socketRef.current.emit("chat:leave", { orderId, userId, userRole, userName });
     }
-  };
+  }, []);
 
   return {
     isConnected,
     messages,
-    unreadCount,
+    unreadCounts,
     joinChat,
     sendMessage,
     markAsRead,

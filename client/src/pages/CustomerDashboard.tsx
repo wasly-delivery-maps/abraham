@@ -57,6 +57,7 @@ export default function CustomerDashboard() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatOrderId, setChatOrderId] = useState<number | null>(null);
+  const { unreadCounts } = useChat();
 
   const ordersQuery = trpc.orders.getCustomerOrders.useQuery(undefined, {
     refetchInterval: 5000,
@@ -382,11 +383,14 @@ export default function CustomerDashboard() {
                                           setChatOrderId(order.id);
                                           setIsChatOpen(true);
                                         }}
-                                        className="text-blue-600 bg-white border border-blue-200 p-2 rounded-lg hover:bg-blue-50 transition-all"
+                                        className="relative text-blue-600 bg-white border border-blue-200 p-2 rounded-lg hover:bg-blue-50 transition-all"
                                         whileHover={{ scale: 1.1 }}
                                         whileTap={{ scale: 0.95 }}
                                       >
                                         <MessageCircle className="h-4 w-4" />
+                                        {unreadCounts[order.id] > 0 && (
+                                          <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full border-2 border-white animate-pulse" />
+                                        )}
                                       </motion.button>
                                       {(order.driver?.phone || order.driverPhone) && (
                                         <motion.a 
@@ -504,10 +508,13 @@ export default function CustomerDashboard() {
                                             setChatOrderId(order.id);
                                             setIsChatOpen(true);
                                           }}
-                                          className="text-blue-600 bg-white border border-blue-100 p-1.5 rounded-lg hover:bg-blue-50 transition-all"
+                                          className="relative text-blue-600 bg-white border border-blue-100 p-1.5 rounded-lg hover:bg-blue-50 transition-all"
                                           whileHover={{ scale: 1.1 }}
                                         >
                                           <MessageCircle className="h-3.5 w-3.5" />
+                                          {unreadCounts[order.id] > 0 && (
+                                            <span className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-red-500 rounded-full border border-white animate-pulse" />
+                                          )}
                                         </motion.button>
                                         {(order.driver?.phone || order.driverPhone) && (
                                           <motion.a 

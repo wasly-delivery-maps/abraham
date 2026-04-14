@@ -27,7 +27,8 @@ export function ChatBox({
   isOpen = true,
   onClose,
 }: ChatBoxProps) {
-  const { isConnected, messages, unreadCount, joinChat, sendMessage, markAsRead, leaveChat } = useChat();
+  const { isConnected, messages, unreadCounts, joinChat, sendMessage, markAsRead, leaveChat } = useChat();
+  const unreadCount = unreadCounts[orderId] || 0;
   const [messageText, setMessageText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
