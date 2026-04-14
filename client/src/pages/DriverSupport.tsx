@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 export default function DriverSupport() {
   const { user, loading, logout } = useAuth();
   const [, navigate] = useLocation();
+  const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -34,6 +35,10 @@ export default function DriverSupport() {
   };
 
   const handleSendMessage = async () => {
+    if (!subject.trim()) {
+      toast.error("يرجى كتابة الموضوع أولاً");
+      return;
+    }
     if (!message.trim()) {
       toast.error("يرجى كتابة الرسالة أولاً");
       return;
@@ -41,12 +46,31 @@ export default function DriverSupport() {
 
     setIsSubmitting(true);
     try {
-      // Simulate sending message
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      toast.success("تم إرسال رسالتك بنجاح! سيرد عليك الفريق قريباً.");
+      // إنشاء رسالة واتساب منسقة
+      const whatsappMessage = `
+*رسالة دعم من السائق*
+
+*الاسم:* ${user?.name || 'بدون اسم'}
+*رقم الهاتف:* ${user?.phone || 'بدون رقم'}
+*معرف السائق:* #${user?.id || 'بدون معرف'}
+*الموضوع:* ${subject}
+
+*الرسالة:*
+${message}
+      `.trim();
+
+      // ترميز الرسالة للـ URL
+      const encodedMessage = encodeURIComponent(whatsappMessage);
+      
+      // فتح واتساب مع الرسالة المعدة
+      const whatsappUrl = `https://wa.me/201557564373?text=${encodedMessage}`;
+      window.open(whatsappUrl, '_blank');
+      
+      toast.success("تم فتح واتساب! يرجى إرسال الرسالة");
+      setSubject("");
       setMessage("");
     } catch (error) {
-      toast.error("فشل في إرسال الرسالة");
+      toast.error("فشل في فتح واتساب");
     } finally {
       setIsSubmitting(false);
     }
@@ -167,15 +191,15 @@ export default function DriverSupport() {
               <CardContent className="p-10">
                 <h3 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-4">
                   <Send className="h-6 w-6 text-orange-600" />
-                  أرسل رسالة للدعم
+                  أرسل رسالة للدعم عبر واتساب
                 </h3>
 
                 <div className="space-y-6">
-                  <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 flex gap-4">
-                    <AlertCircle className="h-6 w-6 text-blue-600 flex-shrink-0 mt-1" />
+                  <div className="bg-green-50 border border-green-200 rounded-2xl p-6 flex gap-4">
+                    <MessageCircle className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
                     <div>
-                      <p className="font-black text-blue-900 mb-1">وقت الرد السريع</p>
-                      <p className="text-blue-700 text-sm">سيرد عليك فريق الدعم خلال 30 دقيقة أثناء ساعات العمل</p>
+                      <p className="font-black text-green-900 mb-1">تواصل فوري عبر واتساب</p>
+                      <p className="text-green-700 text-sm">ستتمكن من التواصل المباشر مع فريق الدعم فور فتح واتساب</p>
                     </div>
                   </div>
 
@@ -183,6 +207,8 @@ export default function DriverSupport() {
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">الموضوع</label>
                     <input 
                       type="text"
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
                       placeholder="مثال: مشكلة في التطبيق"
                       className="w-full h-14 px-6 rounded-2xl border border-slate-100 bg-slate-50/50 focus:ring-2 focus:ring-orange-500 focus:border-transparent font-bold text-slate-700 placeholder-slate-400"
                     />
@@ -207,17 +233,17 @@ export default function DriverSupport() {
                     <Button 
                       onClick={handleSendMessage}
                       disabled={isSubmitting}
-                      className="flex-1 bg-orange-600 hover:bg-orange-700 text-white h-16 rounded-2xl font-black text-lg shadow-xl transition-all disabled:opacity-50"
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white h-16 rounded-2xl font-black text-lg shadow-xl transition-all disabled:opacity-50"
                     >
                       {isSubmitting ? (
                         <>
                           <Loader2 className="h-5 w-5 ml-2 animate-spin" />
-                          جاري الإرسال...
+                          جاري الفتح...
                         </>
                       ) : (
                         <>
-                          <Send className="h-5 w-5 ml-2" />
-                          إرسال الرسالة
+                          <MessageCircle className="h-5 w-5 ml-2" />
+                          فتح واتساب والإرسال
                         </>
                       )}
                     </Button>

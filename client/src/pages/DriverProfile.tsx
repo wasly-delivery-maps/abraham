@@ -10,6 +10,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { CommissionCard } from "@/components/CommissionCard";
 
 export default function DriverProfile() {
   const { user, loading, logout } = useAuth();
@@ -149,26 +150,20 @@ export default function DriverProfile() {
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-xl bg-slate-900 text-white rounded-[2.5rem] overflow-hidden">
-              <CardContent className="p-8">
-                <h3 className="text-lg font-black mb-4 flex items-center gap-3">
-                  <Star className="h-5 w-5 text-orange-500" />
-                  العمولات المستحقة
-                </h3>
-                <div className="bg-white/10 p-6 rounded-2xl text-center">
-                  <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mb-2">رصيد العمولات</p>
-                  <p className="text-3xl font-black text-white">ج.م {parseFloat((user?.pendingCommission || "0").toString()).toFixed(2)}</p>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Commission Card - Advanced */}
+            <CommissionCard
+              pendingCommission={parseFloat((user?.pendingCommission || "0").toString())}
+              paidCommission={parseFloat((user?.paidCommission || "0").toString())}
+              accountStatus={user?.accountStatus || "active"}
+            />
 
-            <Card className="border-none shadow-xl bg-blue-600 text-white rounded-[2.5rem] overflow-hidden">
+            <Card className="border-none shadow-xl bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-[2.5rem] overflow-hidden">
               <CardContent className="p-8">
                 <h3 className="text-lg font-black mb-4 flex items-center gap-3">
                   <HelpCircle className="h-5 w-5" />
                   الدعم الفني
                 </h3>
-                <p className="text-white/70 text-sm font-medium mb-6">هل تواجه مشكلة؟ تواصل مع فريق الدعم الآن</p>
+                <p className="text-white/80 text-sm font-medium mb-6">هل تواجه مشكلة؟ تواصل مع فريق الدعم الآن</p>
                 <Button 
                   onClick={() => navigate("/driver/support")}
                   className="w-full bg-white hover:bg-blue-50 text-blue-600 h-14 rounded-2xl font-black text-lg shadow-xl transition-all"
