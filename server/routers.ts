@@ -9,6 +9,7 @@ import bcryptjs from "bcryptjs";
 import { sdk } from "./_core/sdk";
 import type { Request, Response } from "express";
 import { notifyDriversOfNewOrder } from "./notifications";
+import { calculateOrderPrice, getCommissionPerOrder, shouldBlockDriver } from "../shared/pricing";
 
 export const appRouter = router({
   system: systemRouter,
@@ -312,7 +313,6 @@ export const appRouter = router({
         // Use price from frontend if provided, otherwise calculate it
         let calculatedPrice = input.price;
         if (!calculatedPrice) {
-          const { calculateOrderPrice } = await import("../shared/pricing");
           calculatedPrice = calculateOrderPrice(
             input.pickupLocation.neighborhood || "",
             input.deliveryLocation.neighborhood,
@@ -713,9 +713,6 @@ export const appRouter = router({
           });
         }
 
-        // Import pricing functions
-        const { getCommissionPerOrder, shouldBlockDriver } = await import("../shared/pricing");
-        
         // Get commission amount
         const commission = getCommissionPerOrder();
         
