@@ -104,7 +104,7 @@ ${message}
             <div className="relative">
               <div className="h-32 w-32 rounded-[2.5rem] bg-gradient-to-br from-blue-500 to-blue-700 p-1 shadow-2xl">
                 <div className="h-full w-full rounded-[2.3rem] bg-slate-900 flex items-center justify-center overflow-hidden">
-                  <HelpCircle className="h-16 w-16 text-blue-500" />
+                  <img src="/support-logo.png" alt="Support Logo" className="h-full w-full object-cover" />
                 </div>
               </div>
             </div>
