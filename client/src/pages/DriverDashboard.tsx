@@ -46,15 +46,54 @@ const iconB = L.divIcon({
   iconAnchor: [15, 15]
 });
 
-// Component to auto-fit map bounds
-function ChangeView({ bounds }: { bounds: L.LatLngBoundsExpression }) {
+// Component to auto-fit map bounds with zoom lock
+function ChangeView({ bounds, shouldFit }: { bounds: L.LatLngBoundsExpression; shouldFit: boolean }) {
   const map = useMap();
   useEffect(() => {
+    if (bounds && shouldFit) {
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [bounds, map, shouldFit]);
+  return null;
+}
+
+// Component to handle zoom lock and reset button
+function MapControls({ bounds, onResetClick }: { bounds: L.LatLngBoundsExpression; onResetClick: () => void }) {
+  const map = useMap();
+  const [isZoomLocked, setIsZoomLocked] = useState(false);
+
+  useEffect(() => {
+    const handleZoom = () => {
+      setIsZoomLocked(true);
+    };
+
+    map.on('zoom', handleZoom);
+    return () => {
+      map.off('zoom', handleZoom);
+    };
+  }, [map]);
+
+  const handleReset = () => {
+    setIsZoomLocked(false);
+    onResetClick();
     if (bounds) {
       map.fitBounds(bounds, { padding: [50, 50] });
     }
-  }, [bounds, map]);
-  return null;
+  };
+
+  return (
+    <div className="absolute top-4 right-4 z-[400] flex gap-2">
+      <button
+        onClick={handleReset}
+        className="bg-white hover:bg-slate-100 text-slate-700 font-bold py-2 px-3 rounded-lg shadow-md transition-all flex items-center gap-2"
+        title="إعادة التوسيط"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+        </svg>
+      </button>
+    </div>
+  );
 }
 
 // Component to draw routing path
@@ -347,7 +386,8 @@ export default function DriverDashboard() {
                     start={[pickupLat, pickupLng]}
                     end={[deliveryLat, deliveryLng]}
                   />
-                  {bounds && <ChangeView bounds={bounds} />}
+                  {bounds && <ChangeView bounds={bounds} shouldFit={true} />}
+                  {bounds && <MapControls bounds={bounds} onResetClick={() => {}} />}
                 </MapContainer>
               </div>
             )}
