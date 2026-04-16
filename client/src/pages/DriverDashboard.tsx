@@ -559,16 +559,6 @@ export default function DriverDashboard() {
               </div>
             </div>
             <div className="flex gap-3">
-              {notificationPermission !== 'granted' && (
-                <Button 
-                  variant="ghost" 
-                  className="h-12 px-4 rounded-2xl bg-orange-500/20 hover:bg-orange-500/30 text-orange-500 font-black text-xs animate-pulse"
-                  onClick={requestPermission}
-                >
-                  <Zap className="h-4 w-4 ml-2" />
-                  تفعيل الإشعارات
-                </Button>
-              )}
               <Button 
                 variant="ghost" 
                 className="h-12 w-12 rounded-2xl bg-white/5 hover:bg-white/10 p-0"
@@ -603,6 +593,23 @@ export default function DriverDashboard() {
               </motion.div>
             ))}
           </div>
+
+          {notificationPermission !== 'granted' && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }} 
+              animate={{ opacity: 1, scale: 1 }}
+              className="mt-8"
+            >
+              <Button 
+                onClick={requestPermission}
+                className="w-full py-8 rounded-[2rem] bg-gradient-to-r from-orange-500 to-orange-600 text-white font-black text-lg shadow-2xl shadow-orange-500/40 animate-pulse flex items-center justify-center gap-3 border-4 border-white/20"
+              >
+                <Zap className="h-6 w-6 fill-white" />
+                تفعيل إشعارات الطلبات الجديدة 🔔
+              </Button>
+              <p className="text-center text-white/60 text-[10px] mt-3 font-bold uppercase tracking-widest">اضغط هنا لتصلك الطلبات فوراً حتى والشاشة مغلقة</p>
+            </motion.div>
+          )}
         </div>
       </div>
 
