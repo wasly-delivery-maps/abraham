@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo, useEffect, useRef } from "react";
+import { Polyline } from 'react-leaflet';
 import { ChatBox } from "@/components/ChatBox";
 import { useChatContext } from "@/contexts/ChatContext";
 
@@ -54,6 +55,53 @@ function ChangeView({ bounds }: { bounds: L.LatLngBoundsExpression }) {
     }
   }, [bounds, map]);
   return null;
+}
+
+// Component to draw routing path
+function RoutingPolyline({ start, end }: { start: [number, number]; end: [number, number] }) {
+  const [routeCoordinates, setRouteCoordinates] = useState<[number, number][]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRoute = async () => {
+      try {
+        // استخدام OSRM (Open Source Routing Machine) لحساب المسار الحقيقي
+        const response = await fetch(
+          `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&geometries=geojson`
+        );
+        const data = await response.json();
+        
+        if (data.routes && data.routes.length > 0) {
+          const coordinates = data.routes[0].geometry.coordinates.map((coord: [number, number]) => [
+            coord[1],
+            coord[0],
+          ] as [number, number]);
+          setRouteCoordinates(coordinates);
+        }
+      } catch (error) {
+        console.error('Error fetching route:', error);
+        // في حالة الخطأ، استخدم الخط المستقيم كبديل
+        setRouteCoordinates([start, end]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRoute();
+  }, [start, end]);
+
+  if (loading || routeCoordinates.length === 0) {
+    return null;
+  }
+
+  return (
+    <Polyline
+      positions={routeCoordinates}
+      color="#f97316"
+      weight={4}
+      opacity={0.8}
+    />
+  );
 }
 
 export default function DriverDashboard() {
@@ -295,11 +343,9 @@ export default function DriverDashboard() {
                   <Marker position={[deliveryLat, deliveryLng]} icon={iconB}>
                     <Popup>وجهة التسليم</Popup>
                   </Marker>
-                  <Polyline 
-                    positions={[[pickupLat, pickupLng], [deliveryLat, deliveryLng]]} 
-                    color="#f97316" 
-                    weight={4} 
-                    opacity={0.8}
+                  <RoutingPolyline 
+                    start={[pickupLat, pickupLng]}
+                    end={[deliveryLat, deliveryLng]}
                   />
                   {bounds && <ChangeView bounds={bounds} />}
                 </MapContainer>
