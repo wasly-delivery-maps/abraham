@@ -118,8 +118,7 @@ export async function sendPushNotificationToUser(
  */
 export async function notifyDriversOfNewOrder(
   orderId: number,
-  pickupLocation: string,
-  dropoffLocation: string
+  message: string
 ): Promise<void> {
   try {
     const allUsers = await getAllUsers();
@@ -129,32 +128,36 @@ export async function notifyDriversOfNewOrder(
 
     const notification = {
       title: "طلب توصيل جديد! 🚗",
-      body: `من ${pickupLocation} إلى ${dropoffLocation}`,
+      body: message,
       orderId,
       url: `/driver/orders/${orderId}`,
       tag: `order-${orderId}`,
     };
 
-    // Send to each driver via their personal topic/subscription
+    // 1. Send Web Push to each active driver
     for (const driver of activeDrivers) {
       await sendPushNotificationToUser(driver.id, notification);
     }
 
-    // Broadcast to "drivers" topic for all mobile apps
+    // 2. Broadcast to Firebase "drivers" topic for mobile apps
     if (admin.apps.length > 0) {
-      const topicMessage = {
-        notification: {
-          title: notification.title,
-          body: notification.body,
-        },
-        data: {
-          orderId: orderId.toString(),
-          url: notification.url || "",
-        },
-        topic: "drivers",
-      };
-      await admin.messaging().send(topicMessage);
-      console.log("[Notifications] Firebase broadcast sent to 'drivers' topic");
+      try {
+        const topicMessage = {
+          notification: {
+            title: notification.title,
+            body: notification.body,
+          },
+          data: {
+            orderId: orderId.toString(),
+            url: notification.url || "",
+          },
+          topic: "drivers",
+        };
+        await admin.messaging().send(topicMessage);
+        console.log("[Notifications] Firebase broadcast sent to 'drivers' topic");
+      } catch (error) {
+        console.error("[Notifications] Firebase broadcast failed:", error);
+      }
     }
   } catch (error) {
     console.error("[Notifications] Failed to notify drivers:", error);

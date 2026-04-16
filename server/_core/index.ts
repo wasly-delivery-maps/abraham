@@ -13,7 +13,7 @@ import { serveStatic, setupVite } from "./vite";
 import { setupLocationTracking } from "./locationTracking";
 import { setupOrderNotifications } from "./orderNotifications";
 import { setupChat } from "./chat";
-import { registerSSEConnection, sendNotificationToUser } from "../notifications";
+import { registerSSEConnection, sendPushNotificationToUser as sendNotificationToUser } from "../notifications";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
