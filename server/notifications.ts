@@ -104,6 +104,28 @@ export async function sendPushNotificationToUser(
           title: notification.title,
           body: notification.body,
         },
+        android: {
+          priority: "high" as any,
+          notification: {
+            channelId: "default_channel",
+            priority: "max" as any,
+            visibility: "public" as any,
+            sound: "default",
+            clickAction: "FLUTTER_NOTIFICATION_CLICK",
+          },
+        },
+        apns: {
+          payload: {
+            aps: {
+              alert: {
+                title: notification.title,
+                body: notification.body,
+              },
+              sound: "default",
+              badge: 1,
+            },
+          },
+        },
         data: {
           orderId: notification.orderId?.toString() || "",
           url: notification.url || "",
@@ -153,6 +175,15 @@ export async function notifyDriversOfNewOrder(
           notification: {
             title: notification.title,
             body: notification.body,
+          },
+          android: {
+            priority: "high" as any,
+            notification: {
+              channelId: "default_channel",
+              priority: "max" as any,
+              visibility: "public" as any,
+              sound: "default",
+            },
           },
           data: {
             orderId: orderId.toString(),

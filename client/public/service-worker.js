@@ -23,8 +23,13 @@ self.addEventListener('push', (event) => {
       badge: '/wasly-badge.png',
       tag: data.tag || `notification-${Date.now()}`,
       requireInteraction: true, // Keep notification visible until user interacts
-      vibrate: [200, 100, 200], // Vibration pattern for mobile devices
-      sound: '/notification-sound.mp3', // Optional notification sound
+      vibrate: [500, 110, 500, 110, 450, 110, 200, 110, 170, 40, 450, 110, 200, 110, 170, 40, 500], // Stronger vibration pattern
+      sound: '/notification-sound.mp3',
+      timestamp: Date.now(),
+      dir: 'rtl',
+      lang: 'ar',
+      renotify: true, // Notify user even if notification with same tag exists
+      silent: false,
       data: {
         url: data.url || '/driver/dashboard',
         orderId: data.orderId,
