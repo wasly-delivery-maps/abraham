@@ -21,7 +21,14 @@ if (vapidPublicKey && vapidPrivateKey) {
 const firebaseConfig = process.env.FIREBASE_SERVICE_ACCOUNT;
 if (firebaseConfig) {
   try {
-    const serviceAccount = JSON.parse(firebaseConfig);
+    let serviceAccount;
+    if (firebaseConfig.startsWith('{')) {
+      serviceAccount = JSON.parse(firebaseConfig);
+    } else {
+      // Handle base64 encoded config if needed
+      serviceAccount = JSON.parse(Buffer.from(firebaseConfig, 'base64').toString());
+    }
+    
     if (admin.apps.length === 0) {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
