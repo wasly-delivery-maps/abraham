@@ -119,8 +119,8 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
       <div className="h-[400px] w-full rounded-[2rem] overflow-hidden border-4 border-white shadow-2xl relative z-10">
         <MapContainer center={position} zoom={14} style={{ height: '100%', width: '100%' }}>
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/light/{z}/{x}/{y}{r}.png"
           />
           <LocationMarker />
           <MapUpdater center={position} />
