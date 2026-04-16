@@ -274,9 +274,9 @@ export default function DriverDashboard() {
               {getStatusBadge(order.status)}
             </div>
 
-            {/* Leaflet Map - Visible for ALL orders */}
+            {/* Map - Visible for ALL orders */}
             {isPickupValid && isDeliveryValid && (
-              <div className="h-64 w-full bg-slate-100 relative z-0">
+              <div className="h-64 w-full bg-slate-100 relative z-0" style={{ filter: 'grayscale(60%) brightness(1.1) contrast(0.95)' }}>
                 <MapContainer 
                   center={[pickupLat, pickupLng]} 
                   zoom={13} 
@@ -286,8 +286,8 @@ export default function DriverDashboard() {
                   scrollWheelZoom={false}
                 >
                   <TileLayer
-                    url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
-                    attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   />
                   <Marker position={[pickupLat, pickupLng]} icon={iconA}>
                     <Popup>نقطة الاستلام</Popup>
