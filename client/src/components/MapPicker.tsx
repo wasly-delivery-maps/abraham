@@ -87,8 +87,16 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     setIsSearching(true);
     searchTimeoutRef.current = setTimeout(async () => {
       try {
+        // تنظيف الاستعلام: إذا كان العنوان طويلاً (منسوخ من جوجل)، نحاول استخراج الجزء الأهم
+        let cleanQuery = query;
+        if (query.includes('،') || query.includes(',')) {
+          // إذا كان العنوان يحتوي على فواصل، نأخذ الأجزاء الأولى (اسم الشارع/المحل والمنطقة)
+          const parts = query.split(/[،,]/);
+          cleanQuery = parts.slice(0, 2).join(' ');
+        }
+
         // البحث الأساسي عن العنوان
-        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ' العبور مصر')}&limit=10&accept-language=ar`;
+        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cleanQuery)}&limit=10&accept-language=ar`;
         const response = await fetch(searchUrl);
         const data = await response.json();
         
