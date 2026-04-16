@@ -1,5 +1,6 @@
 import { Response } from "express";
 import webpush from "web-push";
+import * as admin from "firebase-admin";
 import { getDb, getAllUsers } from "./db";
 import { pushSubscriptions } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -16,6 +17,22 @@ if (vapidPublicKey && vapidPrivateKey) {
   );
 }
 
+// Configure Firebase Admin SDK
+const firebaseConfig = process.env.FIREBASE_SERVICE_ACCOUNT;
+if (firebaseConfig) {
+  try {
+    const serviceAccount = JSON.parse(firebaseConfig);
+    if (admin.apps.length === 0) {
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+      });
+      console.log("[Notifications] Firebase Admin SDK initialized successfully");
+    }
+  } catch (error) {
+    console.error("[Notifications] Failed to initialize Firebase Admin SDK:", error);
+  }
+}
+
 // Store active SSE connections
 const activeConnections = new Map<number, Response>();
 
@@ -23,143 +40,20 @@ const activeConnections = new Map<number, Response>();
  * Register an SSE connection for a user
  */
 export function registerSSEConnection(userId: number, res: Response) {
-  // Set SSE headers
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
   res.setHeader("Access-Control-Allow-Origin", "*");
 
-  // Send initial connection message
   res.write('data: {"type":"connected","message":"Connected to notifications"}\n\n');
-
-  // Store connection
   activeConnections.set(userId, res);
 
-  // Handle client disconnect
-  res.on("close", () => {
-    activeConnections.delete(userId);
-  });
-
-  res.on("error", () => {
-    activeConnections.delete(userId);
-  });
+  res.on("close", () => { activeConnections.delete(userId); });
+  res.on("error", () => { activeConnections.delete(userId); });
 }
 
 /**
- * Send notification to a specific user
- */
-export function sendNotificationToUser(userId: number, notification: any) {
-  const connection = activeConnections.get(userId);
-  if (connection && !connection.writableEnded) {
-    connection.write(`data: ${JSON.stringify(notification)}\n\n`);
-  }
-}
-
-/**
- * Send notification to multiple users
- */
-export function sendNotificationToUsers(userIds: number[], notification: any) {
-  userIds.forEach((userId) => {
-    sendNotificationToUser(userId, notification);
-  });
-}
-
-/**
- * Broadcast notification to all drivers
- */
-export function broadcastToAllDrivers(notification: any) {
-  activeConnections.forEach((connection, userId) => {
-    if (!connection.writableEnded) {
-      connection.write(`data: ${JSON.stringify(notification)}\n\n`);
-    }
-  });
-}
-
-/**
- * Close a user's connection
- */
-export function closeUserConnection(userId: number) {
-  const connection = activeConnections.get(userId);
-  if (connection && !connection.writableEnded) {
-    connection.end();
-  }
-  activeConnections.delete(userId);
-}
-
-/**
- * Get active connections count (for debugging)
- */
-export function getActiveConnectionsCount() {
-  return activeConnections.size;
-}
-
-/**
- * Save push subscription to database
- */
-export async function savePushSubscription(
-  userId: number,
-  subscription: any
-): Promise<void> {
-  const db = await getDb();
-  if (!db) {
-    console.warn("[Notifications] Database not available");
-    return;
-  }
-
-  try {
-    // Check if subscription already exists
-    const existing = await db
-      .select()
-      .from(pushSubscriptions)
-      .where(eq(pushSubscriptions.endpoint, subscription.endpoint))
-      .limit(1);
-
-    if (existing.length > 0) {
-      // Update existing subscription
-      await db
-        .update(pushSubscriptions)
-        .set({
-          keys: subscription.keys,
-          updatedAt: new Date(),
-        })
-        .where(eq(pushSubscriptions.endpoint, subscription.endpoint));
-      console.log(`[Notifications] Updated subscription for user ${userId}`);
-    } else {
-      // Insert new subscription
-      await db.insert(pushSubscriptions).values({
-        userId,
-        endpoint: subscription.endpoint,
-        keys: subscription.keys,
-      });
-      console.log(`[Notifications] Saved subscription for user ${userId}`);
-    }
-  } catch (error) {
-    console.error("[Notifications] Failed to save subscription:", error);
-  }
-}
-
-/**
- * Remove push subscription from database
- */
-export async function removePushSubscription(endpoint: string): Promise<void> {
-  const db = await getDb();
-  if (!db) {
-    console.warn("[Notifications] Database not available");
-    return;
-  }
-
-  try {
-    await db
-      .delete(pushSubscriptions)
-      .where(eq(pushSubscriptions.endpoint, endpoint));
-    console.log(`[Notifications] Removed subscription for endpoint ${endpoint}`);
-  } catch (error) {
-    console.error("[Notifications] Failed to remove subscription:", error);
-  }
-}
-
-/**
- * Send push notification to a specific user
+ * Send notification to a specific user (Web Push & Firebase)
  */
 export async function sendPushNotificationToUser(
   userId: number,
@@ -172,13 +66,10 @@ export async function sendPushNotificationToUser(
   }
 ): Promise<void> {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Notifications] Database not available");
-    return;
-  }
+  if (!db) return;
 
+  // 1. Web Push (Browser)
   try {
-    // Get all subscriptions for the user
     const subscriptions = await db
       .select()
       .from(pushSubscriptions)
@@ -186,37 +77,44 @@ export async function sendPushNotificationToUser(
 
     for (const sub of subscriptions) {
       try {
-        const subscription = {
-          endpoint: sub.endpoint,
-          keys: sub.keys as any,
-        };
-
         await webpush.sendNotification(
-          subscription,
+          { endpoint: sub.endpoint, keys: sub.keys as any },
           JSON.stringify(notification)
         );
       } catch (error: any) {
-        if (error.statusCode === 410) {
-          // Subscription expired, remove it
-          await removePushSubscription(sub.endpoint);
-        } else {
-          console.error(
-            "[Notifications] Failed to send notification:",
-            error.message
-          );
-        }
+        if (error.statusCode === 410) await removePushSubscription(sub.endpoint);
       }
     }
   } catch (error) {
-    console.error(
-      "[Notifications] Failed to send notification to user:",
-      error
-    );
+    console.error("[Notifications] Web Push error:", error);
+  }
+
+  // 2. Firebase Push (Mobile App)
+  if (admin.apps.length > 0) {
+    try {
+      const message = {
+        notification: {
+          title: notification.title,
+          body: notification.body,
+        },
+        data: {
+          orderId: notification.orderId?.toString() || "",
+          url: notification.url || "",
+          click_action: "FLUTTER_NOTIFICATION_CLICK",
+        },
+        topic: `user_${userId}`,
+      };
+
+      await admin.messaging().send(message);
+      console.log(`[Notifications] Firebase message sent to topic: user_${userId}`);
+    } catch (error) {
+      console.error("[Notifications] Firebase Push failed:", error);
+    }
   }
 }
 
 /**
- * Send notification to all drivers with new order
+ * Notify all drivers of a new order
  */
 export async function notifyDriversOfNewOrder(
   orderId: number,
@@ -224,9 +122,8 @@ export async function notifyDriversOfNewOrder(
   dropoffLocation: string
 ): Promise<void> {
   try {
-    // Get all active drivers using Drizzle ORM
     const allUsers = await getAllUsers();
-    const drivers = allUsers.filter(
+    const activeDrivers = allUsers.filter(
       (u: any) => u.role === "driver" && u.accountStatus === "active"
     );
 
@@ -238,29 +135,41 @@ export async function notifyDriversOfNewOrder(
       tag: `order-${orderId}`,
     };
 
-    // Send notification to all drivers
-    for (const driver of drivers) {
+    // Send to each driver via their personal topic/subscription
+    for (const driver of activeDrivers) {
       await sendPushNotificationToUser(driver.id, notification);
     }
 
-    console.log(
-      `[Notifications] Sent notification to ${drivers.length} drivers`
-    );
+    // Broadcast to "drivers" topic for all mobile apps
+    if (admin.apps.length > 0) {
+      const topicMessage = {
+        notification: {
+          title: notification.title,
+          body: notification.body,
+        },
+        data: {
+          orderId: orderId.toString(),
+          url: notification.url || "",
+        },
+        topic: "drivers",
+      };
+      await admin.messaging().send(topicMessage);
+      console.log("[Notifications] Firebase broadcast sent to 'drivers' topic");
+    }
   } catch (error) {
     console.error("[Notifications] Failed to notify drivers:", error);
   }
 }
 
-/**
- * Get VAPID public key for frontend
- */
-export function getVapidPublicKey(): string {
-  return vapidPublicKey;
+export async function removePushSubscription(endpoint: string): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
+  } catch (error) {
+    console.error("[Notifications] Failed to remove subscription:", error);
+  }
 }
 
-/**
- * Check if push notifications are configured
- */
-export function isPushNotificationsConfigured(): boolean {
-  return !!(vapidPublicKey && vapidPrivateKey);
-}
+export function getVapidPublicKey(): string { return vapidPublicKey; }
+export function isPushNotificationsConfigured(): boolean { return !!(vapidPublicKey && vapidPrivateKey); }
