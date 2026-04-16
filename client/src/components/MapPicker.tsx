@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Search, MapPin, Loader2 } from 'lucide-react';
+import { Search, MapPin, Loader2, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -24,6 +24,13 @@ interface MapPickerProps {
   placeholder?: string;
 }
 
+interface SearchResult {
+  lat: number;
+  lon: number;
+  display_name: string;
+  type: string;
+}
+
 function MapUpdater({ center }: { center: [number, number] }) {
   const map = useMap();
   useEffect(() => {
@@ -39,6 +46,9 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
   const [address, setAddress] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [showResults, setShowResults] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
   const reverseGeocode = useCallback(async (lat: number, lon: number) => {
     try {
@@ -60,23 +70,63 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     }
   }, []);
 
+  // البحث المتقدم مع البحث الفوري (Live Search)
+  const handleSearchChange = async (query: string) => {
+    setSearchQuery(query);
+    
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (!query.trim()) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
+
+    setIsSearching(true);
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        // البحث الأساسي عن العنوان
+        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ' العبور مصر')}&limit=10&accept-language=ar`;
+        const response = await fetch(searchUrl);
+        const data = await response.json();
+        
+        if (data && Array.isArray(data)) {
+          const results = data.map((item: any) => ({
+            lat: parseFloat(item.lat),
+            lon: parseFloat(item.lon),
+            display_name: item.display_name,
+            type: item.type || item.class,
+          }));
+          setSearchResults(results);
+          setShowResults(true);
+        } else {
+          setSearchResults([]);
+        }
+      } catch (error) {
+        console.error('Search error:', error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300); // تأخير 300ms قبل البحث لتقليل الطلبات
+  };
+
+  const handleSelectResult = (result: SearchResult) => {
+    const newPos: [number, number] = [result.lat, result.lon];
+    setPosition(newPos);
+    setSearchQuery('');
+    setShowResults(false);
+    setSearchResults([]);
+    reverseGeocode(result.lat, result.lon);
+  };
+
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
-    setIsSearching(true);
-    try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery + ' العبور مصر')}&limit=1&accept-language=ar`);
-      const data = await response.json();
-      if (data && data.length > 0) {
-        const { lat, lon, display_name } = data[0];
-        const newPos: [number, number] = [parseFloat(lat), parseFloat(lon)];
-        setPosition(newPos);
-        setAddress(display_name);
-        onLocationSelect({ address: display_name, latitude: newPos[0], longitude: newPos[1] });
-      }
-    } catch (error) {
-      console.error('Search error:', error);
-    } finally {
-      setIsSearching(false);
+    
+    if (searchResults.length > 0) {
+      handleSelectResult(searchResults[0]);
     }
   };
 
@@ -85,6 +135,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
       click(e) {
         const newPos: [number, number] = [e.latlng.lat, e.latlng.lng];
         setPosition(newPos);
+        setShowResults(false);
         reverseGeocode(newPos[0], newPos[1]);
       },
     });
@@ -100,21 +151,56 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
         <div className="relative flex-1">
           <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
           <Input
-            placeholder={placeholder || "ابحث عن مكان في العبور..."}
+            placeholder={placeholder || "ابحث عن شارع، محل، مركز، أو أي مكان..."}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            onFocus={() => searchQuery && setShowResults(true)}
             className="h-14 pr-12 rounded-2xl border-slate-200 bg-white shadow-sm focus:ring-orange-500 font-bold"
           />
+          {searchQuery && (
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setSearchResults([]);
+                setShowResults(false);
+              }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
         </div>
         <Button 
           onClick={handleSearch} 
-          disabled={isSearching}
-          className="h-14 px-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black transition-all"
+          disabled={isSearching || searchResults.length === 0}
+          className="h-14 px-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black transition-all disabled:opacity-50"
         >
           {isSearching ? <Loader2 className="h-5 w-5 animate-spin" /> : "بحث"}
         </Button>
       </div>
+
+      {/* نتائج البحث */}
+      {showResults && searchResults.length > 0 && (
+        <div className="absolute top-20 right-0 left-0 z-50 bg-white rounded-2xl shadow-2xl border border-slate-200 max-h-96 overflow-y-auto">
+          {searchResults.map((result, index) => (
+            <button
+              key={index}
+              onClick={() => handleSelectResult(result)}
+              className="w-full text-right p-4 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition-colors"
+            >
+              <div className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 text-orange-600 flex-shrink-0 mt-1" />
+                <div className="flex-1">
+                  <p className="font-bold text-slate-900 text-sm">{result.display_name.split(',')[0]}</p>
+                  <p className="text-xs text-slate-500 mt-1 line-clamp-2">{result.display_name}</p>
+                  <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-widest">{result.type}</p>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="h-[400px] w-full rounded-[2rem] overflow-hidden border-4 border-white shadow-2xl relative z-10">
         <MapContainer center={position} zoom={14} style={{ height: '100%', width: '100%' }}>
