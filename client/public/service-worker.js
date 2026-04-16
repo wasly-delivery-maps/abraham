@@ -19,17 +19,18 @@ self.addEventListener('push', (event) => {
     
     const options = {
       body: body,
-      icon: '/wasly-icon.png',
-      badge: '/wasly-badge.png',
+      icon: '/logo.jpg',
+      badge: '/logo.jpg',
       tag: data.tag || `notification-${Date.now()}`,
       requireInteraction: true, // Keep notification visible until user interacts
       vibrate: [500, 110, 500, 110, 450, 110, 200, 110, 170, 40, 450, 110, 200, 110, 170, 40, 500], // Stronger vibration pattern
-      sound: '/notification-sound.mp3',
       timestamp: Date.now(),
       dir: 'rtl',
       lang: 'ar',
       renotify: true, // Notify user even if notification with same tag exists
       silent: false,
+      // Critical for lock screen visibility
+      visibility: 'public',
       data: {
         url: data.url || '/driver/dashboard',
         orderId: data.orderId,
@@ -39,14 +40,12 @@ self.addEventListener('push', (event) => {
       // Action buttons for the notification
       actions: [
         {
-          action: 'accept',
-          title: 'قبول الطلب',
-          icon: '/accept-icon.png'
+          action: 'view',
+          title: 'عرض الطلب',
         },
         {
           action: 'dismiss',
           title: 'تجاهل',
-          icon: '/dismiss-icon.png'
         }
       ]
     };
@@ -71,9 +70,10 @@ self.addEventListener('push', (event) => {
       event.waitUntil(
         self.registration.showNotification('طلب جديد من Wasly', {
           body: fallbackText || 'لديك إشعار جديد',
-          icon: '/wasly-icon.png',
-          badge: '/wasly-badge.png',
+          icon: '/logo.jpg',
+          badge: '/logo.jpg',
           requireInteraction: true,
+          visibility: 'public',
         })
       );
     } catch (fallbackError) {
@@ -127,46 +127,12 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Handle notification action buttons
-self.addEventListener('notificationclick', (event) => {
-  if (event.action === 'accept') {
-    console.log('[ServiceWorker] Accept action triggered for order:', event.notification.data.orderId);
-    event.notification.close();
-    
-    event.waitUntil(
-      clients.matchAll({ type: 'window' }).then((clientList) => {
-        clientList.forEach((client) => {
-          client.postMessage({
-            type: 'notification-action',
-            action: 'accept',
-            orderId: event.notification.data.orderId,
-          });
-        });
-      })
-    );
-  } else if (event.action === 'dismiss') {
-    console.log('[ServiceWorker] Dismiss action triggered');
-    event.notification.close();
-  }
-});
-
-// Handle notification close
-self.addEventListener('notificationclose', (event) => {
-  console.log('[ServiceWorker] Notification closed:', event.notification.tag);
-});
-
 // Handle messages from clients
 self.addEventListener('message', (event) => {
   console.log('[ServiceWorker] Message received:', event.data);
   
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
-  }
-  
-  // Handle subscription requests from client
-  if (event.data && event.data.type === 'SUBSCRIBE_TO_PUSH') {
-    console.log('[ServiceWorker] Subscription request received');
-    event.ports[0].postMessage({ success: true });
   }
 });
 
@@ -180,44 +146,4 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('install', (event) => {
   console.log('[ServiceWorker] Installed');
   self.skipWaiting();
-});
-
-// Handle fetch events - cache static assets
-self.addEventListener('fetch', (event) => {
-  // Only handle GET requests
-  if (event.request.method !== 'GET') {
-    return;
-  }
-
-  // Skip API requests
-  if (event.request.url.includes('/api/')) {
-    return;
-  }
-
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        return response || fetch(event.request);
-      })
-      .catch(() => {
-        // Return offline page if available
-        return caches.match('/offline.html');
-      })
-  );
-});
-
-// Periodic background sync for checking notifications
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'check-notifications') {
-    console.log('[ServiceWorker] Background sync: checking notifications');
-    event.waitUntil(
-      fetch('/api/notifications/check')
-        .then((response) => {
-          console.log('[ServiceWorker] Notifications checked');
-        })
-        .catch((error) => {
-          console.error('[ServiceWorker] Failed to check notifications:', error);
-        })
-    );
-  }
 });

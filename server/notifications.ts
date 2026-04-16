@@ -185,6 +185,19 @@ export async function notifyDriversOfNewOrder(
               sound: "default",
             },
           },
+          apns: {
+            payload: {
+              aps: {
+                alert: {
+                  title: notification.title,
+                  body: notification.body,
+                },
+                sound: "default",
+                badge: 1,
+                "content-available": 1,
+              },
+            },
+          },
           data: {
             orderId: orderId.toString(),
             url: notification.url || "",

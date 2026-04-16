@@ -1,0 +1,32 @@
+{
+  "name": "وصلي - توصيل ذكي",
+  "short_name": "وصلي",
+  "description": "خدمة توصيل سريعة وموثوقة مع تتبع فوري وسائقين محترفين",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f97316",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "لوحة تحكم السائق",
+      "url": "/driver/dashboard",
+      "icons": [{ "src": "/logo.jpg", "sizes": "192x192" }]
+    }
+  ]
+}
