@@ -151,6 +151,9 @@ export default function DriverDashboard() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [driverLocation, setDriverLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const { unreadCounts } = useChatContext();
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(
+    typeof window !== 'undefined' ? Notification.permission : 'default'
+  );
 
   const hasNavigatedRef = useRef(false);
 
@@ -280,6 +283,21 @@ export default function DriverDashboard() {
       toast.success("تم تسجيل الخروج بنجاح");
     } catch (error) {
       toast.error("فشل تسجيل الخروج");
+    }
+  };
+
+  const requestPermission = async () => {
+    if (!('Notification' in window)) {
+      toast.error("متصفحك لا يدعم الإشعارات");
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    setNotificationPermission(permission);
+    if (permission === 'granted') {
+      toast.success("تم تفعيل الإشعارات بنجاح! 🎉");
+      setTimeout(() => window.location.reload(), 1000);
+    } else if (permission === 'denied') {
+      toast.error("لقد قمت برفض الإشعارات. يرجى تفعيلها من إعدادات المتصفح.");
     }
   };
 
@@ -542,6 +560,16 @@ export default function DriverDashboard() {
               </div>
             </div>
             <div className="flex gap-3">
+              {notificationPermission !== 'granted' && (
+                <Button 
+                  variant="ghost" 
+                  className="h-12 px-4 rounded-2xl bg-orange-500/20 hover:bg-orange-500/30 text-orange-500 font-black text-xs animate-pulse"
+                  onClick={requestPermission}
+                >
+                  <Zap className="h-4 w-4 ml-2" />
+                  تفعيل الإشعارات
+                </Button>
+              )}
               <Button 
                 variant="ghost" 
                 className="h-12 w-12 rounded-2xl bg-white/5 hover:bg-white/10 p-0"
