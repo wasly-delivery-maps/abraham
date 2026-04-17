@@ -13,8 +13,8 @@ import { serveStatic, setupVite } from "./vite";
 import { setupLocationTracking } from "./locationTracking";
 import { setupOrderNotifications } from "./orderNotifications";
 import { setupChat } from "./chat";
-import { registerSSEConnection, sendPushNotificationToUser as sendNotificationToUser, getVapidPublicKey, removePushSubscription } from "../notifications";
-import { upsertPushSubscription } from "../db";
+import { registerSSEConnection, sendPushNotificationToUser as sendNotificationToUser, getVapidPublicKey, removePushSubscription, notifyDriversOfNewOrder } from "../notifications";
+import { upsertPushSubscription, getAvailableOrders } from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -155,6 +155,27 @@ async function startServer() {
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
     console.log(`WebSocket server initialized on port ${port}`);
+    
+    // إعداد نظام التذكير الدوري للسائقين كل 30 ثانية
+    setInterval(async () => {
+      try {
+        const pendingOrders = await getAvailableOrders();
+        if (pendingOrders && pendingOrders.length > 0) {
+          console.log(`[Reminder] Found ${pendingOrders.length} pending orders. Notifying drivers...`);
+          
+          // إرسال تنبيه تذكيري لجميع السائقين
+          // نستخدم معرف أول طلب في الرسالة كمثال أو نرسل رسالة عامة
+          const count = pendingOrders.length;
+          const message = count === 1 
+            ? `تذكير: يوجد طلب متاح الآن بانتظارك! 🚀` 
+            : `تذكير: يوجد ${count} طلبات متاحة الآن بانتظارك! 🚀`;
+            
+          await notifyDriversOfNewOrder(pendingOrders[0].id, message);
+        }
+      } catch (error) {
+        console.error("[Reminder] Error in periodic driver notification:", error);
+      }
+    }, 30000); // 30 ثانية
   });
 }
 
