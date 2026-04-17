@@ -125,13 +125,13 @@
             );
           }
 
-          // 3. طلب إذن الكاميرا (لتصوير الطلبات)
+          // 3. طلب إذن الوسائط (صوت وتنبيهات) بدلاً من الكاميرا
           try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            stream.getTracks().forEach(track => track.stop()); // إغلاق الكاميرا فور الحصول على الإذن
-            console.log("[PWA] Camera access granted");
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.getTracks().forEach(track => track.stop()); // إغلاق الميكروفون فور الحصول على الإذن
+            console.log("[PWA] Media/Audio access granted");
           } catch (err) {
-            console.error("[PWA] Camera access denied", err);
+            console.error("[PWA] Media/Audio access denied", err);
           }
         }, 5000); // الانتظار 5 ثوانٍ لضمان استقرار التطبيق قبل طلب الأذونات
       });

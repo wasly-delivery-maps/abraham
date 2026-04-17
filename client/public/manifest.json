@@ -14,8 +14,8 @@
     "notifications",
     "gcm",
     "geolocation",
-    "camera",
     "media-playback",
+    "audio-capture",
     "background-sync",
     "persistent-storage"
   ],
