@@ -13,7 +13,8 @@ import { serveStatic, setupVite } from "./vite";
 import { setupLocationTracking } from "./locationTracking";
 import { setupOrderNotifications } from "./orderNotifications";
 import { setupChat } from "./chat";
-import { registerSSEConnection, sendPushNotificationToUser as sendNotificationToUser } from "../notifications";
+import { registerSSEConnection, sendPushNotificationToUser as sendNotificationToUser, getVapidPublicKey, removePushSubscription } from "../notifications";
+import { upsertPushSubscription } from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -84,6 +85,45 @@ async function startServer() {
       return;
     }
     registerSSEConnection(userId, res);
+  });
+  
+  // Push Notifications Subscription endpoints
+  app.get("/api/notifications/vapid-public-key", (req, res) => {
+    res.json({ publicKey: getVapidPublicKey() });
+  });
+
+  app.post("/api/notifications/subscribe", async (req, res) => {
+    try {
+      // In a real app, we would get the userId from the session
+      // For now, we'll try to find it from the session or expect it in the body
+      const userId = (req as any).user?.id || req.body.userId;
+      if (!userId) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+      
+      const subscription = req.body;
+      await upsertPushSubscription(userId, subscription);
+      res.status(201).json({ success: true });
+    } catch (error) {
+      console.error("[Notifications] Failed to subscribe:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/notifications/unsubscribe", async (req, res) => {
+    try {
+      const { endpoint } = req.body;
+      if (!endpoint) {
+        res.status(400).json({ error: "Endpoint is required" });
+        return;
+      }
+      await removePushSubscription(endpoint);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error("[Notifications] Failed to unsubscribe:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   });
   
   // tRPC API

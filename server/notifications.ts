@@ -1,9 +1,7 @@
 import { Response } from "express";
 import webpush from "web-push";
 import * as admin from "firebase-admin";
-import { getDb, getAllUsers } from "./db";
-import { pushSubscriptions } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { getDb, getAllUsers, getPushSubscriptionsByUserId, deletePushSubscription } from "./db";
 
 // Configure web push with VAPID keys
 const vapidPublicKey = process.env.VITE_VAPID_PUBLIC_KEY || "";
@@ -77,10 +75,7 @@ export async function sendPushNotificationToUser(
 
   // 1. Web Push (Browser)
   try {
-    const subscriptions = await db
-      .select()
-      .from(pushSubscriptions)
-      .where(eq(pushSubscriptions.userId, userId));
+    const subscriptions = await getPushSubscriptionsByUserId(userId);
 
     for (const sub of subscriptions) {
       try {
@@ -89,7 +84,7 @@ export async function sendPushNotificationToUser(
           JSON.stringify(notification)
         );
       } catch (error: any) {
-        if (error.statusCode === 410) await removePushSubscription(sub.endpoint);
+        if (error.statusCode === 410) await deletePushSubscription(sub.endpoint);
       }
     }
   } catch (error) {
@@ -298,13 +293,7 @@ export async function notifyDriversOfNewOrder(
 }
 
 export async function removePushSubscription(endpoint: string): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
-  try {
-    await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
-  } catch (error) {
-    console.error("[Notifications] Failed to remove subscription:", error);
-  }
+  await deletePushSubscription(endpoint);
 }
 
 export function getVapidPublicKey(): string { return vapidPublicKey; }

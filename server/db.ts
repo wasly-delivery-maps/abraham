@@ -8,6 +8,8 @@ import {
   notifications,
   orderHistory,
   Order,
+  pushSubscriptions,
+  InsertPushSubscription,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -912,4 +914,73 @@ export async function getSuspendedDrivers() {
         sql`${users.accountStatus} IN ('suspended', 'disabled')`
       )
     );
+}
+
+/**
+ * Add or update a push subscription
+ */
+export async function upsertPushSubscription(userId: number, subscription: any) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot upsert push subscription: database not available");
+    return;
+  }
+
+  try {
+    const values: InsertPushSubscription = {
+      userId,
+      endpoint: subscription.endpoint,
+      keys: subscription.keys,
+    };
+
+    await db
+      .insert(pushSubscriptions)
+      .values(values)
+      .onDuplicateKeyUpdate({
+        set: {
+          userId,
+          keys: subscription.keys,
+          updatedAt: new Date(),
+        },
+      });
+  } catch (error) {
+    console.error("[Database] Failed to upsert push subscription:", error);
+    throw error;
+  }
+}
+
+/**
+ * Remove a push subscription by endpoint
+ */
+export async function deletePushSubscription(endpoint: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot delete push subscription: database not available");
+    return;
+  }
+
+  try {
+    await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
+  } catch (error) {
+    console.error("[Database] Failed to delete push subscription:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get all push subscriptions for a user
+ */
+export async function getPushSubscriptionsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get push subscriptions: database not available");
+    return [];
+  }
+
+  try {
+    return await db.select().from(pushSubscriptions).where(eq(pushSubscriptions.userId, userId));
+  } catch (error) {
+    console.error("[Database] Failed to get push subscriptions:", error);
+    return [];
+  }
 }

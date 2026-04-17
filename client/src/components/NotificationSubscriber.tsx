@@ -32,7 +32,7 @@ export function NotificationSubscriber({
   const handleSubscribe = async () => {
     try {
       setIsLoading(true);
-      await subscribeToPushNotifications(vapidPublicKey);
+      await subscribeToPushNotifications(vapidPublicKey, userId);
       toast.success('تم تفعيل الإشعارات بنجاح');
     } catch (error) {
       console.error('Failed to subscribe:', error);

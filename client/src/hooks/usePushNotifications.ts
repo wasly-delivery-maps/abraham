@@ -61,7 +61,7 @@ export function usePushNotifications() {
     return permission === 'granted';
   };
 
-  const subscribeToPushNotifications = async (vapidPublicKey: string) => {
+  const subscribeToPushNotifications = async (vapidPublicKey: string, userId?: number) => {
     try {
       const permission = await requestNotificationPermission();
       if (!permission) {
@@ -78,7 +78,7 @@ export function usePushNotifications() {
       setIsSubscribed(true);
 
       // Send subscription to server
-      await sendSubscriptionToServer(sub);
+      await sendSubscriptionToServer(sub, userId);
 
       console.log('Successfully subscribed to push notifications');
       return sub;
@@ -110,11 +110,14 @@ export function usePushNotifications() {
     }
   };
 
-  const sendSubscriptionToServer = async (sub: PushSubscription) => {
+  const sendSubscriptionToServer = async (sub: PushSubscription, userId?: number) => {
     const response = await fetch('/api/notifications/subscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(sub),
+      body: JSON.stringify({
+        ...sub.toJSON(),
+        userId
+      }),
     });
 
     if (!response.ok) {
