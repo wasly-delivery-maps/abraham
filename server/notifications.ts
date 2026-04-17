@@ -275,9 +275,10 @@ export async function notifyDriversOfNewOrder(
       }
     }
 
-    // 3. Send OneSignal Push Notification to all drivers
-    // We send to all subscribed users as a fallback to ensure it reaches everyone during testing
-    await sendOneSignalNotification({ role: "driver" }, notification);
+    // 3. Send OneSignal Push Notification to ALL subscribed users (Broadcast)
+    // This is the most reliable way to ensure the notification reaches the driver
+    // during testing, as it bypasses any tag-related filtering issues.
+    await sendOneSignalNotification({}, notification);
   } catch (error) {
     console.error("[Notifications] Failed to notify drivers:", error);
   }
