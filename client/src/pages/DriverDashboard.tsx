@@ -307,12 +307,40 @@ export default function DriverDashboard() {
     );
 
     if (isMedianApp) {
-      toast.info("جاري تفعيل إشعارات التطبيق...");
-      // Use Median JavaScript Bridge to request push permission
-      if (typeof window !== 'undefined' && (window as any).median) {
-        (window as any).median.push.requestPermission();
-      } else if (typeof window !== 'undefined' && (window as any).gonative) {
-        (window as any).gonative.push.requestPermission();
+      try {
+        // Use Median JavaScript Bridge to request push permission
+        if (typeof window !== 'undefined' && (window as any).median && (window as any).median.push) {
+          // Median Bridge - request permission directly from Android system
+          (window as any).median.push.requestPermission();
+          toast.success("تم طلب إذن الإشعارات من نظام الأندرويد");
+          // Wait for permission to be granted
+          setTimeout(() => {
+            if (typeof window !== 'undefined' && (window as any).Notification) {
+              setNotificationPermission((window as any).Notification.permission || 'granted');
+            }
+          }, 2000);
+        } else if (typeof window !== 'undefined' && (window as any).gonative && (window as any).gonative.push) {
+          // GoNative Bridge
+          (window as any).gonative.push.requestPermission();
+          toast.success("تم طلب إذن الإشعارات من نظام الأندرويد");
+          setTimeout(() => {
+            if (typeof window !== 'undefined' && (window as any).Notification) {
+              setNotificationPermission((window as any).Notification.permission || 'granted');
+            }
+          }, 2000);
+        } else {
+          // Fallback to standard Notification API
+          const permission = await Notification.requestPermission();
+          setNotificationPermission(permission);
+          if (permission === 'granted') {
+            toast.success("تم تفعيل الإشعارات بنجاح! 🎉");
+          } else if (permission === 'denied') {
+            toast.error("لقد قمت برفض الإشعارات");
+          }
+        }
+      } catch (error) {
+        console.error("Permission error:", error);
+        toast.error("حدث خطأ أثناء طلب الإذن");
       }
       return;
     }
