@@ -26,11 +26,12 @@
           allowLocalhostAsSecureOrigin: true,
           serviceWorkerParam: { scope: "/" },
           serviceWorkerPath: "OneSignalSDKWorker.js",
+          persistNotification: true, // ضمان بقاء الإشعار
           promptOptions: {
             slidedown: {
               enabled: true,
               autoPrompt: true,
-              timeDelay: 5,
+              timeDelay: 3,
               pageViews: 1
             }
           },
@@ -42,8 +43,13 @@
           },
         });
         
-        // إظهار طلب الإذن فوراً إذا لم يتم منحه
+        // التحقق المستمر من الإذن وطلبه عند الحاجة
+        OneSignal.Notifications.addEventListener("permissionChange", (permission) => {
+          console.log("[OneSignal] Permission changed to:", permission);
+        });
+
         if (OneSignal.Notifications.permission !== "granted") {
+          console.log("[OneSignal] Requesting notification permission...");
           await OneSignal.Notifications.requestPermission();
         }
       });

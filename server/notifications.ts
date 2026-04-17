@@ -173,9 +173,14 @@ export async function sendOneSignalNotification(
       contents: { en: notification.body, ar: notification.body },
       headings: { en: notification.title, ar: notification.title },
       data: { orderId: notification.orderId?.toString(), url: notification.url },
+      small_icon: "ic_stat_onesignal_default",
+      large_icon: "https://web-production-0eb1b.up.railway.app/logo.jpg",
       android_accent_color: "FF0000",
       android_visibility: 1, // Public (ظاهر على قفل الشاشة)
       priority: 10, // High priority
+      android_channel_id: "default_channel",
+      android_sound: "notification",
+      ttl: 3600, // Time to live (1 hour)
     };
 
     // Apply filters or target all subscribed users
