@@ -4,6 +4,8 @@
   "description": "خدمة توصيل سريعة وموثوقة مع تتبع فوري وسائقين محترفين",
   "start_url": "/",
   "display": "standalone",
+  "display_override": ["standalone", "window-controls-overlay"],
+  "scope": "/",
   "background_color": "#ffffff",
   "theme_color": "#f97316",
   "orientation": "portrait",
