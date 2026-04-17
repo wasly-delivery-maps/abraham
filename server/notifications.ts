@@ -76,15 +76,17 @@ export async function sendPushNotificationToUser(
   // 1. Web Push (Browser)
   try {
     const subscriptions = await getPushSubscriptionsByUserId(userId);
-
-    for (const sub of subscriptions) {
-      try {
-        await webpush.sendNotification(
-          { endpoint: sub.endpoint, keys: sub.keys as any },
-          JSON.stringify(notification)
-        );
-      } catch (error: any) {
-        if (error.statusCode === 410) await deletePushSubscription(sub.endpoint);
+    
+    if (subscriptions && Array.isArray(subscriptions)) {
+      for (const sub of subscriptions) {
+        try {
+          await webpush.sendNotification(
+            { endpoint: sub.endpoint, keys: sub.keys as any },
+            JSON.stringify(notification)
+          );
+        } catch (error: any) {
+          if (error.statusCode === 410) await deletePushSubscription(sub.endpoint);
+        }
       }
     }
   } catch (error) {
@@ -239,7 +241,11 @@ export async function notifyDriversOfNewOrder(
 
     // 1. Send Web Push to each active driver
     for (const driver of activeDrivers) {
-      await sendPushNotificationToUser(driver.id, notification);
+      try {
+        await sendPushNotificationToUser(driver.id, notification);
+      } catch (error) {
+        console.error(`[Notifications] Failed to send web push to user ${driver.id}:`, error);
+      }
     }
 
     // 2. Broadcast to Firebase "drivers" topic for mobile apps
