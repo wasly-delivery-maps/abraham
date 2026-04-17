@@ -157,7 +157,9 @@ export async function sendOneSignalNotification(
       if (user && user.phone) {
         filters.push({ field: "tag", key: "external_id", relation: "=", value: user.phone });
       }
-    } else if (target.role) {
+    }
+    
+    if (target.role) {
       // Target all users with a specific role tag
       filters.push({ field: "tag", key: "role", relation: "=", value: target.role });
     }
@@ -283,10 +285,9 @@ export async function notifyDriversOfNewOrder(
       }
     }
 
-    // 3. Send OneSignal Push Notification to ALL subscribed users (Broadcast)
-    // This is the most reliable way to ensure the notification reaches the driver
-    // during testing, as it bypasses any tag-related filtering issues.
-    await sendOneSignalNotification({}, notification);
+    // 3. Send OneSignal Push Notification to ALL drivers
+    // We target by role="driver" to ensure only drivers get the new order notification
+    await sendOneSignalNotification({ role: "driver" }, notification);
   } catch (error) {
     console.error("[Notifications] Failed to notify drivers:", error);
   }

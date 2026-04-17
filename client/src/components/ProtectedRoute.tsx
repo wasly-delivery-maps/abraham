@@ -19,6 +19,21 @@ export default function ProtectedRoute({ component: Component, requiredRole }: P
 
     // Skip if already authenticated and on correct path
     if (isAuthenticated) {
+      // Ensure OneSignal tags are up to date for push notifications
+      if (typeof window !== 'undefined' && (window as any).OneSignalDeferred && user) {
+        (window as any).OneSignalDeferred.push(async function(OneSignal: any) {
+          const phone = user.phone;
+          if (phone) {
+            await OneSignal.login(phone);
+            await OneSignal.User.addTags({
+              role: user.role || "customer",
+              phone: phone,
+              external_id: phone
+            });
+          }
+        });
+      }
+
       if (requiredRole && user?.role !== requiredRole) {
         // User is authenticated but doesn't have the required role
         // We'll let the component render and show NotFound or handle it
