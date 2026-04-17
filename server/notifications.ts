@@ -143,9 +143,14 @@ export async function sendPushNotificationToUser(
  * Send a notification via OneSignal
  */
 export async function sendOneSignalNotification(
-  target: { userId?: number; role?: string },
-  notification: { title: string; body: string; orderId?: number; url?: string }
+  target: { userId?: number; role?: string } | any,
+  notification?: { title: string; body: string; orderId?: number; url?: string }
 ): Promise<void> {
+  // Handle old call format if necessary
+  if (!notification && target.title) {
+    notification = target;
+    target = { role: "driver" };
+  }
   const ONESIGNAL_APP_ID = process.env.VITE_APP_ID || "c7e88fa4-df0e-42a5-960a-fd9088b949b4";
   const ONESIGNAL_REST_API_KEY = process.env.ONESIGNAL_REST_API_KEY || "os_v2_app_y7ui7jg7bzbklfqk7wiirokjwqxujf2awfaes6nbchj2hvkqcmfkjayufnh5zg3z2bkvi6bcm7wg52jbyh3mv5kgrkaimtidxv4n5qa";
 
