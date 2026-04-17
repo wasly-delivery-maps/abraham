@@ -93,7 +93,11 @@ export default function Auth() {
         (window as any).OneSignalDeferred.push(async function(OneSignal: any) {
           await OneSignal.login(normalizedPhone);
           // إضافة وسم الدور للمستخدم عند تسجيل الدخول
-          await OneSignal.User.addTag("role", result.user?.role || "customer");
+          await OneSignal.User.addTags({
+            role: result.user?.role || "customer",
+            phone: normalizedPhone,
+            external_id: normalizedPhone
+          });
           console.log("[OneSignal] User logged in and tagged:", normalizedPhone, result.user?.role);
         });
       }
@@ -171,7 +175,11 @@ export default function Auth() {
         (window as any).OneSignalDeferred.push(async function(OneSignal: any) {
           await OneSignal.login(normalizedPhone);
           // إضافة وسم الدور للمستخدم الجديد
-          await OneSignal.User.addTag("role", result.user?.role || "customer");
+          await OneSignal.User.addTags({
+            role: result.user?.role || "customer",
+            phone: normalizedPhone,
+            external_id: normalizedPhone
+          });
           console.log("[OneSignal] New user logged in and tagged:", normalizedPhone, result.user?.role);
         });
       }
@@ -277,209 +285,230 @@ export default function Auth() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <Card className="w-full shadow-[0_20px_50px_rgba(0,0,0,0.2)] border-0 overflow-hidden rounded-[2.5rem] bg-white/95 backdrop-blur-sm">
+            <Card className="w-full shadow-[0_20px_50px_rgba(0,0,0,0.2)] border-0 overflow-hidden rounded-[2.5rem] bg-white/95">
               <CardContent className="p-0">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  {/* Tab Headers */}
-                  <div className="bg-slate-50/50 border-b border-slate-100">
-                    <TabsList className="w-full h-auto p-2 bg-transparent rounded-none grid grid-cols-2 gap-2">
-                      <TabsTrigger 
-                        value="login" 
-                        disabled={isLoading}
-                        className="rounded-2xl py-4 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-orange-600 font-black text-lg transition-all"
-                      >
-                        تسجيل الدخول
-                      </TabsTrigger>
-                      <TabsTrigger 
-                        value="register" 
-                        disabled={isLoading}
-                        className="rounded-2xl py-4 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-orange-600 font-black text-lg transition-all"
-                      >
-                        إنشاء حساب
-                      </TabsTrigger>
-                    </TabsList>
-                  </div>
+                  <TabsList className="grid w-full grid-cols-2 h-20 p-2 bg-orange-50/50">
+                    <TabsTrigger 
+                      value="login" 
+                      className="rounded-2xl text-xl font-black data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-lg transition-all duration-300"
+                    >
+                      تسجيل الدخول
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="register" 
+                      className="rounded-2xl text-xl font-black data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-lg transition-all duration-300"
+                    >
+                      إنشاء حساب
+                    </TabsTrigger>
+                  </TabsList>
 
-                  <div className="p-8 lg:p-10">
+                  <div className="p-10">
                     <AnimatePresence mode="wait">
-                      {activeTab === "login" ? (
+                      <TabsContent value="login" className="mt-0 outline-none">
                         <motion.div
-                          key="login"
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -20 }}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
                           className="space-y-8"
                         >
                           <div className="space-y-2">
-                            <h2 className="text-3xl font-black text-slate-900">أهلاً بك مجدداً!</h2>
-                            <p className="text-slate-500 font-medium">سجل دخولك لمتابعة طلباتك</p>
+                            <h2 className="text-4xl font-black text-gray-900 tracking-tight">أهلاً بك مجدداً!</h2>
+                            <p className="text-gray-500 font-medium text-lg">سجل دخولك لمتابعة طلباتك</p>
                           </div>
 
                           <form onSubmit={handleLogin} className="space-y-6">
-                            <div className="space-y-2">
-                              <label className="text-sm font-black text-slate-700 mr-1">رقم الهاتف</label>
-                              <div className="relative group">
-                                <Phone className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-orange-500 transition-colors" />
-                                <Input
-                                  type="tel"
-                                  placeholder="01xxxxxxxxx"
-                                  value={loginData.phone}
-                                  onChange={(e) => handleLoginChange("phone", e.target.value)}
-                                  disabled={isLoginPending}
-                                  required
-                                  className="pr-12 py-7 text-lg border-slate-200 rounded-2xl focus:border-orange-500 focus:ring-orange-500/20 bg-slate-50/50 font-bold"
-                                />
-                              </div>
-                            </div>
-
-                            <div className="space-y-2">
-                              <div className="flex justify-between items-center mr-1">
-                                <label className="text-sm font-black text-slate-700">كلمة المرور</label>
-                                <button type="button" className="text-xs font-bold text-orange-600 hover:underline">نسيت كلمة المرور؟</button>
-                              </div>
-                              <div className="relative group">
-                                <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-orange-500 transition-colors" />
-                                <Input
-                                  type={showLoginPassword ? "text" : "password"}
-                                  placeholder="••••••••"
-                                  value={loginData.password}
-                                  onChange={(e) => handleLoginChange("password", e.target.value)}
-                                  disabled={isLoginPending}
-                                  required
-                                  className="pr-12 py-7 text-lg border-slate-200 rounded-2xl focus:border-orange-500 focus:ring-orange-500/20 bg-slate-50/50 font-bold"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => setShowLoginPassword(!showLoginPassword)}
-                                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                                >
-                                  {showLoginPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                </button>
-                              </div>
-                            </div>
-
-                            <Button 
-                              type="submit" 
-                              disabled={isLoginPending}
-                              className="w-full py-8 text-xl font-black bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-2xl shadow-lg shadow-orange-200 transition-all active:scale-[0.98]"
-                            >
-                              {isLoginPending ? <Loader2 className="w-6 h-6 animate-spin" /> : "دخول آمن"}
-                            </Button>
-                          </form>
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          key="register"
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 20 }}
-                          className="space-y-6"
-                        >
-                          <div className="space-y-2">
-                            <h2 className="text-3xl font-black text-slate-900">انضم إلينا اليوم</h2>
-                            <p className="text-slate-500 font-medium">اختر نوع الحساب وابدأ رحلتك</p>
-                          </div>
-
-                          <form onSubmit={handleRegister} className="space-y-5">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-5">
                               <div className="space-y-2">
-                                <label className="text-sm font-black text-slate-700 mr-1">الاسم الكامل</label>
+                                <label className="text-sm font-bold text-gray-700 mr-1">رقم الهاتف</label>
                                 <div className="relative group">
-                                  <User className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-orange-500 transition-colors" />
-                                  <Input
-                                    placeholder="أحمد محمد"
-                                    value={registerData.name}
-                                    onChange={(e) => handleRegisterChange("name", e.target.value)}
-                                    disabled={isRegisterPending}
-                                    required
-                                    className="pr-12 py-6 border-slate-200 rounded-2xl focus:border-orange-500 bg-slate-50/50 font-bold"
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="space-y-2">
-                                <label className="text-sm font-black text-slate-700 mr-1">رقم الهاتف</label>
-                                <div className="relative group">
-                                  <Phone className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-orange-500 transition-colors" />
+                                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-orange-500 transition-colors">
+                                    <Phone className="h-5 w-5" />
+                                  </div>
                                   <Input
                                     type="tel"
                                     placeholder="01xxxxxxxxx"
+                                    className="h-14 pr-12 bg-gray-50 border-gray-200 rounded-2xl focus:ring-orange-500 focus:border-orange-500 text-lg font-medium transition-all"
+                                    value={loginData.phone}
+                                    onChange={(e) => handleLoginChange("phone", e.target.value)}
+                                    disabled={isLoginPending}
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                  <label className="text-sm font-bold text-gray-700 mr-1">كلمة المرور</label>
+                                  <Button variant="link" className="text-orange-600 font-bold p-0 h-auto hover:text-orange-700">
+                                    نسيت كلمة المرور؟
+                                  </Button>
+                                </div>
+                                <div className="relative group">
+                                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-orange-500 transition-colors">
+                                    <Lock className="h-5 w-5" />
+                                  </div>
+                                  <Input
+                                    type={showLoginPassword ? "text" : "password"}
+                                    placeholder="••••••••"
+                                    className="h-14 pr-12 pl-12 bg-gray-50 border-gray-200 rounded-2xl focus:ring-orange-500 focus:border-orange-500 text-lg font-medium transition-all"
+                                    value={loginData.password}
+                                    onChange={(e) => handleLoginChange("password", e.target.value)}
+                                    disabled={isLoginPending}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowLoginPassword(!showLoginPassword)}
+                                    className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 hover:text-orange-500 transition-colors"
+                                  >
+                                    {showLoginPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+
+                            <Button 
+                              type="submit" 
+                              className="w-full h-16 bg-orange-600 hover:bg-orange-700 text-white rounded-2xl text-xl font-black shadow-xl shadow-orange-200 transition-all active:scale-[0.98]"
+                              disabled={isLoginPending}
+                            >
+                              {isLoginPending ? (
+                                <div className="flex items-center gap-3">
+                                  <Loader2 className="h-6 w-6 animate-spin" />
+                                  <span>جاري التحقق...</span>
+                                </div>
+                              ) : (
+                                "دخول آمن"
+                              )}
+                            </Button>
+                          </form>
+                        </motion.div>
+                      </TabsContent>
+
+                      <TabsContent value="register" className="mt-0 outline-none">
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="space-y-8"
+                        >
+                          <div className="space-y-2">
+                            <h2 className="text-4xl font-black text-gray-900 tracking-tight">انضم إلينا اليوم</h2>
+                            <p className="text-gray-500 font-medium text-lg">ابدأ رحلتك مع أسرع منصة توصيل</p>
+                          </div>
+
+                          <form onSubmit={handleRegister} className="space-y-5">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                              <div className="space-y-2">
+                                <label className="text-sm font-bold text-gray-700 mr-1">الاسم الكامل</label>
+                                <div className="relative group">
+                                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-orange-500 transition-colors">
+                                    <User className="h-5 w-5" />
+                                  </div>
+                                  <Input
+                                    placeholder="الاسم كما في البطاقة"
+                                    className="h-14 pr-12 bg-gray-50 border-gray-200 rounded-2xl focus:ring-orange-500 focus:border-orange-500 text-lg font-medium transition-all"
+                                    value={registerData.name}
+                                    onChange={(e) => handleRegisterChange("name", e.target.value)}
+                                    disabled={isRegisterPending}
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="space-y-2">
+                                <label className="text-sm font-bold text-gray-700 mr-1">رقم الهاتف</label>
+                                <div className="relative group">
+                                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-orange-500 transition-colors">
+                                    <Phone className="h-5 w-5" />
+                                  </div>
+                                  <Input
+                                    type="tel"
+                                    placeholder="01xxxxxxxxx"
+                                    className="h-14 pr-12 bg-gray-50 border-gray-200 rounded-2xl focus:ring-orange-500 focus:border-orange-500 text-lg font-medium transition-all"
                                     value={registerData.phone}
                                     onChange={(e) => handleRegisterChange("phone", e.target.value)}
                                     disabled={isRegisterPending}
-                                    required
-                                    className="pr-12 py-6 border-slate-200 rounded-2xl focus:border-orange-500 bg-slate-50/50 font-bold"
                                   />
                                 </div>
                               </div>
                             </div>
 
                             <div className="space-y-2">
-                              <label className="text-sm font-black text-slate-700 mr-1">نوع الحساب</label>
-                              <Select 
-                                value={registerData.role} 
-                                onValueChange={(v) => handleRegisterChange("role", v)}
-                                disabled={isRegisterPending}
-                              >
-                                <SelectTrigger className="py-6 border-slate-200 rounded-2xl bg-slate-50/50 font-bold">
-                                  <SelectValue placeholder="اختر نوع الحساب" />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-2xl border-slate-100 shadow-xl">
-                                  <SelectItem value="customer" className="py-3 font-bold cursor-pointer">
-                                    <div className="flex items-center gap-2">
-                                      <User className="w-4 h-4 text-orange-500" />
-                                      <span>عميل (أريد طلب توصيل)</span>
-                                    </div>
-                                  </SelectItem>
-                                  <SelectItem value="driver" className="py-3 font-bold cursor-pointer">
-                                    <div className="flex items-center gap-2">
-                                      <Truck className="w-4 h-4 text-orange-500" />
-                                      <span>سائق (أريد العمل كمندوب)</span>
-                                    </div>
-                                  </SelectItem>
-                                  <SelectItem value="admin" className="py-3 font-bold cursor-pointer">
-                                    <div className="flex items-center gap-2">
-                                      <ShieldCheck className="w-4 h-4 text-orange-500" />
-                                      <span>مسؤول (إدارة النظام)</span>
-                                    </div>
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
+                              <label className="text-sm font-bold text-gray-700 mr-1">البريد الإلكتروني (اختياري)</label>
+                              <div className="relative group">
+                                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-orange-500 transition-colors">
+                                  <Mail className="h-5 w-5" />
+                                </div>
+                                <Input
+                                  type="email"
+                                  placeholder="name@example.com"
+                                  className="h-14 pr-12 bg-gray-50 border-gray-200 rounded-2xl focus:ring-orange-500 focus:border-orange-500 text-lg font-medium transition-all"
+                                  value={registerData.email}
+                                  onChange={(e) => handleRegisterChange("email", e.target.value)}
+                                  disabled={isRegisterPending}
+                                />
+                              </div>
                             </div>
 
-                            <div className="space-y-2">
-                              <label className="text-sm font-black text-slate-700 mr-1">كلمة المرور</label>
-                              <div className="relative group">
-                                <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-orange-500 transition-colors" />
-                                <Input
-                                  type={showRegisterPassword ? "text" : "password"}
-                                  placeholder="••••••••"
-                                  value={registerData.password}
-                                  onChange={(e) => handleRegisterChange("password", e.target.value)}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                              <div className="space-y-2">
+                                <label className="text-sm font-bold text-gray-700 mr-1">نوع الحساب</label>
+                                <Select 
+                                  value={registerData.role} 
+                                  onValueChange={(v) => handleRegisterChange("role", v)}
                                   disabled={isRegisterPending}
-                                  required
-                                  className="pr-12 py-6 border-slate-200 rounded-2xl focus:border-orange-500 bg-slate-50/50 font-bold"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                                 >
-                                  {showRegisterPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                </button>
+                                  <SelectTrigger className="h-14 bg-gray-50 border-gray-200 rounded-2xl focus:ring-orange-500 text-lg font-medium">
+                                    <SelectValue placeholder="اختر نوع الحساب" />
+                                  </SelectTrigger>
+                                  <SelectContent className="rounded-2xl border-gray-100 shadow-2xl">
+                                    <SelectItem value="customer" className="h-12 text-lg font-medium focus:bg-orange-50 focus:text-orange-600">عميل (أريد إرسال طرود)</SelectItem>
+                                    <SelectItem value="driver" className="h-12 text-lg font-medium focus:bg-orange-50 focus:text-orange-600">كابتن (أريد توصيل طرود)</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="space-y-2">
+                                <label className="text-sm font-bold text-gray-700 mr-1">كلمة المرور</label>
+                                <div className="relative group">
+                                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-orange-500 transition-colors">
+                                    <Lock className="h-5 w-5" />
+                                  </div>
+                                  <Input
+                                    type={showRegisterPassword ? "text" : "password"}
+                                    placeholder="••••••••"
+                                    className="h-14 pr-12 pl-12 bg-gray-50 border-gray-200 rounded-2xl focus:ring-orange-500 focus:border-orange-500 text-lg font-medium transition-all"
+                                    value={registerData.password}
+                                    onChange={(e) => handleRegisterChange("password", e.target.value)}
+                                    disabled={isRegisterPending}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                                    className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 hover:text-orange-500 transition-colors"
+                                  >
+                                    {showRegisterPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                  </button>
+                                </div>
                               </div>
                             </div>
 
                             <Button 
                               type="submit" 
+                              className="w-full h-16 bg-orange-600 hover:bg-orange-700 text-white rounded-2xl text-xl font-black shadow-xl shadow-orange-200 transition-all active:scale-[0.98] mt-4"
                               disabled={isRegisterPending}
-                              className="w-full py-8 text-xl font-black bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-2xl shadow-lg shadow-orange-200 transition-all active:scale-[0.98]"
                             >
-                              {isRegisterPending ? <Loader2 className="w-6 h-6 animate-spin" /> : "إنشاء الحساب الآن"}
+                              {isRegisterPending ? (
+                                <div className="flex items-center gap-3">
+                                  <Loader2 className="h-6 w-6 animate-spin" />
+                                  <span>جاري إنشاء الحساب...</span>
+                                </div>
+                              ) : (
+                                "إنشاء حساب جديد"
+                              )}
                             </Button>
                           </form>
                         </motion.div>
-                      )}
+                      </TabsContent>
                     </AnimatePresence>
                   </div>
                 </Tabs>

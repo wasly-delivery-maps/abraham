@@ -381,7 +381,7 @@ export const appRouter = router({
         });
 
         // Notify drivers about new order
-        await notifyDriversOfNewOrder(result.id, `طلب جديد بقيمة ج.م ${calculatedPrice}`);
+        await notifyDriversOfNewOrder(result.id, `يوجد طلب جديد متاح الآن بقيمة ج.م ${calculatedPrice}. اضغط للتفاصيل وقبول الطلب! 🚀`);
 
         return {
           success: true,
