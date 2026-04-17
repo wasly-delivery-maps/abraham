@@ -210,6 +210,37 @@ export async function notifyDriversOfNewOrder(
         console.error("[Notifications] Firebase broadcast failed:", error);
       }
     }
+
+    // 3. Send OneSignal Push Notification to all drivers
+    const ONESIGNAL_APP_ID = "c7e88fa4-df0e-42a5-960a-fd9088b949b4";
+    const ONESIGNAL_REST_API_KEY = "os_v2_app_y7ui7jg7bzbklfqk7wiirokjwqxujf2awfaes6nbchj2hvkqcmfkjayufnh5zg3z2bkvi6bcm7wg52jbyh3mv5kgrkaimtidxv4n5qa";
+
+    try {
+      const axios = (await import("axios")).default;
+      await axios.post(
+        "https://onesignal.com/api/v1/notifications",
+        {
+          app_id: ONESIGNAL_APP_ID,
+          included_segments: ["Subscribed Users"],
+          // We can also target specific drivers if we have their external_id
+          // filters: [{ field: "tag", key: "role", relation: "=", value: "driver" }],
+          contents: { en: message, ar: message },
+          headings: { en: "New Order Available! 🚗", ar: "طلب توصيل جديد! 🚗" },
+          data: { orderId: orderId.toString(), url: notification.url },
+          android_accent_color: "FF0000",
+          priority: 10,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            Authorization: `Basic ${ONESIGNAL_REST_API_KEY}`,
+          },
+        }
+      );
+      console.log("[Notifications] OneSignal broadcast sent successfully");
+    } catch (error: any) {
+      console.error("[Notifications] OneSignal broadcast failed:", error.response?.data || error.message);
+    }
   } catch (error) {
     console.error("[Notifications] Failed to notify drivers:", error);
   }
