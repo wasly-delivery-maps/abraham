@@ -217,7 +217,7 @@ export default function Auth() {
                   className="bg-white p-3 rounded-[2rem] shadow-2xl border-4 border-white/20 overflow-hidden"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                 >
-                  <img src="/logo.jpg" alt="وصلي" className="h-24 w-24 object-contain" />
+                  <img src="/wasly-logo-v2.png" alt="وصلي" className="h-24 w-24 object-contain" />
                 </motion.div>
                 <h1 className="text-8xl font-black tracking-tighter">وصلي</h1>
               </div>

@@ -290,17 +290,42 @@ export default function DriverDashboard() {
   };
 
   const requestPermission = async () => {
+    // Check if running inside Median/GoNative app
+    const isMedianApp = typeof window !== 'undefined' && (
+      (window as any).median || 
+      (window as any).gonative || 
+      navigator.userAgent.includes('Median') || 
+      navigator.userAgent.includes('GoNative')
+    );
+
+    if (isMedianApp) {
+      toast.info("جاري تفعيل إشعارات التطبيق...");
+      // Use Median JavaScript Bridge to request push permission
+      if (typeof window !== 'undefined' && (window as any).median) {
+        (window as any).median.push.requestPermission();
+      } else if (typeof window !== 'undefined' && (window as any).gonative) {
+        (window as any).gonative.push.requestPermission();
+      }
+      return;
+    }
+
     if (!('Notification' in window)) {
       toast.error("متصفحك لا يدعم الإشعارات");
       return;
     }
-    const permission = await Notification.requestPermission();
-    setNotificationPermission(permission);
-    if (permission === 'granted') {
-      toast.success("تم تفعيل الإشعارات بنجاح! 🎉");
-      setTimeout(() => window.location.reload(), 1000);
-    } else if (permission === 'denied') {
-      toast.error("لقد قمت برفض الإشعارات. يرجى تفعيلها من إعدادات المتصفح.");
+    
+    try {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      if (permission === 'granted') {
+        toast.success("تم تفعيل الإشعارات بنجاح! 🎉");
+        setTimeout(() => window.location.reload(), 1000);
+      } else if (permission === 'denied') {
+        toast.error("لقد قمت برفض الإشعارات. يرجى تفعيلها من إعدادات المتصفح.");
+      }
+    } catch (error) {
+      console.error("Notification error:", error);
+      toast.error("حدث خطأ أثناء تفعيل الإشعارات");
     }
   };
 
@@ -553,10 +578,8 @@ export default function DriverDashboard() {
         <div className="container mx-auto px-6 relative z-10">
           <div className="flex justify-between items-center mb-10">
             <div className="flex items-center gap-4">
-              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 p-0.5 shadow-2xl">
-                <div className="h-full w-full rounded-[0.9rem] bg-slate-900 flex items-center justify-center overflow-hidden">
-                  <Truck className="h-7 w-7 text-orange-500" />
-                </div>
+              <div className="h-14 w-14 rounded-2xl bg-white p-0.5 shadow-2xl overflow-hidden">
+                <img src="/wasly-logo-v2.png" alt="وصلي" className="h-full w-full object-contain" />
               </div>
               <div>
                 <h1 className="text-2xl font-black tracking-tight">لوحة الكابتن</h1>
