@@ -23,10 +23,29 @@
         await OneSignal.init({
           appId: "c7e88fa4-df0e-42a5-960a-fd9088b949b4",
           safari_web_id: "web.onesignal.auto.09707374-9793-470a-976a-739088b949b4",
+          allowLocalhostAsSecureOrigin: true,
+          serviceWorkerParam: { scope: "/" },
+          serviceWorkerPath: "OneSignalSDKWorker.js",
+          promptOptions: {
+            slidedown: {
+              enabled: true,
+              autoPrompt: true,
+              timeDelay: 5,
+              pageViews: 1
+            }
+          },
           notifyButton: {
             enable: true,
+            position: 'bottom-right',
+            size: 'medium',
+            theme: 'default'
           },
         });
+        
+        // إظهار طلب الإذن فوراً إذا لم يتم منحه
+        if (OneSignal.Notifications.permission !== "granted") {
+          await OneSignal.Notifications.requestPermission();
+        }
       });
     </script>    
     <!-- THIS IS THE START OF A COMMENT BLOCK, BLOCK TO BE DELETED: Google Fonts here, example:
