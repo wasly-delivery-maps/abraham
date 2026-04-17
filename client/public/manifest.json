@@ -7,6 +7,8 @@
   "background_color": "#ffffff",
   "theme_color": "#f97316",
   "orientation": "portrait",
+  "gcm_sender_id": "482941778795",
+  "permissions": ["notifications", "gcm"],
   "icons": [
     {
       "src": "/wasly-logo-v2.png",
@@ -21,7 +23,6 @@
       "purpose": "any maskable"
     }
   ],
-  "gcm_sender_id": "482941778795",
   "categories": ["business", "lifestyle"],
   "shortcuts": [
     {

@@ -173,14 +173,21 @@ export async function sendOneSignalNotification(
       contents: { en: notification.body, ar: notification.body },
       headings: { en: notification.title, ar: notification.title },
       data: { orderId: notification.orderId?.toString(), url: notification.url },
+      
+      // إعدادات شاشة القفل والأولوية القصوى
+      priority: 10, // أهمية قصوى (High Priority)
+      android_visibility: 1, // 1 تعني Public (يظهر المحتوى على شاشة القفل)
+      
+      // تفعيل الصوت والاهتزاز لجذب الانتباه واستيقاظ الشاشة
+      android_channel_id: "push_notifications_urgent", 
+      android_accent_color: "FF0000",
+      android_led_color: "FF0000",
+      android_sound: "notification",
+      vibration_pattern: [200, 100, 200, 100, 200, 100, 200], // نمط اهتزاز قوي
+      
       small_icon: "ic_stat_onesignal_default",
       large_icon: "https://web-production-0eb1b.up.railway.app/logo.jpg",
-      android_accent_color: "FF0000",
-      android_visibility: 1, // Public (ظاهر على قفل الشاشة)
-      priority: 10, // High priority
-      android_channel_id: "default_channel",
-      android_sound: "notification",
-      ttl: 3600, // Time to live (1 hour)
+      ttl: 3600, // وقت الصلاحية (ساعة واحدة)
     };
 
     // Apply filters or target all subscribed users
