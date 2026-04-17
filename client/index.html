@@ -48,19 +48,38 @@
         }, 3000);
       });
 
-      // إجبار طلب إذن الإشعارات فور فتح التطبيق
+      // إجبار طلب كافة الأذونات (إشعارات، موقع، كاميرا) فور فتح التطبيق
       window.addEventListener('load', () => {
-        setTimeout(() => {
+        setTimeout(async () => {
+          // 1. طلب إذن الإشعارات عبر OneSignal
           if (window.OneSignalDeferred) {
             window.OneSignalDeferred.push(async function(OneSignal) {
               const permission = await OneSignal.Notifications.permission;
               if (!permission) {
-                console.log("[OneSignal] Requesting permission...");
+                console.log("[OneSignal] Requesting notification permission...");
                 await OneSignal.Notifications.requestPermission();
               }
             });
           }
-        }, 5000); // الانتظار 5 ثوانٍ بعد التحميل لطلب الإذن
+
+          // 2. طلب إذن الموقع الجغرافي (للخرائط وتتبع السائق)
+          if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+              (position) => console.log("[PWA] Location access granted"),
+              (error) => console.error("[PWA] Location access denied", error),
+              { enableHighAccuracy: true }
+            );
+          }
+
+          // 3. طلب إذن الكاميرا (لتصوير الطلبات)
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            stream.getTracks().forEach(track => track.stop()); // إغلاق الكاميرا فور الحصول على الإذن
+            console.log("[PWA] Camera access granted");
+          } catch (err) {
+            console.error("[PWA] Camera access denied", err);
+          }
+        }, 5000); // الانتظار 5 ثوانٍ لضمان استقرار التطبيق قبل طلب الأذونات
       });
     </script>    
     <!-- THIS IS THE START OF A COMMENT BLOCK, BLOCK TO BE DELETED: Google Fonts here, example:
