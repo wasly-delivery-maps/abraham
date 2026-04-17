@@ -137,6 +137,8 @@ export default function CustomerProfile() {
   const handleSaveProfile = async () => {
     try {
       await updateProfileMutation.mutateAsync(editData);
+      // تحديث بيانات المستخدم في السياق (Context) لضمان ظهور التغييرات فوراً
+      await utils.auth.me.invalidate();
       toast.success("تم تحديث البيانات بنجاح ✨");
       setIsEditing(false);
     } catch (error) {

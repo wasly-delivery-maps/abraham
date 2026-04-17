@@ -15,6 +15,7 @@ export default function AdminProfile() {
   const { user, loading, logout } = useAuth();
   const [, navigate] = useLocation();
   const [isEditing, setIsEditing] = useState(false);
+  const utils = trpc.useUtils();
   const [editData, setEditData] = useState({
     name: "",
     email: "",
@@ -55,6 +56,8 @@ export default function AdminProfile() {
   const handleSaveProfile = async () => {
     try {
       await updateProfileMutation.mutateAsync(editData);
+      // تحديث بيانات المستخدم في السياق (Context) لضمان ظهور التغييرات فوراً
+      await utils.auth.me.invalidate();
       toast.success("تم تحديث البيانات بنجاح ✨");
       setIsEditing(false);
     } catch (error) {

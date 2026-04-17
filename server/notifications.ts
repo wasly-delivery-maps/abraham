@@ -221,14 +221,16 @@ export async function notifyDriversOfNewOrder(
         "https://onesignal.com/api/v1/notifications",
         {
           app_id: ONESIGNAL_APP_ID,
-          included_segments: ["Subscribed Users"],
-          // We can also target specific drivers if we have their external_id
-          // filters: [{ field: "tag", key: "role", relation: "=", value: "driver" }],
+          // استهداف السائقين فقط باستخدام الوسم (Tag) الذي أضفناه في الواجهة الأمامية
+          filters: [{ field: "tag", key: "role", relation: "=", value: "driver" }],
           contents: { en: message, ar: message },
           headings: { en: "New Order Available! 🚗", ar: "طلب توصيل جديد! 🚗" },
           data: { orderId: orderId.toString(), url: notification.url },
+          // إعدادات إضافية لضمان ظهور الإشعار على قفل الشاشة
           android_accent_color: "FF0000",
-          priority: 10,
+          android_visibility: 1, // Public (ظاهر على قفل الشاشة)
+          priority: 10, // High priority
+          ttl: 3600, // صلاحية الإشعار ساعة واحدة
         },
         {
           headers: {
@@ -237,9 +239,9 @@ export async function notifyDriversOfNewOrder(
           },
         }
       );
-      console.log("[Notifications] OneSignal broadcast sent successfully");
+      console.log("[Notifications] OneSignal targeted notification sent successfully to drivers");
     } catch (error: any) {
-      console.error("[Notifications] OneSignal broadcast failed:", error.response?.data || error.message);
+      console.error("[Notifications] OneSignal notification failed:", error.response?.data || error.message);
     }
   } catch (error) {
     console.error("[Notifications] Failed to notify drivers:", error);

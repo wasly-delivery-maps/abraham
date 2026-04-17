@@ -199,7 +199,9 @@ export default function DriverDashboard() {
     if (typeof window !== 'undefined' && (window as any).OneSignalDeferred) {
       (window as any).OneSignalDeferred.push(async function(OneSignal: any) {
         await OneSignal.login(user.phone);
-        console.log("[OneSignal] Driver logged in with ID:", user.phone);
+        // إضافة وسم "driver" للسائق لاستقبال إشعارات الطلبات الجديدة
+        await OneSignal.User.addTag("role", "driver");
+        console.log("[OneSignal] Driver logged in and tagged:", user.phone);
       });
     }
 
@@ -658,22 +660,7 @@ export default function DriverDashboard() {
             ))}
           </div>
 
-          {notificationPermission !== 'granted' && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }} 
-              animate={{ opacity: 1, scale: 1 }}
-              className="mt-8"
-            >
-              <Button 
-                onClick={requestPermission}
-                className="w-full py-8 rounded-[2rem] bg-gradient-to-r from-orange-500 to-orange-600 text-white font-black text-lg shadow-2xl shadow-orange-500/40 animate-pulse flex items-center justify-center gap-3 border-4 border-white/20"
-              >
-                <Zap className="h-6 w-6 fill-white" />
-                تفعيل إشعارات الطلبات الجديدة 🔔
-              </Button>
-              <p className="text-center text-white/60 text-[10px] mt-3 font-bold uppercase tracking-widest">اضغط هنا لتصلك الطلبات فوراً حتى والشاشة مغلقة</p>
-            </motion.div>
-          )}
+          {/* تم إخفاء زر تفعيل الإشعارات بناءً على طلب المستخدم */}
         </div>
       </div>
 
