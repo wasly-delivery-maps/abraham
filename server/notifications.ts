@@ -187,7 +187,13 @@ export async function sendOneSignalNotification(
       
       small_icon: "ic_stat_onesignal_default",
       large_icon: "https://web-production-0eb1b.up.railway.app/logo.jpg",
-      ttl: 3600, // وقت الصلاحية (ساعة واحدة)
+      ttl: 259200, // وقت الصلاحية (3 أيام)
+      
+      // إضافة أزرار تفاعلية لزيادة أولوية الإشعار في نظام أندرويد
+      buttons: [
+        { id: "view_order", text: "عرض الطلب", icon: "ic_menu_view" },
+        { id: "accept_order", text: "قبول الطلب الآن", icon: "ic_menu_send" }
+      ],
     };
 
     // Apply filters or target all subscribed users
