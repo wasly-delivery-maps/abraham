@@ -143,6 +143,57 @@ export async function sendPushNotificationToUser(
 }
 
 /**
+ * Send a notification via OneSignal
+ */
+export async function sendOneSignalNotification(
+  target: { userId?: number; role?: string },
+  notification: { title: string; body: string; orderId?: number; url?: string }
+): Promise<void> {
+  const ONESIGNAL_APP_ID = "c7e88fa4-df0e-42a5-960a-fd9088b949b4";
+  const ONESIGNAL_REST_API_KEY = "os_v2_app_y7ui7jg7bzbklfqk7wiirokjwqxujf2awfaes6nbchj2hvkqcmfkjayufnh5zg3z2bkvi6bcm7wg52jbyh3mv5kgrkaimtidxv4n5qa";
+
+  try {
+    const axios = (await import("axios")).default;
+    const filters: any[] = [];
+    
+    if (target.userId) {
+      // Target specific user by their phone number (which we use as external_id)
+      const user = await (await import("./db")).getUserById(target.userId);
+      if (user && user.phone) {
+        filters.push({ field: "tag", key: "external_id", relation: "=", value: user.phone });
+      }
+    } else if (target.role) {
+      // Target all users with a specific role tag
+      filters.push({ field: "tag", key: "role", relation: "=", value: target.role });
+    }
+
+    await axios.post(
+      "https://onesignal.com/api/v1/notifications",
+      {
+        app_id: ONESIGNAL_APP_ID,
+        filters: filters.length > 0 ? filters : undefined,
+        included_segments: filters.length === 0 ? ["Subscribed Users"] : undefined,
+        contents: { en: notification.body, ar: notification.body },
+        headings: { en: notification.title, ar: notification.title },
+        data: { orderId: notification.orderId?.toString(), url: notification.url },
+        android_accent_color: "FF0000",
+        android_visibility: 1, // Public (ظاهر على قفل الشاشة)
+        priority: 10, // High priority
+      },
+      {
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          Authorization: `Basic ${ONESIGNAL_REST_API_KEY}`,
+        },
+      }
+    );
+    console.log(`[Notifications] OneSignal notification sent successfully to ${target.userId ? 'user ' + target.userId : 'role ' + target.role}`);
+  } catch (error: any) {
+    console.error("[Notifications] OneSignal notification failed:", error.response?.data || error.message);
+  }
+}
+
+/**
  * Notify all drivers of a new order
  */
 export async function notifyDriversOfNewOrder(
@@ -212,37 +263,7 @@ export async function notifyDriversOfNewOrder(
     }
 
     // 3. Send OneSignal Push Notification to all drivers
-    const ONESIGNAL_APP_ID = "c7e88fa4-df0e-42a5-960a-fd9088b949b4";
-    const ONESIGNAL_REST_API_KEY = "os_v2_app_y7ui7jg7bzbklfqk7wiirokjwqxujf2awfaes6nbchj2hvkqcmfkjayufnh5zg3z2bkvi6bcm7wg52jbyh3mv5kgrkaimtidxv4n5qa";
-
-    try {
-      const axios = (await import("axios")).default;
-      await axios.post(
-        "https://onesignal.com/api/v1/notifications",
-        {
-          app_id: ONESIGNAL_APP_ID,
-          // استهداف السائقين فقط باستخدام الوسم (Tag) الذي أضفناه في الواجهة الأمامية
-          filters: [{ field: "tag", key: "role", relation: "=", value: "driver" }],
-          contents: { en: message, ar: message },
-          headings: { en: "New Order Available! 🚗", ar: "طلب توصيل جديد! 🚗" },
-          data: { orderId: orderId.toString(), url: notification.url },
-          // إعدادات إضافية لضمان ظهور الإشعار على قفل الشاشة
-          android_accent_color: "FF0000",
-          android_visibility: 1, // Public (ظاهر على قفل الشاشة)
-          priority: 10, // High priority
-          ttl: 3600, // صلاحية الإشعار ساعة واحدة
-        },
-        {
-          headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            Authorization: `Basic ${ONESIGNAL_REST_API_KEY}`,
-          },
-        }
-      );
-      console.log("[Notifications] OneSignal targeted notification sent successfully to drivers");
-    } catch (error: any) {
-      console.error("[Notifications] OneSignal notification failed:", error.response?.data || error.message);
-    }
+    await sendOneSignalNotification({ role: "driver" }, notification);
   } catch (error) {
     console.error("[Notifications] Failed to notify drivers:", error);
   }

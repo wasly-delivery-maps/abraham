@@ -8,7 +8,7 @@ import { TRPCError } from "@trpc/server";
 import bcryptjs from "bcryptjs";
 import { sdk } from "./_core/sdk";
 import type { Request, Response } from "express";
-import { notifyDriversOfNewOrder } from "./notifications";
+import { notifyDriversOfNewOrder, sendOneSignalNotification } from "./notifications";
 import { calculateOrderPrice, getCommissionPerOrder, shouldBlockDriver } from "../shared/pricing";
 import { updateChatRoomParticipants } from "./_core/chat";
 
@@ -566,6 +566,15 @@ export const appRouter = router({
 
         await db.updateOrderStatus(input.orderId, "cancelled");
 
+        // Send notification to driver if assigned
+        if (order.driverId) {
+          await sendOneSignalNotification({ userId: order.driverId }, {
+            title: "تم إلغاء الطلب ❌",
+            body: `تم إلغاء الطلب رقم #${order.id} من قبل العميل.`,
+            orderId: order.id,
+          });
+        }
+
         return { success: true, message: "تم إلغاء الطلب بنجاح" };
       }),
 
@@ -618,6 +627,24 @@ export const appRouter = router({
         }
 
         await db.updateOrderStatus(input.orderId, input.status);
+
+        // Send OneSignal Push Notification to customer about status update
+        const statusMap: Record<string, string> = {
+          "picked_up": "تم استلام الشحنة",
+          "in_transit": "في الطريق إليك",
+          "arrived": "وصل الكابتن لموقعك",
+          "delivered": "تم التسليم بنجاح",
+          "cancelled": "تم الإلغاء",
+        };
+
+        if (statusMap[input.status]) {
+          await sendOneSignalNotification({ userId: order.customerId }, {
+            title: "تحديث حالة الطلب 📦",
+            body: `حالة طلبك رقم #${order.id} أصبحت الآن: ${statusMap[input.status]}`,
+            orderId: order.id,
+            url: `/customer/orders/${order.id}`,
+          });
+        }
 
         return { success: true };
       }),
@@ -760,6 +787,14 @@ export const appRouter = router({
         // Update chat room participants to ensure notifications work
         updateChatRoomParticipants(input.orderId, order.customerId, ctx.user.id);
 
+        // Send OneSignal Push Notification to customer
+        await sendOneSignalNotification({ userId: order.customerId }, {
+          title: "تم قبول طلبك! 🚗",
+          body: `الكابتن ${driver.name} في طريقه إليك الآن.`,
+          orderId: order.id,
+          url: `/customer/orders/${order.id}`,
+        });
+
         return { success: true };
       }),
 
@@ -851,21 +886,35 @@ export const appRouter = router({
           const pendingAmount = parseFloat(updatedDriver.pendingCommission?.toString() || "0");
           
           if (isSuspended) {
+            const notificationPayload = {
+              title: "تم إيقاف الحساب ⚠️",
+              body: `تم إيقاف حسابك بسبب عمولات مستحقة بقيمة ج.م ${pendingAmount.toFixed(2)}`,
+            };
+            
             app.sendNotificationToUser(ctx.user.id, {
+              ...notificationPayload,
               type: "commission_suspended",
-              title: "تم إيقاف الحساب",
-              message: `تم إيقاف حسابك بسبب عمولات مستحقة بقيمة ج.م ${pendingAmount.toFixed(2)}`,
               amount: pendingAmount,
               timestamp: new Date().toISOString(),
             });
+
+            // Send OneSignal Push Notification
+            await sendOneSignalNotification({ userId: ctx.user.id }, notificationPayload);
           } else if (pendingAmount >= 20 && pendingAmount < 30) {
+            const notificationPayload = {
+              title: "تنبيه: عمولات مستحقة 💰",
+              body: `لديك ج.م ${pendingAmount.toFixed(2)} عمولات مستحقة. يرجى السداد لتجنب إيقاف الحساب.`,
+            };
+
             app.sendNotificationToUser(ctx.user.id, {
+              ...notificationPayload,
               type: "commission_warning",
-              title: "تنبيه: عمولات مستحقة",
-              message: `لديك ج.م ${pendingAmount.toFixed(2)} عمولات مستحقة. المتبقي: ج.م ${(30 - pendingAmount).toFixed(2)} قبل إيقاف الحساب`,
               amount: pendingAmount,
               timestamp: new Date().toISOString(),
             });
+
+            // Send OneSignal Push Notification
+            await sendOneSignalNotification({ userId: ctx.user.id }, notificationPayload);
           }
         }
 
@@ -1055,14 +1104,23 @@ export const appRouter = router({
 
         // Send notification to user
         const app = (ctx.req as any)?.app;
+        const notificationPayload = {
+          title: input.status === "active" ? "تم تفعيل حسابك! 🎉" : "تم تعليق حسابك ⚠️",
+          body: input.status === "active" 
+            ? "يمكنك الآن البدء في استخدام التطبيق بشكل طبيعي." 
+            : (input.reason || "تم تعليق حسابك من قبل الإدارة"),
+        };
+
         if (app?.sendNotificationToUser) {
           app.sendNotificationToUser(input.userId, {
+            ...notificationPayload,
             type: "account_status_changed",
-            title: "تم إيقاف الحساب",
-            message: input.reason || "تم إيقاف حسابك من قبل الإدارة",
             timestamp: new Date().toISOString(),
           });
         }
+
+        // Send OneSignal Push Notification
+        await sendOneSignalNotification({ userId: input.userId }, notificationPayload);
 
         return {
           success: true,

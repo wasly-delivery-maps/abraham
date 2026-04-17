@@ -92,7 +92,9 @@ export default function Auth() {
       if (typeof window !== 'undefined' && (window as any).OneSignalDeferred) {
         (window as any).OneSignalDeferred.push(async function(OneSignal: any) {
           await OneSignal.login(normalizedPhone);
-          console.log("[OneSignal] User logged in with ID:", normalizedPhone);
+          // إضافة وسم الدور للمستخدم عند تسجيل الدخول
+          await OneSignal.User.addTag("role", result.user?.role || "customer");
+          console.log("[OneSignal] User logged in and tagged:", normalizedPhone, result.user?.role);
         });
       }
 
@@ -163,6 +165,16 @@ export default function Auth() {
       // تحديث بيانات المستخدم في tRPC cache فوراً لضمان التعرف على الجلسة
       utils.auth.me.setData(undefined, result.user as any);
       await utils.auth.me.invalidate();
+
+      // ربط هوية المستخدم بـ OneSignal للإشعارات المنبثقة (Push Notifications)
+      if (typeof window !== 'undefined' && (window as any).OneSignalDeferred) {
+        (window as any).OneSignalDeferred.push(async function(OneSignal: any) {
+          await OneSignal.login(normalizedPhone);
+          // إضافة وسم الدور للمستخدم الجديد
+          await OneSignal.User.addTag("role", result.user?.role || "customer");
+          console.log("[OneSignal] New user logged in and tagged:", normalizedPhone, result.user?.role);
+        });
+      }
 
       toast.success("مرحباً! تم إنشاء حسابك بنجاح");
 
