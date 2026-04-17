@@ -38,27 +38,31 @@ export function DriverLocationUpdater({
     const requestLocationPermission = async () => {
       try {
         if ("geolocation" in navigator) {
-          // Request permission
-          const permission = await navigator.permissions.query({
-            name: "geolocation",
-          });
+          // Check if Permissions API is supported (might be missing in some Android WebViews)
+          if (navigator.permissions && navigator.permissions.query) {
+            try {
+              const permission = await navigator.permissions.query({
+                name: "geolocation",
+              });
 
-          if (permission.state === "denied") {
-            setLocationError("تم رفض الوصول إلى الموقع. يرجى السماح بالوصول في إعدادات المتصفح.");
-            return;
+              if (permission.state === "denied") {
+                setLocationError("تم رفض الوصول إلى الموقع. يرجى السماح بالوصول في إعدادات المتصفح.");
+                return;
+              }
+            } catch (e) {
+              console.warn("Permissions API query failed, proceeding with direct geolocation request", e);
+            }
           }
-
-          if (permission.state === "granted") {
-            startTracking();
-          } else {
-            // state === 'prompt' - will ask on first geolocation call
-            startTracking();
-          }
+          
+          // If Permissions API failed or is missing, startTracking will trigger the native prompt
+          startTracking();
         } else {
           setLocationError("المتصفح لا يدعم خدمة تحديد الموقع");
         }
       } catch (error) {
         console.error("Error requesting location permission:", error);
+        // Fallback: try to start tracking anyway
+        startTracking();
       }
     };
 

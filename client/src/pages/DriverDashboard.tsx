@@ -340,6 +340,7 @@ export default function DriverDashboard() {
   };
 
   const OrderCard = ({ order, isAvailable = false }: { order: any, isAvailable?: boolean }) => {
+    if (!order) return null;
     const isSelected = selectedOrderId === order.id;
     const details = orderDetailsQuery.data;
 
@@ -537,7 +538,7 @@ export default function DriverDashboard() {
     );
   };
 
-  const selectedOrder = orders.find(o => o.id === selectedOrderId) || availableOrders.find(o => o.id === selectedOrderId);
+  const selectedOrder = (orders || []).find(o => o?.id === selectedOrderId) || (availableOrders || []).find(o => o?.id === selectedOrderId);
   const otherUserName = orderDetailsQuery.data?.customer?.name || selectedOrder?.customer?.name || "العميل";
 
   return (
