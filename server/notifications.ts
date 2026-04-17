@@ -144,8 +144,8 @@ export async function sendOneSignalNotification(
   target: { userId?: number; role?: string },
   notification: { title: string; body: string; orderId?: number; url?: string }
 ): Promise<void> {
-  const ONESIGNAL_APP_ID = "c7e88fa4-df0e-42a5-960a-fd9088b949b4";
-  const ONESIGNAL_REST_API_KEY = "os_v2_app_y7ui7jg7bzbklfqk7wiirokjwqxujf2awfaes6nbchj2hvkqcmfkjayufnh5zg3z2bkvi6bcm7wg52jbyh3mv5kgrkaimtidxv4n5qa";
+  const ONESIGNAL_APP_ID = process.env.VITE_APP_ID || "c7e88fa4-df0e-42a5-960a-fd9088b949b4";
+  const ONESIGNAL_REST_API_KEY = process.env.ONESIGNAL_REST_API_KEY || "os_v2_app_y7ui7jg7bzbklfqk7wiirokjwqxujf2awfaes6nbchj2hvkqcmfkjayufnh5zg3z2bkvi6bcm7wg52jbyh3mv5kgrkaimtidxv4n5qa";
 
   try {
     const axios = (await import("axios")).default;
