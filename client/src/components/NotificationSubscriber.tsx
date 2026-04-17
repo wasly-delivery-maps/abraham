@@ -32,11 +32,22 @@ export function NotificationSubscriber({
   const handleSubscribe = async () => {
     try {
       setIsLoading(true);
+      
+      // Try OneSignal first if available
+      if ((window as any).OneSignal) {
+        const OneSignal = (window as any).OneSignal;
+        const permission = await OneSignal.Notifications.permission;
+        if (!permission) {
+          await OneSignal.Notifications.requestPermission();
+        }
+      }
+
       await subscribeToPushNotifications(vapidPublicKey, userId);
       toast.success('تم تفعيل الإشعارات بنجاح');
     } catch (error) {
       console.error('Failed to subscribe:', error);
-      toast.error('فشل تفعيل الإشعارات');
+      // Even if one method fails, the other might have worked
+      toast.error('يرجى التأكد من منح إذن الإشعارات في المتصفح');
     } finally {
       setIsLoading(false);
     }

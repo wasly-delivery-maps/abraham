@@ -52,6 +52,9 @@ self.addEventListener('push', (event) => {
 
     console.log('[ServiceWorker] Showing notification:', title);
     
+    // Play sound notification if possible (limited support in SW, but good to have)
+    // Most browsers require user interaction in the app before sound can play
+    
     event.waitUntil(
       self.registration.showNotification(title, options)
         .then(() => {
