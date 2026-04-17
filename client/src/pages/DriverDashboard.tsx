@@ -200,8 +200,12 @@ export default function DriverDashboard() {
       (window as any).OneSignalDeferred.push(async function(OneSignal: any) {
         await OneSignal.login(user.phone);
         // إضافة وسم "driver" للسائق لاستقبال إشعارات الطلبات الجديدة
-        await OneSignal.User.addTag("role", "driver");
-        console.log("[OneSignal] Driver logged in and tagged:", user.phone);
+        await OneSignal.User.addTags({
+          role: "driver",
+          phone: user.phone,
+          external_id: user.phone
+        });
+        console.log("[OneSignal] Driver logged in and tagged with role:driver:", user.phone);
       });
     }
 

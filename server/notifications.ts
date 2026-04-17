@@ -167,19 +167,27 @@ export async function sendOneSignalNotification(
       filters.push({ field: "tag", key: "role", relation: "=", value: target.role });
     }
 
+    // Prepare notification payload
+    const notificationPayload: any = {
+      app_id: ONESIGNAL_APP_ID,
+      contents: { en: notification.body, ar: notification.body },
+      headings: { en: notification.title, ar: notification.title },
+      data: { orderId: notification.orderId?.toString(), url: notification.url },
+      android_accent_color: "FF0000",
+      android_visibility: 1, // Public (ظاهر على قفل الشاشة)
+      priority: 10, // High priority
+    };
+
+    // Apply filters or target all subscribed users
+    if (filters.length > 0) {
+      notificationPayload.filters = filters;
+    } else {
+      notificationPayload.included_segments = ["Subscribed Users"];
+    }
+
     await axios.post(
       "https://onesignal.com/api/v1/notifications",
-      {
-        app_id: ONESIGNAL_APP_ID,
-        filters: filters.length > 0 ? filters : undefined,
-        included_segments: filters.length === 0 ? ["Subscribed Users"] : undefined,
-        contents: { en: notification.body, ar: notification.body },
-        headings: { en: notification.title, ar: notification.title },
-        data: { orderId: notification.orderId?.toString(), url: notification.url },
-        android_accent_color: "FF0000",
-        android_visibility: 1, // Public (ظاهر على قفل الشاشة)
-        priority: 10, // High priority
-      },
+      notificationPayload,
       {
         headers: {
           "Content-Type": "application/json; charset=utf-8",
@@ -187,7 +195,7 @@ export async function sendOneSignalNotification(
         },
       }
     );
-    console.log(`[Notifications] OneSignal notification sent successfully to ${target.userId ? 'user ' + target.userId : 'role ' + target.role}`);
+    console.log(`[Notifications] OneSignal notification sent successfully to ${target.userId ? 'user ' + target.userId : (target.role ? 'role ' + target.role : 'all users')}`);
   } catch (error: any) {
     console.error("[Notifications] OneSignal notification failed:", error.response?.data || error.message);
   }
@@ -263,6 +271,7 @@ export async function notifyDriversOfNewOrder(
     }
 
     // 3. Send OneSignal Push Notification to all drivers
+    // We send to all subscribed users as a fallback to ensure it reaches everyone during testing
     await sendOneSignalNotification({ role: "driver" }, notification);
   } catch (error) {
     console.error("[Notifications] Failed to notify drivers:", error);
