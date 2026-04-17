@@ -150,9 +150,13 @@ export default function DriverDashboard() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [driverLocation, setDriverLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const { unreadCounts } = useChatContext();
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(
-    typeof window !== 'undefined' ? Notification.permission : 'default'
-  );
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, []);
 
   const hasNavigatedRef = useRef(false);
 
@@ -191,7 +195,7 @@ export default function DriverDashboard() {
   useEffect(() => {
     if (!user || user.role !== "driver") return;
 
-    if (navigator.geolocation) {
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
       const watchId = navigator.geolocation.watchPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
