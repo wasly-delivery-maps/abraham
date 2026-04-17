@@ -23,6 +23,7 @@
       "purpose": "any maskable"
     }
   ],
+  "prefer_related_applications": false,
   "categories": ["business", "lifestyle"],
   "shortcuts": [
     {

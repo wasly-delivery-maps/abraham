@@ -33,26 +33,34 @@
       // كود طلب تثبيت التطبيق (PWA Install Prompt)
       let deferredPrompt;
       window.addEventListener('beforeinstallprompt', (e) => {
-        // منع المتصفح من إظهار الرسالة التلقائية فوراً
         e.preventDefault();
-        // حفظ الحدث ليتم تفعيله لاحقاً
         deferredPrompt = e;
-        
-        // إظهار رسالة مخصصة للمستخدم بعد 3 ثوانٍ من دخول الموقع
         setTimeout(() => {
           if (deferredPrompt) {
             const installConfirm = confirm("لضمان وصول الإشعارات بشكل صحيح على شاشة القفل، يرجى إضافة 'واصلي' إلى الشاشة الرئيسية. هل تريد التثبيت الآن؟");
             if (installConfirm) {
               deferredPrompt.prompt();
               deferredPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                  console.log('User accepted the install prompt');
-                }
                 deferredPrompt = null;
               });
             }
           }
         }, 3000);
+      });
+
+      // إجبار طلب إذن الإشعارات فور فتح التطبيق
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          if (window.OneSignalDeferred) {
+            window.OneSignalDeferred.push(async function(OneSignal) {
+              const permission = await OneSignal.Notifications.permission;
+              if (!permission) {
+                console.log("[OneSignal] Requesting permission...");
+                await OneSignal.Notifications.requestPermission();
+              }
+            });
+          }
+        }, 5000); // الانتظار 5 ثوانٍ بعد التحميل لطلب الإذن
       });
     </script>    
     <!-- THIS IS THE START OF A COMMENT BLOCK, BLOCK TO BE DELETED: Google Fonts here, example:
