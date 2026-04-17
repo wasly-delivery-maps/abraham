@@ -88,6 +88,14 @@ export default function Auth() {
       utils.auth.me.setData(undefined, result.user as any);
       await utils.auth.me.invalidate();
 
+      // ربط هوية المستخدم بـ OneSignal للإشعارات المنبثقة (Push Notifications)
+      if (typeof window !== 'undefined' && (window as any).OneSignalDeferred) {
+        (window as any).OneSignalDeferred.push(async function(OneSignal: any) {
+          await OneSignal.login(normalizedPhone);
+          console.log("[OneSignal] User logged in with ID:", normalizedPhone);
+        });
+      }
+
       toast.success("مرحباً بك! تم تسجيل الدخول بنجاح");
 
       setLoginData({ phone: "", password: "" });

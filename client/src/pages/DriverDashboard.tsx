@@ -195,6 +195,14 @@ export default function DriverDashboard() {
   useEffect(() => {
     if (!user || user.role !== "driver") return;
 
+    // ربط هوية السائق بـ OneSignal للإشعارات المنبثقة (Push Notifications)
+    if (typeof window !== 'undefined' && (window as any).OneSignalDeferred) {
+      (window as any).OneSignalDeferred.push(async function(OneSignal: any) {
+        await OneSignal.login(user.phone);
+        console.log("[OneSignal] Driver logged in with ID:", user.phone);
+      });
+    }
+
     if (typeof navigator !== 'undefined' && navigator.geolocation) {
       const watchId = navigator.geolocation.watchPosition(
         (position) => {
