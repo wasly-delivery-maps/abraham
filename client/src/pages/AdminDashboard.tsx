@@ -6,12 +6,13 @@ import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
-import { Users, Truck, ShoppingBag, TrendingUp, LogOut, BarChart3, User, Home, Download } from "lucide-react";
+import { Users, Truck, ShoppingBag, TrendingUp, LogOut, BarChart3, User, Home, Download, Settings, ShieldCheck, ChevronLeft, Package, Clock, Zap, Star, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { UsersManagement } from "@/components/admin/UsersManagement";
 import { OrdersManagement } from "@/components/admin/OrdersManagement";
 import { CommissionsManagement } from "@/components/admin/CommissionsManagement";
 import { Input } from "@/components/ui/input";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminDashboard() {
   const { user, loading, logout } = useAuth();
@@ -54,8 +55,10 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-orange-50 to-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }}>
+          <Loader2 className="h-12 w-12 text-orange-600" />
+        </motion.div>
       </div>
     );
   }
@@ -107,66 +110,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case "admin":
-        return "مسؤول";
-      case "driver":
-        return "سائق";
-      case "customer":
-        return "عميل";
-      default:
-        return role;
-    }
-  };
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case "admin":
-        return "bg-red-100 text-red-800";
-      case "driver":
-        return "bg-blue-100 text-blue-800";
-      case "customer":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      pending: "قيد الانتظار",
-      assigned: "مسند",
-      accepted: "مقبول",
-      picked_up: "تم الاستلام",
-      in_transit: "في الطريق",
-      delivered: "تم التسليم",
-      cancelled: "ملغى",
-    };
-    return labels[status] || status;
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "assigned":
-        return "bg-blue-100 text-blue-800";
-      case "accepted":
-        return "bg-blue-100 text-blue-800";
-      case "picked_up":
-        return "bg-purple-100 text-purple-800";
-      case "in_transit":
-        return "bg-indigo-100 text-indigo-800";
-      case "delivered":
-        return "bg-green-100 text-green-800";
-      case "cancelled":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
   const totalOrders = stats?.totalOrders || orders.length;
   const completedOrders = orders.filter((o) => o.status === "delivered").length;
   const activeOrders = orders.filter((o) => !["delivered", "cancelled"].includes(o.status)).length;
@@ -174,317 +117,186 @@ export default function AdminDashboard() {
   const totalCustomers = stats?.totalCustomers || users.filter((u) => u.role === "customer").length;
   const totalUsers = stats?.totalUsers || users.length;
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 },
+    },
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-background" dir="rtl">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-orange-600 via-orange-500 to-yellow-500 text-white py-8 shadow-lg">
-        <div className="container">
-          <div className="flex flex-col gap-4">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white hover:bg-white/20 flex items-center gap-2"
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans" dir="rtl">
+      {/* Header Section */}
+      <div className="bg-slate-900 text-white pt-12 pb-32 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-orange-600/20 rounded-full -mr-48 -mt-48 blur-3xl" />
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
+            <div className="flex items-center gap-4">
+              <motion.div 
+                className="bg-white p-1.5 rounded-2xl shadow-xl overflow-hidden cursor-pointer"
+                whileHover={{ scale: 1.1, rotate: 5 }}
                 onClick={() => navigate("/")}
-                title="الصفحة الرئيسية"
               >
-                <Home className="h-5 w-5" />
-                <span className="hidden sm:inline">الرئيسية</span>
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white hover:bg-white/20 flex items-center gap-2"
-                onClick={() => navigate("/admin/profile")}
-                title="الملف الشخصي"
-              >
-                <User className="h-5 w-5" />
-                <span className="hidden sm:inline">الملف الشخصي</span>
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white hover:bg-white/20 flex items-center gap-2"
-                onClick={handleLogout}
-                title="تسجيل الخروج"
-              >
-                <LogOut className="h-5 w-5" />
-                <span className="hidden sm:inline">خروج</span>
-              </Button>
+                <img src="/logo.jpg" alt="وصلي" className="h-12 w-12 object-contain" />
+              </motion.div>
+              <div>
+                <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
+                  لوحة التحكم <Badge className="bg-orange-500 text-white border-none text-[10px] px-2 py-0">ADMIN</Badge>
+                </h1>
+                <p className="text-white/40 text-xs font-bold uppercase tracking-widest">إدارة النظام والرقابة العامة</p>
               </div>
             </div>
-            <div className="text-center flex-1">
-              <div className="flex items-center justify-center gap-4 mb-2">
-                <div className="bg-white p-1 rounded-xl shadow-md border border-orange-100 overflow-hidden">
-                  <img src="/logo.jpg" alt="وصلي" className="h-10 w-10 object-contain" />
-                </div>
-                <h1 className="text-3xl sm:text-4xl font-bold">لوحة التحكم</h1>
-              </div>
-              <p className="text-white/90 text-sm sm:text-base">إدارة النظام والمستخدمين والطلبات</p>
+
+            <div className="flex items-center gap-3">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button 
+                  variant="ghost" 
+                  className="bg-white/5 hover:bg-white/10 text-white rounded-2xl h-12 px-6 font-bold flex items-center gap-2"
+                  onClick={() => navigate("/admin/profile")}
+                >
+                  <User className="h-5 w-5" />
+                  <span>الملف الشخصي</span>
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button 
+                  variant="ghost" 
+                  className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 rounded-2xl h-12 w-12 p-0"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-5 w-5" />
+                </Button>
+              </motion.div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="text-right">
-                <p className="font-semibold">{user.name || "المسؤول"}</p>
-                <p className="text-xs text-white/80">مسؤول النظام</p>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8 bg-white/5 backdrop-blur-md p-8 rounded-[2.5rem] border border-white/10 shadow-2xl">
+            <div className="flex-1 text-center md:text-right">
+              <h2 className="text-3xl font-black mb-2">مرحباً بك، {user.name?.split(' ')[0]} 👋</h2>
+              <p className="text-white/60 font-medium">إليك ملخص أداء النظام والعمليات الجارية اليوم</p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+              <div className="flex-1 min-w-[150px]">
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2 mr-2">من تاريخ</p>
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="bg-white/10 border-white/20 text-white rounded-xl focus:ring-orange-500 h-11"
+                />
               </div>
+              <div className="flex-1 min-w-[150px]">
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2 mr-2">إلى تاريخ</p>
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="bg-white/10 border-white/20 text-white rounded-xl focus:ring-orange-500 h-11"
+                />
+              </div>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex items-end">
+                <Button
+                  onClick={handleExportExcel}
+                  disabled={isExporting}
+                  className="bg-orange-500 hover:bg-orange-600 text-white h-11 px-8 rounded-xl font-black shadow-lg shadow-orange-500/20 flex items-center gap-2 w-full"
+                >
+                  {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                  {isExporting ? "جاري..." : "تصدير التقرير"}
+                </Button>
+              </motion.div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Export Section */}
-      <div className="bg-gradient-to-b from-orange-50 to-transparent py-6 border-b border-orange-200">
-        <div className="container">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:gap-4">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">من التاريخ</label>
-              <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">إلى التاريخ</label>
-              <Input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <Button
-              onClick={handleExportExcel}
-              disabled={isExporting}
-              className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
-            >
-              <Download className="h-4 w-4" />
-              {isExporting ? "جاري التصدير..." : "تصدير التقرير"}
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="container py-8">
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          <Card className="border-l-4 border-blue-500 bg-gradient-to-br from-blue-50 to-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Users className="h-5 w-5 text-blue-600" />
-                إجمالي المستخدمين
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-blue-600">{totalUsers}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-green-500 bg-gradient-to-br from-green-50 to-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Truck className="h-5 w-5 text-green-600" />
-                السائقون
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600">{totalDrivers}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-purple-500 bg-gradient-to-br from-purple-50 to-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Users className="h-5 w-5 text-purple-600" />
-                العملاء
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-purple-600">{totalCustomers}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-orange-500 bg-gradient-to-br from-orange-50 to-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <ShoppingBag className="h-5 w-5 text-orange-600" />
-                إجمالي الطلبات
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-orange-600">{totalOrders}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-yellow-500 bg-gradient-to-br from-yellow-50 to-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-yellow-600" />
-                معدل الإنجاز
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-yellow-600">
-                {totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0}%
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Tabs */}
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
-            <TabsTrigger value="users">إدارة المستخدمين</TabsTrigger>
-            <TabsTrigger value="orders">إدارة الطلبات</TabsTrigger>
-            <TabsTrigger value="commissions">إدارة العمولات</TabsTrigger>
-            <TabsTrigger value="analytics">التحليلات</TabsTrigger>
-          </TabsList>
-
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-white">
-                <CardHeader>
-                  <CardTitle className="text-lg">الطلبات المكتملة</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-4xl font-bold text-green-600 mb-2">{completedOrders}</div>
-                  <p className="text-sm text-muted-foreground">
-                    {totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0}% من الطلبات
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white">
-                <CardHeader>
-                  <CardTitle className="text-lg">الطلبات النشطة</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-4xl font-bold text-blue-600 mb-2">{activeOrders}</div>
-                  <p className="text-sm text-muted-foreground">
-                    {totalOrders > 0 ? Math.round((activeOrders / totalOrders) * 100) : 0}% من الطلبات
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-red-200 bg-gradient-to-br from-red-50 to-white">
-                <CardHeader>
-                  <CardTitle className="text-lg">الطلبات الملغاة</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-4xl font-bold text-red-600 mb-2">
-                    {orders.filter((o) => o.status === "cancelled").length}
+      {/* Stats Cards Section */}
+      <div className="container mx-auto px-6 -mt-12 pb-12 relative z-20">
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+        >
+          {[
+            { label: "المستخدمين", value: totalUsers, sub: `${totalDrivers} سائق | ${totalCustomers} عميل`, icon: Users, color: "from-blue-500 to-blue-600", bg: "bg-blue-50" },
+            { label: "إجمالي الطلبات", value: totalOrders, sub: "منذ انطلاق النظام", icon: ShoppingBag, color: "from-orange-500 to-orange-600", bg: "bg-orange-50" },
+            { label: "طلبات نشطة", value: activeOrders, sub: "جاري توصيلها الآن", icon: Zap, color: "from-purple-500 to-purple-600", bg: "bg-purple-50" },
+            { label: "إجمالي الأرباح", value: `ج.م ${stats?.totalRevenue || orders.reduce((sum, o) => sum + (o.price || 0), 0)}`, sub: "إجمالي المبيعات", icon: BarChart3, color: "from-emerald-500 to-emerald-600", bg: "bg-emerald-50" }
+          ].map((stat, i) => (
+            <motion.div key={i} variants={itemVariants}>
+              <Card className="border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden hover:shadow-2xl transition-all group h-full">
+                <CardContent className="p-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className={`bg-gradient-to-br ${stat.color} p-4 rounded-2xl text-white shadow-lg group-hover:scale-110 transition-transform`}>
+                      <stat.icon className="h-6 w-6" />
+                    </div>
+                    <Badge className="bg-slate-100 text-slate-500 border-none px-3 py-1 rounded-full font-black text-[10px]">
+                      إحصائيات
+                    </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {totalOrders > 0
-                      ? Math.round(
-                          (orders.filter((o) => o.status === "cancelled").length / totalOrders) * 100
-                        )
-                      : 0}
-                    % من الطلبات
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Users Tab */}
-          <TabsContent value="users">
-            <UsersManagement users={users} />
-          </TabsContent>
-
-          {/* Orders Tab */}
-          <TabsContent value="orders">
-            <OrdersManagement orders={orders} />
-          </TabsContent>
-
-          {/* Commissions Tab */}
-          <TabsContent value="commissions">
-            <CommissionsManagement drivers={users.filter((u) => u.role === "driver")} />
-          </TabsContent>
-
-          {/* Analytics Tab */}
-          <TabsContent value="analytics">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5" />
-                    توزيع المستخدمين
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between mb-2">
-                        <span className="text-sm font-medium">السائقون</span>
-                        <span className="text-sm font-bold">{totalDrivers}</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full"
-                          style={{ width: `${users.length > 0 ? (totalDrivers / users.length) * 100 : 0}%` }}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between mb-2">
-                        <span className="text-sm font-medium">العملاء</span>
-                        <span className="text-sm font-bold">{totalCustomers}</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-green-600 h-2 rounded-full"
-                          style={{ width: `${users.length > 0 ? (totalCustomers / users.length) * 100 : 0}%` }}
-                        />
-                      </div>
-                    </div>
+                  <div className="space-y-1">
+                    <h3 className="text-slate-400 font-bold text-xs uppercase tracking-wider">{stat.label}</h3>
+                    <div className="text-3xl font-black text-slate-900">{stat.value}</div>
+                    <p className="text-[10px] font-bold text-slate-400 mt-2">{stat.sub}</p>
                   </div>
                 </CardContent>
               </Card>
+            </motion.div>
+          ))}
+        </motion.div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5" />
-                    حالة الطلبات
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between mb-2">
-                        <span className="text-sm font-medium">مكتملة</span>
-                        <span className="text-sm font-bold">{completedOrders}</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-green-600 h-2 rounded-full"
-                          style={{ width: `${totalOrders > 0 ? (completedOrders / totalOrders) * 100 : 0}%` }}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between mb-2">
-                        <span className="text-sm font-medium">نشطة</span>
-                        <span className="text-sm font-bold">{activeOrders}</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full"
-                          style={{ width: `${totalOrders > 0 ? (activeOrders / totalOrders) * 100 : 0}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
+        {/* Management Tabs Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mt-12"
+        >
+          <Tabs defaultValue="orders" className="w-full">
+            <TabsList className="bg-white/50 backdrop-blur-sm p-1.5 rounded-[2rem] mb-8 w-full sm:w-auto shadow-sm border border-slate-200">
+              <TabsTrigger value="orders" className="rounded-2xl px-8 py-3 font-black data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all">
+                <Package className="h-4 w-4 ml-2" /> إدارة الطلبات
+              </TabsTrigger>
+              <TabsTrigger value="users" className="rounded-2xl px-8 py-3 font-black data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all">
+                <Users className="h-4 w-4 ml-2" /> المستخدمين
+              </TabsTrigger>
+              <TabsTrigger value="commissions" className="rounded-2xl px-8 py-3 font-black data-[state=active]:bg-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all">
+                <TrendingUp className="h-4 w-4 ml-2" /> العمولات
+              </TabsTrigger>
+            </TabsList>
+            
+            <AnimatePresence mode="wait">
+              <TabsContent value="orders">
+                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
+                  <OrdersManagement />
+                </motion.div>
+              </TabsContent>
+              <TabsContent value="users">
+                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
+                  <UsersManagement />
+                </motion.div>
+              </TabsContent>
+              <TabsContent value="commissions">
+                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
+                  <CommissionsManagement />
+                </motion.div>
+              </TabsContent>
+            </AnimatePresence>
+          </Tabs>
+        </motion.div>
       </div>
     </div>
   );
