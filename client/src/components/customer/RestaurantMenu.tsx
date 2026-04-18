@@ -29,6 +29,10 @@ interface Restaurant {
   coverUrl?: string;
   rating?: string;
   deliveryTime?: string;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 // مطعم "رول وي" - البيانات
@@ -42,7 +46,11 @@ const ROLL_WE_RESTAURANT: Restaurant = {
   logoUrl: "https://ui-avatars.com/api/?name=RW&background=f97316&color=fff&size=128&bold=true",
   coverUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format&fit=crop",
   rating: "4.8",
-  deliveryTime: "30-45 دقيقة"
+  deliveryTime: "30-45 دقيقة",
+  location: {
+    latitude: 30.1856,
+    longitude: 31.2567
+  }
 };
 
 // مطعم "كشري الخديوي" - البيانات
@@ -56,7 +64,11 @@ const KHEDIVE_KOSHARY_RESTAURANT: Restaurant = {
   logoUrl: "https://ui-avatars.com/api/?name=KK&background=e11d48&color=fff&size=128&bold=true",
   coverUrl: "https://web-production-0eb1b.up.railway.app/uploads/khedive_koshary_logo_fb.webp",
   rating: "4.9",
-  deliveryTime: "20-35 دقيقة"
+  deliveryTime: "20-35 دقيقة",
+  location: {
+    latitude: 30.2285,
+    longitude: 31.4745
+  }
 };
 
 const ROLL_WE_MENU: MenuItem[] = [
@@ -300,6 +312,11 @@ export function RestaurantMenu() {
         items: cartItems,
         totalPrice,
         notes: customerNotes,
+        pickupLocation: {
+          address: selectedRestaurant.address,
+          latitude: selectedRestaurant.location.latitude,
+          longitude: selectedRestaurant.location.longitude,
+        },
         deliveryLocation: {
           address: finalLocation.address,
           latitude: finalLocation.latitude,
