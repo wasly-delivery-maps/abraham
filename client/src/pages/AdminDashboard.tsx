@@ -163,6 +163,16 @@ export default function AdminDashboard() {
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button 
                   variant="ghost" 
+                  className="bg-white/5 hover:bg-white/10 text-white rounded-2xl h-12 w-12 p-0"
+                  onClick={() => navigate("/admin/stats")}
+                  title="الإحصائيات"
+                >
+                  <BarChart3 className="h-5 w-5" />
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button 
+                  variant="ghost" 
                   className="bg-white/5 hover:bg-white/10 text-white rounded-2xl h-12 px-6 font-bold flex items-center gap-2"
                   onClick={() => navigate("/admin/profile")}
                 >

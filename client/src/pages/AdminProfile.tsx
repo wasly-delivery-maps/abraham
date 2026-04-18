@@ -80,13 +80,23 @@ export default function AdminProfile() {
               <ChevronLeft className="h-6 w-6 rotate-180" />
             </Button>
             <h1 className="text-xl font-black tracking-widest uppercase">ملف المسؤول</h1>
-            <Button 
-              variant="ghost" 
-              className="text-white/60 hover:text-rose-500 hover:bg-rose-500/10 rounded-2xl h-12 w-12 p-0"
-              onClick={handleLogout}
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                className="text-white/60 hover:text-orange-500 hover:bg-orange-500/10 rounded-2xl h-12 w-12 p-0"
+                onClick={() => navigate("/admin/stats")}
+                title="الإحصائيات"
+              >
+                <TrendingUp className="h-5 w-5" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="text-white/60 hover:text-rose-500 hover:bg-rose-500/10 rounded-2xl h-12 w-12 p-0"
+                onClick={handleLogout}
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
 
           <div className="flex flex-col md:flex-row items-center gap-8">

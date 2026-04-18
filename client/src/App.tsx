@@ -17,6 +17,8 @@ import DriverSupport from "./pages/DriverSupport";
 import DriverStats from "./pages/DriverStats";
 import CustomerProfile from "./pages/CustomerProfile";
 import CustomerStats from "./pages/CustomerStats";
+import AdminProfile from "./pages/AdminProfile";
+import AdminStats from "./pages/AdminStats";
 
 function Router() {
   return (
@@ -32,6 +34,8 @@ function Router() {
       <Route path="/driver/stats" component={() => <ProtectedRoute component={DriverStats} requiredRole="driver" />} />
       <Route path="/driver/support" component={() => <ProtectedRoute component={DriverSupport} requiredRole="driver" />} />
       <Route path="/admin/dashboard" component={() => <ProtectedRoute component={AdminDashboard} requiredRole="admin" />} />
+      <Route path="/admin/profile" component={() => <ProtectedRoute component={AdminProfile} requiredRole="admin" />} />
+      <Route path="/admin/stats" component={() => <ProtectedRoute component={AdminStats} requiredRole="admin" />} />
       <Route path="/404" component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
