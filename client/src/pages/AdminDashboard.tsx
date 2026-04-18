@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { UsersManagement } from "@/components/admin/UsersManagement";
 import { OrdersManagement } from "@/components/admin/OrdersManagement";
 import { CommissionsManagement } from "@/components/admin/CommissionsManagement";
+import { ReportExporter } from "@/components/admin/ReportExporter";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -20,20 +21,10 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
-  const [isExporting, setIsExporting] = useState(false);
 
   const statsQuery = trpc.admin.getStatistics.useQuery();
   const usersQuery = trpc.admin.getAllUsers.useQuery();
   const ordersQuery = trpc.admin.getAllOrders.useQuery();
-  const reportQuery = trpc.admin.getReportData.useQuery(
-    {
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
-    },
-    { enabled: false }
-  );
 
   useEffect(() => {
     if (statsQuery.data) {
@@ -74,41 +65,7 @@ export default function AdminDashboard() {
     toast.success("تم تسجيل الخروج بنجاح");
   };
 
-  const handleExportExcel = async () => {
-    setIsExporting(true);
-    try {
-      const result = await reportQuery.refetch();
-      if (result.data) {
-        const { drivers, orders: reportOrders, statistics } = result.data;
-        
-        const csvContent = [
-          ['الإحصائيات'],
-          ['إجمالي الطلبات', statistics.totalOrders],
-          ['الطلبات المكتملة', statistics.completedOrders],
-          [],
-          ['السائقون'],
-          ['الاسم', 'الهاتف', 'الحالة', 'عدد الطلبات'],
-          ...drivers.map(d => [d.name, d.phone, d.accountStatus, d.totalOrders]),
-        ];
-        
-        const csvString = csvContent.map(row => row.join(',')).join('\n');
-        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `تقرير_wasly_${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        toast.success("تم تصدير التقرير بنجاح");
-      }
-    } catch (error) {
-      toast.error("فشل في تصدير التقرير");
-    } finally {
-      setIsExporting(false);
-    }
-  };
+  // تم نقل منطق التصدير إلى مكون ReportExporter المتقدم
 
   const totalOrders = stats?.totalOrders || orders.length;
   const completedOrders = orders.filter((o) => o.status === "delivered").length;
@@ -198,36 +155,7 @@ export default function AdminDashboard() {
               <p className="text-white/60 font-medium">إليك ملخص أداء النظام والعمليات الجارية اليوم</p>
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-              <div className="flex-1 min-w-[150px]">
-                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2 mr-2">من تاريخ</p>
-                <Input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white rounded-xl focus:ring-orange-500 h-11"
-                />
-              </div>
-              <div className="flex-1 min-w-[150px]">
-                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2 mr-2">إلى تاريخ</p>
-                <Input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white rounded-xl focus:ring-orange-500 h-11"
-                />
-              </div>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex items-end">
-                <Button
-                  onClick={handleExportExcel}
-                  disabled={isExporting}
-                  className="bg-orange-500 hover:bg-orange-600 text-white h-11 px-8 rounded-xl font-black shadow-lg shadow-orange-500/20 flex items-center gap-2 w-full"
-                >
-                  {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                  {isExporting ? "جاري..." : "تصدير التقرير"}
-                </Button>
-              </motion.div>
-            </div>
+            <ReportExporter orders={orders} users={users} stats={stats} />
           </div>
         </div>
       </div>
