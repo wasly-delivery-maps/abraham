@@ -356,8 +356,8 @@ export const appRouter = router({
         // Restaurant pickup location (Roll We)
         const pickupLocation = {
           address: "رول وي - مطعم وكافيه، العبور الجديدة",
-          latitude: 30.1856,
-          longitude: 31.2567,
+          latitude: 30.2750994,
+          longitude: 31.5006526,
           neighborhood: "العبور الجديدة",
         };
 
