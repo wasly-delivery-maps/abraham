@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Trash2, Search, MessageCircle } from "lucide-react";
+import { Trash2, Search, MessageCircle, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Order {
   id: number;
@@ -24,6 +25,8 @@ export function OrdersManagement({ orders: initialOrders }: { orders: Order[] })
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [ordersWithNames, setOrdersWithNames] = useState<Order[]>([]);
+  const [selectedOrderForWhatsApp, setSelectedOrderForWhatsApp] = useState<Order | null>(null);
+  const [isWhatsAppDialogOpen, setIsWhatsAppDialogOpen] = useState(false);
   
   const usersQuery = trpc.admin.getAllUsers.useQuery();
   const deleteOrderMutation = trpc.admin.deleteOrder.useMutation();
@@ -62,53 +65,32 @@ export function OrdersManagement({ orders: initialOrders }: { orders: Order[] })
   };
 
   const handleSendWhatsApp = (order: Order) => {
-    // بناء الرسالة
+    setSelectedOrderForWhatsApp(order);
+    setIsWhatsAppDialogOpen(true);
+  };
+
+  const sendDirectWhatsApp = (driverPhone: string, order: Order) => {
     const pickupAddress = order.pickupLocation?.address || "عنوان الاستلام";
     const deliveryAddress = order.deliveryLocation?.address || "عنوان التسليم";
     const price = order.price ? order.price.toFixed(2) : "0.00";
     
     const message = `لديك طلب جديد 📦\n\nرقم الطلب: #${order.id}\nالعميل: ${order.customerName || "عميل"}\nمن: ${pickupAddress}\nإلى: ${deliveryAddress}\nالسعر: ج.م ${price}\nالحالة: ${getStatusLabel(order.status)}\n\nيرجى الضغط على الرابط أدناه للمتابعة:\n${window.location.origin}`;
     
-    // ترميز الرسالة
     const encodedMessage = encodeURIComponent(message);
     
-    // جلب جميع السائقين من البيانات المتاحة
-    const drivers = usersQuery.data?.filter((u: any) => u.role === "driver") || [];
-    
-    if (drivers.length === 0) {
-      toast.error("لا توجد سائقين مسجلين في النظام");
-      return;
-    }
-    
-    // إرسال الرسالة لكل سائق
-    let successCount = 0;
-    drivers.forEach((driver: any) => {
-      if (driver.phone) {
-        // تنسيق رقم الهاتف إذا لزم الأمر
-        let phoneNumber = driver.phone;
-        // إزالة الأحرف غير الرقمية
-        phoneNumber = phoneNumber.replace(/\D/g, '');
-        // إضافة رمز الدولة إذا لم يكن موجوداً
-        if (!phoneNumber.startsWith('20')) {
-          if (phoneNumber.startsWith('0')) {
-            phoneNumber = '20' + phoneNumber.substring(1);
-          } else {
-            phoneNumber = '20' + phoneNumber;
-          }
-        }
-        
-        // فتح واتساب لهذا السائق برسالة مُعدة
-        const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
-        window.open(whatsappUrl, "_blank");
-        successCount++;
+    let phoneNumber = driverPhone.replace(/\D/g, '');
+    if (!phoneNumber.startsWith('20')) {
+      if (phoneNumber.startsWith('0')) {
+        phoneNumber = '20' + phoneNumber.substring(1);
+      } else {
+        phoneNumber = '20' + phoneNumber;
       }
-    });
-    
-    if (successCount > 0) {
-      toast.success(`تم إرسال الطلب لـ ${successCount} سائق عبر واتساب`);
-    } else {
-      toast.error("لم يتمكن من إرسال الرسالة - تأكد من وجود أرقام هاتف للسائقين");
     }
+    
+    // استخدام رابط whatsapp:// لفتح التطبيق مباشرة على الموبايل
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
+    window.open(whatsappUrl, "_blank");
+    toast.success("جاري فتح واتساب...");
   };
 
   const getStatusLabel = (status: string) => {
@@ -146,7 +128,8 @@ export function OrdersManagement({ orders: initialOrders }: { orders: Order[] })
   };
 
   return (
-    <Card>
+    <>
+      <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>إدارة الطلبات</span>
@@ -255,5 +238,48 @@ export function OrdersManagement({ orders: initialOrders }: { orders: Order[] })
         </div>
       </CardContent>
     </Card>
+
+      {/* WhatsApp Driver Selection Dialog */}
+      <Dialog open={isWhatsAppDialogOpen} onOpenChange={setIsWhatsAppDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5 text-green-600" />
+              إرسال الطلب للسائقين
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              اختر السائق لإرسال تفاصيل الطلب #{selectedOrderForWhatsApp?.id} له مباشرة عبر واتساب:
+            </p>
+            <div className="max-h-[300px] overflow-y-auto space-y-2 pr-1">
+              {usersQuery.data?.filter((u: any) => u.role === "driver").length === 0 ? (
+                <p className="text-center py-4 text-muted-foreground">لا يوجد سائقين مسجلين</p>
+              ) : (
+                usersQuery.data?.filter((u: any) => u.role === "driver").map((driver: any) => (
+                  <div key={driver.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                    <div>
+                      <p className="font-bold">{driver.name}</p>
+                      <p className="text-xs text-muted-foreground">{driver.phone}</p>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      className="bg-green-600 hover:bg-green-700 gap-1"
+                      onClick={() => selectedOrderForWhatsApp && sendDirectWhatsApp(driver.phone, selectedOrderForWhatsApp)}
+                    >
+                      <MessageCircle className="h-3 w-3" />
+                      إرسال
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => setIsWhatsAppDialogOpen(false)}>إغلاق</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
