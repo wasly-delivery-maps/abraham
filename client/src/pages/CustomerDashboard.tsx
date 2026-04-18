@@ -9,6 +9,7 @@ import { Link, useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { ChatBox } from "@/components/ChatBox";
 import { useChatContext } from "@/contexts/ChatContext";
+import { RestaurantMenu } from "@/components/customer/RestaurantMenu";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -276,6 +277,9 @@ export default function CustomerDashboard() {
                 <TabsTrigger value="completed" className="rounded-xl px-8 py-3 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-emerald-600 transition-all">
                   السجل
                 </TabsTrigger>
+                <TabsTrigger value="restaurants" className="rounded-xl px-8 py-3 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-red-600 transition-all">
+                  المطاعم
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="active">
@@ -429,6 +433,10 @@ export default function CustomerDashboard() {
                     )}
                   </motion.div>
                 </AnimatePresence>
+              </TabsContent>
+
+              <TabsContent value="restaurants">
+                <RestaurantMenu />
               </TabsContent>
 
               <TabsContent value="completed">

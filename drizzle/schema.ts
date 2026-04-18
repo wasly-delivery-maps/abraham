@@ -164,6 +164,66 @@ export const pushSubscriptions = mysqlTable(
   })
 );
 
+/**
+ * Restaurants table - Restaurant information
+ */
+export const restaurants = mysqlTable("restaurants", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 20 }).notNull(),
+  whatsappPhone: varchar("whatsappPhone", { length: 20 }),
+  address: varchar("address", { length: 500 }).notNull(),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }).notNull(),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
+  description: text("description"),
+  imageUrl: varchar("imageUrl", { length: 500 }),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/**
+ * Menu Items table - Restaurant menu items
+ */
+export const menuItems = mysqlTable("menu_items", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: int("restaurantId").notNull(),
+  category: varchar("category", { length: 100 }).notNull(), // e.g., "كريب", "رول", "مكرونة"
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  imageUrl: varchar("imageUrl", { length: 500 }),
+  isAvailable: boolean("isAvailable").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/**
+ * Restaurant Orders table - Orders from restaurants
+ */
+export const restaurantOrders = mysqlTable("restaurant_orders", {
+  id: int("id").autoincrement().primaryKey(),
+  customerId: int("customerId").notNull(),
+  restaurantId: int("restaurantId").notNull(),
+  items: json("items").notNull(), // Array of { menuItemId, quantity, price }
+  totalPrice: decimal("totalPrice", { precision: 10, scale: 2 }).notNull(),
+  status: mysqlEnum("status", [
+    "pending",
+    "confirmed",
+    "preparing",
+    "ready",
+    "picked_up",
+    "delivered",
+    "cancelled",
+  ])
+    .default("pending")
+    .notNull(),
+  notes: text("notes"),
+  deliveryOrderId: int("deliveryOrderId"), // Link to delivery order in orders table
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
@@ -185,3 +245,12 @@ export type InsertDriverLocation = typeof driverLocations.$inferInsert;
 
 export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;
+
+export type Restaurant = typeof restaurants.$inferSelect;
+export type InsertRestaurant = typeof restaurants.$inferInsert;
+
+export type MenuItem = typeof menuItems.$inferSelect;
+export type InsertMenuItem = typeof menuItems.$inferInsert;
+
+export type RestaurantOrder = typeof restaurantOrders.$inferSelect;
+export type InsertRestaurantOrder = typeof restaurantOrders.$inferInsert;
