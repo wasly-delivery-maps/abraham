@@ -398,26 +398,28 @@ export function RestaurantMenu() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end gap-4">
-          <div className="h-20 w-20 rounded-2xl bg-white p-1.5 shadow-2xl flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-orange-400 z-20 transform -translate-y-2">
-             <img 
-              src={selectedRestaurant.logoUrl} 
-              alt="Logo" 
-              className="w-full h-full object-contain rounded-lg"
-            />
-          </div>
-          <div className="flex-1 pb-2 text-white z-20">
-            <h1 className="text-2xl font-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{selectedRestaurant.name}</h1>
-            <div className="flex items-center gap-3 mt-1 text-[11px] font-medium opacity-90">
-              <span className="flex items-center gap-1 bg-orange-500/80 px-2 py-0.5 rounded-full">
-                <MapPin className="h-3 w-3" /> {selectedRestaurant.address}
-              </span>
-              <span className="flex items-center gap-1 bg-green-500/80 px-2 py-0.5 rounded-full">
-                <Phone className="h-3 w-3" /> {selectedRestaurant.phone}
-              </span>
+        {selectedRestaurant.id !== 2 && (
+          <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end gap-4">
+            <div className="h-20 w-20 rounded-2xl bg-white p-1.5 shadow-2xl flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-orange-400 z-20 transform -translate-y-2">
+               <img 
+                src={selectedRestaurant.logoUrl} 
+                alt="Logo" 
+                className="w-full h-full object-contain rounded-lg"
+              />
+            </div>
+            <div className="flex-1 pb-2 text-white z-20">
+              <h1 className="text-2xl font-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{selectedRestaurant.name}</h1>
+              <div className="flex items-center gap-3 mt-1 text-[11px] font-medium opacity-90">
+                <span className="flex items-center gap-1 bg-orange-500/80 px-2 py-0.5 rounded-full">
+                  <MapPin className="h-3 w-3" /> {selectedRestaurant.address}
+                </span>
+                <span className="flex items-center gap-1 bg-green-500/80 px-2 py-0.5 rounded-full">
+                  <Phone className="h-3 w-3" /> {selectedRestaurant.phone}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="px-2 mb-4">
