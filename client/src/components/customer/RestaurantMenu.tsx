@@ -151,10 +151,12 @@ export function RestaurantMenu() {
       return;
     }
 
-    if (!userLocation) {
-      toast.error("لم نتمكن من الحصول على موقعك. حاول لاحقاً.");
-      return;
-    }
+    // إذا لم يتوفر الموقع، نستخدم موقعاً افتراضياً (العبور الجديدة) لضمان استمرار الطلب
+    const finalLocation = userLocation || {
+      latitude: 30.1856,
+      longitude: 31.2567,
+      address: "موقع العميل (العبور الجديدة)",
+    };
 
     setIsLoading(true);
     try {
@@ -184,9 +186,9 @@ export function RestaurantMenu() {
         totalPrice,
         notes: customerNotes,
         deliveryLocation: {
-          address: userLocation.address,
-          latitude: userLocation.latitude,
-          longitude: userLocation.longitude,
+          address: finalLocation.address,
+          latitude: finalLocation.latitude,
+          longitude: finalLocation.longitude,
           neighborhood: "موقع العميل",
         },
       });
