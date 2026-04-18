@@ -83,31 +83,43 @@ export function RestaurantMenu() {
   const [customerNotes, setCustomerNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
+  const [addressDescription, setAddressDescription] = useState("");
+  const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   
   const createRestaurantOrderMutation = trpc.orders.createRestaurantOrder.useMutation();
 
-  // Get user's current location
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            address: "موقعي الحالي",
-          });
-        },
-        (error) => {
-          console.warn("Could not get user location:", error);
-          // Use default location if geolocation fails
-          setUserLocation({
-            latitude: 30.0444,
-            longitude: 31.2357,
-            address: "موقع افتراضي",
-          });
-        }
-      );
+  const requestLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("متصفحك لا يدعم تحديد الموقع الجغرافي");
+      setLocationStatus("error");
+      return;
     }
+
+    setLocationStatus("loading");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          address: "موقعي الحالي المكتشف",
+        });
+        setLocationStatus("success");
+        toast.success("تم تحديد موقعك بنجاح! 📍");
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        setLocationStatus("error");
+        let errorMsg = "فشل تحديد الموقع. يرجى تفعيل GPS وإعطاء صلاحية الموقع للمتصفح.";
+        if (error.code === 1) errorMsg = "يرجى السماح للمتصفح بالوصول لموقعك من إعدادات الهاتف/المتصفح.";
+        toast.error(errorMsg);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+  // Get user's current location on mount
+  useEffect(() => {
+    requestLocation();
   }, []);
 
   const categories = Array.from(new Set(ROLL_WE_MENU.map((item) => item.category)));
@@ -165,7 +177,7 @@ export function RestaurantMenu() {
         .map((item) => `${item.name} × ${item.quantity} = ${item.price * item.quantity} ج.م`)
         .join("\n");
 
-      const message = `طلب جديد من تطبيق وصلي 📱\n\n${orderItems}\n\nالإجمالي: ${totalPrice} ج.م\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
+      const message = `طلب جديد من تطبيق وصلي 📱\n\n${orderItems}\n\nالإجمالي: ${totalPrice} ج.م\n\nالعنوان: ${addressDescription || "موقع GPS"}\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
 
       const encodedMessage = encodeURIComponent(message);
       const whatsappUrl = `https://api.whatsapp.com/send?phone=${ROLL_WE_RESTAURANT.whatsappPhone}&text=${encodedMessage}`;
@@ -326,12 +338,41 @@ export function RestaurantMenu() {
                 <span className="text-2xl font-bold text-orange-600">{totalPrice} ج.م</span>
               </div>
 
+              <div className="space-y-2 mb-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-bold text-gray-700 flex items-center gap-1">
+                    <MapPin className="h-3 w-3 text-orange-500" />
+                    عنوان التوصيل بدقة:
+                  </label>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={requestLocation}
+                    className="h-7 text-[10px] text-blue-600 hover:text-blue-700 p-0"
+                  >
+                    {locationStatus === "loading" ? "جاري التحديد..." : "تحديث موقعي 🔄"}
+                  </Button>
+                </div>
+                <input
+                  type="text"
+                  placeholder="مثال: شقة 5، الدور الثالث، بجوار مسجد..."
+                  value={addressDescription}
+                  onChange={(e) => setAddressDescription(e.target.value)}
+                  className="w-full p-2 border rounded-md text-sm"
+                />
+                {locationStatus === "error" && (
+                  <p className="text-[10px] text-red-500 font-medium">
+                    ⚠️ لم نتمكن من جلب موقعك بدقة. يرجى كتابة العنوان بالتفصيل أعلاه.
+                  </p>
+                )}
+              </div>
+
               <textarea
-                placeholder="أضف ملاحظات على الطلب (اختياري)..."
+                placeholder="أضف ملاحظات إضافية (اختياري)..."
                 value={customerNotes}
                 onChange={(e) => setCustomerNotes(e.target.value)}
                 className="w-full p-2 border rounded-md text-sm mb-3 resize-none"
-                rows={2}
+                rows={1}
               />
 
               <Button
