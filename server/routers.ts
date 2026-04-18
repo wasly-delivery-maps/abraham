@@ -337,6 +337,12 @@ export const appRouter = router({
           ),
           totalPrice: z.number(),
           notes: z.string().optional(),
+          pickupLocation: z.object({
+            address: z.string(),
+            latitude: z.number(),
+            longitude: z.number(),
+            neighborhood: z.string().optional(),
+          }).optional(),
           deliveryLocation: z.object({
             address: z.string(),
             latitude: z.number(),
@@ -353,13 +359,15 @@ export const appRouter = router({
           });
         }
 
-        // Restaurant pickup location (Roll We)
-        const pickupLocation = {
+        // Restaurant pickup location (Default to Roll We if not provided)
+        const pickupLocation = input.pickupLocation || {
           address: "رول وي - مطعم وكافيه، العبور الجديدة",
           latitude: 30.2750994,
           longitude: 31.5006526,
           neighborhood: "العبور الجديدة",
         };
+
+        const restaurantName = input.restaurantId === 2 ? "كشري الخديوي" : "رول وي";
 
         // Calculate distance
         const distance = calculateDistance(
@@ -387,13 +395,13 @@ export const appRouter = router({
           price: deliveryPrice, // This is the delivery fee for the driver
           distance,
           estimatedTime,
-          notes: `طلب من المطعم: ${input.notes || "بدون ملاحظات"}\nقيمة الطعام للمطعم: ج.م ${input.totalPrice}`,
+          notes: `طلب من مطعم ${restaurantName}: ${input.notes || "بدون ملاحظات"}\nقيمة الطعام للمطعم: ج.م ${input.totalPrice}`,
         });
 
         // Notify drivers about new order
         await notifyDriversOfNewOrder(
           result.id,
-          `طلب توصيل جديد من مطعم رول وي. سعر التوصيل: ج.م ${deliveryPrice}. اضغط للتفاصيل وقبول الطلب! 🍽️`
+          `طلب توصيل جديد من مطعم ${restaurantName}. سعر التوصيل: ج.م ${deliveryPrice}. اضغط للتفاصيل وقبول الطلب! 🍽️`
         );
 
         return {
