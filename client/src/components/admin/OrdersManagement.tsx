@@ -27,6 +27,7 @@ export function OrdersManagement({ orders: initialOrders }: { orders: Order[] })
   const [ordersWithNames, setOrdersWithNames] = useState<Order[]>([]);
   const [selectedOrderForWhatsApp, setSelectedOrderForWhatsApp] = useState<Order | null>(null);
   const [isWhatsAppDialogOpen, setIsWhatsAppDialogOpen] = useState(false);
+  const [driverSearchTerm, setDriverSearchTerm] = useState("");
   
   const usersQuery = trpc.admin.getAllUsers.useQuery();
   const deleteOrderMutation = trpc.admin.deleteOrder.useMutation();
@@ -249,14 +250,38 @@ export function OrdersManagement({ orders: initialOrders }: { orders: Order[] })
             </DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-4">
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-muted-foreground mb-2">
               اختر السائق لإرسال تفاصيل الطلب #{selectedOrderForWhatsApp?.id} له مباشرة عبر واتساب:
             </p>
+            
+            <div className="relative mb-4">
+              <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="ابحث عن اسم السائق أو رقمه..."
+                className="w-full pr-10 pl-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                value={driverSearchTerm}
+                onChange={(e) => setDriverSearchTerm(e.target.value)}
+              />
+            </div>
+
             <div className="max-h-[300px] overflow-y-auto space-y-2 pr-1">
-              {usersQuery.data?.filter((u: any) => u.role === "driver").length === 0 ? (
-                <p className="text-center py-4 text-muted-foreground">لا يوجد سائقين مسجلين</p>
-              ) : (
-                usersQuery.data?.filter((u: any) => u.role === "driver").map((driver: any) => (
+              {(() => {
+                const allDrivers = usersQuery.data?.filter((u: any) => u.role === "driver") || [];
+                const filteredDrivers = allDrivers.filter((d: any) => 
+                  d.name?.toLowerCase().includes(driverSearchTerm.toLowerCase()) || 
+                  d.phone?.includes(driverSearchTerm)
+                );
+
+                if (allDrivers.length === 0) {
+                  return <p className="text-center py-4 text-muted-foreground">لا يوجد سائقين مسجلين</p>;
+                }
+                
+                if (filteredDrivers.length === 0) {
+                  return <p className="text-center py-4 text-muted-foreground">لا يوجد نتائج للبحث</p>;
+                }
+
+                return filteredDrivers.map((driver: any) => (
                   <div key={driver.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
                     <div>
                       <p className="font-bold">{driver.name}</p>
@@ -271,8 +296,8 @@ export function OrdersManagement({ orders: initialOrders }: { orders: Order[] })
                       إرسال
                     </Button>
                   </div>
-                ))
-              )}
+                ));
+              })()}
             </div>
           </div>
           <div className="flex justify-end">
