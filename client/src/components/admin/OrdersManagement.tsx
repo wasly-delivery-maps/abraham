@@ -62,9 +62,6 @@ export function OrdersManagement({ orders: initialOrders }: { orders: Order[] })
   };
 
   const handleSendWhatsApp = (order: Order) => {
-    // جلب بيانات السائق
-    const driver = ordersWithNames.find((o) => o.id === order.id)?.driverName || "غير مسند";
-    
     // بناء الرسالة
     const pickupAddress = order.pickupLocation?.address || "عنوان الاستلام";
     const deliveryAddress = order.deliveryLocation?.address || "عنوان التسليم";
@@ -75,12 +72,43 @@ export function OrdersManagement({ orders: initialOrders }: { orders: Order[] })
     // ترميز الرسالة
     const encodedMessage = encodeURIComponent(message);
     
-    // فتح واتساب برسالة مُعدة
-    // ملاحظة: هذا الرابط سيفتح واتساب ويعرض نافذة اختيار جهة الاتصال
-    const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+    // جلب جميع السائقين من البيانات المتاحة
+    const drivers = usersQuery.data?.filter((u: any) => u.role === "driver") || [];
     
-    window.open(whatsappUrl, "_blank");
-    toast.success("تم فتح واتساب - اختر رقم السائق وأرسل الرسالة");
+    if (drivers.length === 0) {
+      toast.error("لا توجد سائقين مسجلين في النظام");
+      return;
+    }
+    
+    // إرسال الرسالة لكل سائق
+    let successCount = 0;
+    drivers.forEach((driver: any) => {
+      if (driver.phone) {
+        // تنسيق رقم الهاتف إذا لزم الأمر
+        let phoneNumber = driver.phone;
+        // إزالة الأحرف غير الرقمية
+        phoneNumber = phoneNumber.replace(/\D/g, '');
+        // إضافة رمز الدولة إذا لم يكن موجوداً
+        if (!phoneNumber.startsWith('20')) {
+          if (phoneNumber.startsWith('0')) {
+            phoneNumber = '20' + phoneNumber.substring(1);
+          } else {
+            phoneNumber = '20' + phoneNumber;
+          }
+        }
+        
+        // فتح واتساب لهذا السائق برسالة مُعدة
+        const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+        window.open(whatsappUrl, "_blank");
+        successCount++;
+      }
+    });
+    
+    if (successCount > 0) {
+      toast.success(`تم إرسال الطلب لـ ${successCount} سائق عبر واتساب`);
+    } else {
+      toast.error("لم يتمكن من إرسال الرسالة - تأكد من وجود أرقام هاتف للسائقين");
+    }
   };
 
   const getStatusLabel = (status: string) => {
