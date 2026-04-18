@@ -3,6 +3,7 @@ import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { Button } from '@/components/ui/button';
 import { Bell, BellOff } from 'lucide-react';
 import { toast } from 'sonner';
+import { requestNotificationPermissionAndGetToken, saveFCMTokenToBackend } from '@/lib/firebase-messaging';
 
 interface NotificationSubscriberProps {
   vapidPublicKey: string;
@@ -33,20 +34,24 @@ export function NotificationSubscriber({
     try {
       setIsLoading(true);
       
-      // Try OneSignal first if available
-      if ((window as any).OneSignal) {
-        const OneSignal = (window as any).OneSignal;
-        const permission = await OneSignal.Notifications.permission;
-        if (!permission) {
-          await OneSignal.Notifications.requestPermission();
+      // 1. Firebase FCM Integration (Added for reliable background notifications)
+      try {
+        console.log('[FCM] Attempting to get Firebase token...');
+        const fcmToken = await requestNotificationPermissionAndGetToken();
+        if (fcmToken) {
+          console.log('[FCM] Token obtained, saving to backend...');
+          await saveFCMTokenToBackend(fcmToken, userId.toString());
         }
+      } catch (fcmError) {
+        console.error('[FCM] Failed to initialize Firebase:', fcmError);
+        // Continue with standard push even if FCM fails
       }
 
+      // 2. Original Web Push Logic
       await subscribeToPushNotifications(vapidPublicKey, userId);
       toast.success('تم تفعيل الإشعارات بنجاح');
     } catch (error) {
       console.error('Failed to subscribe:', error);
-      // Even if one method fails, the other might have worked
       toast.error('يرجى التأكد من منح إذن الإشعارات في المتصفح');
     } finally {
       setIsLoading(false);
