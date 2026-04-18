@@ -192,6 +192,7 @@ export async function sendOneSignalNotification(
       android_accent_color: "FF0000",
       android_led_color: "FF0000",
       android_sound: "notification",
+      ios_sound: "notification.wav",
       vibration_pattern: [200, 100, 200, 100, 200, 100, 200], // نمط اهتزاز قوي
       
       small_icon: "ic_stat_onesignal_default",
@@ -203,6 +204,14 @@ export async function sendOneSignalNotification(
         { id: "view_order", text: "عرض الطلب", icon: "ic_menu_view" },
         { id: "accept_order", text: "قبول الطلب الآن", icon: "ic_menu_send" }
       ],
+      
+      // إعدادات إضافية للتنبيهات الحرجة (Critical Alerts)
+      critical: true, // تفعيل وضع التنبيه الحرج
+      apns_alert: {
+        title: notification.title,
+        body: notification.body,
+        sound: "notification.wav",
+      },
     };
 
     // Apply filters or target all subscribed users

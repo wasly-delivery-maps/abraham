@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { ChatBox } from "@/components/ChatBox";
 import { useChatContext } from "@/contexts/ChatContext";
+import { useCriticalAlerts } from "@/hooks/useCriticalAlerts";
 
 // Leaflet imports
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from 'react-leaflet';
@@ -151,6 +152,7 @@ export default function DriverDashboard() {
   const [driverLocation, setDriverLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const { unreadCounts } = useChatContext();
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+  const { startAlert, stopAlert, isAlertActive } = useCriticalAlerts();
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
@@ -245,6 +247,13 @@ export default function DriverDashboard() {
 
   const handleStatusUpdate = async (orderId: number, status: string) => {
     try {
+      // Stop alert when order status changes
+      if (status === "accepted" || status === "picked_up" || status === "delivered") {
+        if (isAlertActive()) {
+          await stopAlert();
+        }
+      }
+      
       if (status === "delivered") {
         const result = await completeOrderMutation.mutateAsync({ orderId });
         if ((result as any).isSuspended) {
@@ -284,6 +293,11 @@ export default function DriverDashboard() {
 
   const handleAcceptOrder = async (orderId: number) => {
     try {
+      // Stop alert sound when driver accepts an order
+      if (isAlertActive()) {
+        await stopAlert();
+      }
+      
       await acceptOrderMutation.mutateAsync({ orderId });
       toast.success("تم قبول الطلب بنجاح! 🚀");
       ordersQuery.refetch();
@@ -295,6 +309,11 @@ export default function DriverDashboard() {
 
   const handleLogout = async () => {
     try {
+      // Stop alert when driver logs out
+      if (isAlertActive()) {
+        await stopAlert();
+      }
+      
       await logout();
       navigate("/auth");
       toast.success("تم تسجيل الخروج بنجاح");

@@ -1,6 +1,91 @@
 // Service Worker for handling push notifications and system notifications
 // This worker ensures notifications are delivered even when the app is closed
 
+// Global audio context for playing continuous alert sounds
+let audioContext = null;
+let currentAudioSource = null;
+let alertIntervalId = null;
+
+// Initialize audio context for playing sounds
+function initAudioContext() {
+  if (!audioContext) {
+    try {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      console.log('[ServiceWorker] Audio context initialized');
+    } catch (error) {
+      console.error('[ServiceWorker] Failed to initialize audio context:', error);
+    }
+  }
+  return audioContext;
+}
+
+// Play alert sound continuously
+async function playAlertSound() {
+  try {
+    const response = await fetch('/alert.mp3');
+    const arrayBuffer = await response.arrayBuffer();
+    
+    const ctx = initAudioContext();
+    if (!ctx) return;
+    
+    // Resume audio context if suspended (required for user interaction)
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+    
+    // Decode audio data
+    const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+    
+    // Stop any existing playback
+    if (currentAudioSource) {
+      currentAudioSource.stop();
+    }
+    
+    // Create and play the sound
+    currentAudioSource = ctx.createBufferSource();
+    currentAudioSource.buffer = audioBuffer;
+    currentAudioSource.connect(ctx.destination);
+    currentAudioSource.start(0);
+    
+    console.log('[ServiceWorker] Alert sound started');
+  } catch (error) {
+    console.error('[ServiceWorker] Failed to play alert sound:', error);
+  }
+}
+
+// Start continuous alert loop (plays every 3 seconds)
+function startContinuousAlert() {
+  console.log('[ServiceWorker] Starting continuous alert');
+  
+  // Play immediately
+  playAlertSound();
+  
+  // Then repeat every 3 seconds
+  if (alertIntervalId) clearInterval(alertIntervalId);
+  alertIntervalId = setInterval(() => {
+    playAlertSound();
+  }, 3000);
+}
+
+// Stop continuous alert
+function stopContinuousAlert() {
+  console.log('[ServiceWorker] Stopping continuous alert');
+  
+  if (alertIntervalId) {
+    clearInterval(alertIntervalId);
+    alertIntervalId = null;
+  }
+  
+  if (currentAudioSource) {
+    try {
+      currentAudioSource.stop();
+    } catch (error) {
+      console.error('[ServiceWorker] Error stopping audio:', error);
+    }
+    currentAudioSource = null;
+  }
+}
+
 // Handle push events - main entry point for push notifications
 self.addEventListener('push', (event) => {
   console.log('[ServiceWorker] Push event received');
@@ -52,8 +137,11 @@ self.addEventListener('push', (event) => {
 
     console.log('[ServiceWorker] Showing notification:', title);
     
-    // Play sound notification if possible (limited support in SW, but good to have)
-    // Most browsers require user interaction in the app before sound can play
+    // Start continuous alert sound for critical notifications (new orders)
+    if (data.tag && data.tag.includes('order')) {
+      console.log('[ServiceWorker] Critical notification detected - starting continuous alert');
+      startContinuousAlert();
+    }
     
     event.waitUntil(
       self.registration.showNotification(title, options)
@@ -89,6 +177,9 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   console.log('[ServiceWorker] Notification clicked:', event.notification.tag);
   event.notification.close();
+  
+  // Stop continuous alert when user interacts with notification
+  stopContinuousAlert();
 
   const urlToOpen = event.notification.data.url || '/driver/dashboard';
   const orderId = event.notification.data.orderId;
@@ -136,6 +227,18 @@ self.addEventListener('message', (event) => {
   
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+  
+  // Handle stop alert message from client
+  if (event.data && event.data.type === 'STOP_ALERT') {
+    console.log('[ServiceWorker] Received stop alert message');
+    stopContinuousAlert();
+  }
+  
+  // Handle start alert message from client
+  if (event.data && event.data.type === 'START_ALERT') {
+    console.log('[ServiceWorker] Received start alert message');
+    startContinuousAlert();
   }
 });
 
