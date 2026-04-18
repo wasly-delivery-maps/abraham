@@ -233,41 +233,50 @@ export function RestaurantMenu() {
 
   return (
     <div className="space-y-6 pb-96" dir="rtl">
-      {/* رأس المطعم */}
-      <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
-        <CardHeader className="relative z-10">
-          <div className="flex items-start gap-4">
-            <div className="h-20 w-20 rounded-xl bg-white p-1 shadow-lg flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-orange-200">
-               <img 
-                src="https://web-production-0eb1b.up.railway.app/uploads/roll_we_logo.png" 
-                alt="Roll We Logo" 
-                className="max-w-full max-h-full object-contain"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "https://ui-avatars.com/api/?name=RW&background=f97316&color=fff";
-                }}
-              />
-            </div>
-            <div className="flex-1">
-              <CardTitle className="flex items-center justify-between text-2xl">
-                <span>{ROLL_WE_RESTAURANT.name}</span>
-                <MessageCircle className="h-6 w-6 opacity-80" />
-              </CardTitle>
-              <p className="text-orange-100 text-xs mt-1 font-medium">{ROLL_WE_RESTAURANT.description}</p>
-              <div className="space-y-1.5 mt-3 text-[13px] opacity-90">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-3.5 w-3.5" />
-                  <span>{ROLL_WE_RESTAURANT.address}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="h-3.5 w-3.5" />
-                  <span>{ROLL_WE_RESTAURANT.phone}</span>
-                </div>
-              </div>
+      {/* رأس المطعم المطور بصورة غلاف جذابة */}
+      <div className="relative rounded-2xl overflow-hidden shadow-xl mb-6 group">
+        {/* صورة الغلاف */}
+        <div className="h-48 w-full relative">
+          <img 
+            src="https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format&fit=crop" 
+            alt="Restaurant Cover" 
+            className="w-full h-full object-cover brightness-50 group-hover:scale-105 transition-transform duration-700"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+        </div>
+
+        {/* محتوى الرأس */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end gap-4">
+          <div className="h-20 w-20 rounded-2xl bg-white p-1.5 shadow-2xl flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-orange-400 z-20 transform -translate-y-2">
+             <img 
+              src="https://ui-avatars.com/api/?name=RW&background=f97316&color=fff&size=128&bold=true" 
+              alt="Roll We Logo" 
+              className="w-full h-full object-contain rounded-lg"
+            />
+          </div>
+          <div className="flex-1 pb-2 text-white z-20">
+            <h1 className="text-2xl font-black drop-shadow-md">{ROLL_WE_RESTAURANT.name}</h1>
+            <div className="flex items-center gap-3 mt-1 text-[11px] font-medium opacity-90">
+              <span className="flex items-center gap-1 bg-orange-500/80 px-2 py-0.5 rounded-full">
+                <MapPin className="h-3 w-3" /> {ROLL_WE_RESTAURANT.address}
+              </span>
+              <span className="flex items-center gap-1 bg-green-500/80 px-2 py-0.5 rounded-full">
+                <Phone className="h-3 w-3" /> {ROLL_WE_RESTAURANT.phone}
+              </span>
             </div>
           </div>
-        </CardHeader>
-      </Card>
+          <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md p-2 rounded-full text-white border border-white/30">
+            <MessageCircle className="h-5 w-5" />
+          </div>
+        </div>
+      </div>
+
+      {/* وصف المطعم بتصميم أنيق */}
+      <div className="px-2 mb-4">
+        <p className="text-sm text-gray-600 font-medium leading-relaxed border-r-4 border-orange-500 pr-3">
+          {ROLL_WE_RESTAURANT.description}
+        </p>
+      </div>
 
       {/* تصنيفات المنيو */}
       <div className="flex gap-2 overflow-x-auto pb-2 px-4">
@@ -286,29 +295,34 @@ export function RestaurantMenu() {
         ))}
       </div>
 
-      {/* قائمة الطعام */}
+      {/* قائمة الطعام بتصميم مطور */}
       <div className="px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredMenu.map((item) => (
-          <Card key={item.id} className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex-1">
-                  <h3 className="font-bold text-lg">{item.name}</h3>
-                  {item.description && (
-                    <p className="text-xs text-muted-foreground mt-1">{item.description}</p>
-                  )}
+          <Card key={item.id} className="overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 group rounded-2xl bg-white">
+            <CardContent className="p-0">
+              <div className="flex p-4 gap-4 items-center">
+                <div className="h-16 w-16 bg-orange-50 rounded-xl flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-colors duration-300 shadow-inner">
+                   {selectedCategory === "كريب" && <span className="text-2xl">🌯</span>}
+                   {selectedCategory === "رول" && <span className="text-2xl">🥙</span>}
+                   {selectedCategory === "مكرونة" && <span className="text-2xl">🍝</span>}
+                   {selectedCategory === "حواوشي" && <span className="text-2xl">🥪</span>}
+                   {selectedCategory === "مشروبات" && <span className="text-2xl">🥤</span>}
+                   {selectedCategory === "تسلية" && <span className="text-2xl">🍿</span>}
                 </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-bold text-orange-600">{item.price} ج.م</span>
-                <Button
-                  size="sm"
-                  className="bg-orange-500 hover:bg-orange-600 gap-1"
-                  onClick={() => addToCart(item)}
-                >
-                  <Plus className="h-4 w-4" />
-                  إضافة
-                </Button>
+                <div className="flex-1">
+                  <h3 className="font-bold text-gray-800 group-hover:text-orange-600 transition-colors">{item.name}</h3>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-lg font-black text-orange-600">{item.price} <small className="text-[10px] text-gray-400 font-normal">ج.م</small></span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 w-8 rounded-full p-0 border-orange-200 text-orange-500 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all shadow-sm"
+                      onClick={() => addToCart(item)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
