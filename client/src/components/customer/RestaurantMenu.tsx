@@ -240,9 +240,9 @@ export function RestaurantMenu() {
           <img 
             src="https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format&fit=crop" 
             alt="Restaurant Cover" 
-            className="w-full h-full object-cover brightness-50 group-hover:scale-105 transition-transform duration-700"
+            className="w-full h-full object-cover brightness-100 group-hover:scale-105 transition-transform duration-700"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
         </div>
 
         {/* محتوى الرأس */}
@@ -255,7 +255,7 @@ export function RestaurantMenu() {
             />
           </div>
           <div className="flex-1 pb-2 text-white z-20">
-            <h1 className="text-2xl font-black drop-shadow-md">{ROLL_WE_RESTAURANT.name}</h1>
+            <h1 className="text-2xl font-black drop-shadow-lg text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{ROLL_WE_RESTAURANT.name}</h1>
             <div className="flex items-center gap-3 mt-1 text-[11px] font-medium opacity-90">
               <span className="flex items-center gap-1 bg-orange-500/80 px-2 py-0.5 rounded-full">
                 <MapPin className="h-3 w-3" /> {ROLL_WE_RESTAURANT.address}
