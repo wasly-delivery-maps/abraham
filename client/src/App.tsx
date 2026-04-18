@@ -15,6 +15,7 @@ import CreateOrder from "./pages/CreateOrder";
 import DriverProfile from "./pages/DriverProfile";
 import DriverSupport from "./pages/DriverSupport";
 import CustomerProfile from "./pages/CustomerProfile";
+import CustomerStats from "./pages/CustomerStats";
 
 function Router() {
   return (
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/auth" component={Auth} />
       <Route path="/customer/dashboard" component={() => <ProtectedRoute component={CustomerDashboard} requiredRole="customer" />} />
       <Route path="/customer/profile" component={() => <ProtectedRoute component={CustomerProfile} requiredRole="customer" />} />
+      <Route path="/customer/stats" component={() => <ProtectedRoute component={CustomerStats} requiredRole="customer" />} />
       <Route path="/customer/create-order" component={() => <ProtectedRoute component={CreateOrder} requiredRole="customer" />} />
       <Route path="/driver/dashboard" component={() => <ProtectedRoute component={DriverDashboard} requiredRole="driver" />} />
       <Route path="/driver/profile" component={() => <ProtectedRoute component={DriverProfile} requiredRole="driver" />} />

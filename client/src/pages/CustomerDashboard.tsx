@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { MapPin, Plus, LogOut, User, Truck, Clock, DollarSign, X, Phone, Calendar, ChevronRight, Package, Search, CheckCircle2, Loader2, TrendingUp, Award, Zap, Navigation, Info, MessageCircle } from "lucide-react";
+import { MapPin, Plus, LogOut, User, Truck, Clock, DollarSign, X, Phone, Calendar, ChevronRight, Package, Search, CheckCircle2, Loader2, TrendingUp, Award, Zap, Navigation, Info, MessageCircle, BarChart3 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { ChatBox } from "@/components/ChatBox";
@@ -171,16 +171,26 @@ export default function CustomerDashboard() {
                 ⭐ عميل مميز
               </motion.span>
             </div>
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Link href="/customer/profile">
-                <Button variant="ghost" size="icon" className="rounded-full bg-gradient-to-br from-slate-100 to-slate-50 h-10 w-10 hover:from-orange-100 hover:to-orange-50 transition-all">
-                  <User className="h-5 w-5 text-slate-600" />
-                </Button>
-              </Link>
-            </motion.div>
+<motion.div
+	              whileHover={{ scale: 1.1 }}
+	              whileTap={{ scale: 0.95 }}
+	            >
+	              <Link href="/customer/stats">
+	                <Button variant="ghost" size="icon" className="rounded-full bg-gradient-to-br from-slate-100 to-slate-50 h-10 w-10 hover:from-orange-100 hover:to-orange-50 transition-all">
+	                  <BarChart3 className="h-5 w-5 text-slate-600" />
+	                </Button>
+	              </Link>
+	            </motion.div>
+	            <motion.div
+	              whileHover={{ scale: 1.1 }}
+	              whileTap={{ scale: 0.95 }}
+	            >
+	              <Link href="/customer/profile">
+	                <Button variant="ghost" size="icon" className="rounded-full bg-gradient-to-br from-slate-100 to-slate-50 h-10 w-10 hover:from-orange-100 hover:to-orange-50 transition-all">
+	                  <User className="h-5 w-5 text-slate-600" />
+	                </Button>
+	              </Link>
+	            </motion.div>
             <motion.div
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
@@ -233,38 +243,7 @@ export default function CustomerDashboard() {
             </motion.div>
           </motion.div>
 
-          {/* Stats */}
-          <motion.div 
-            className="grid grid-cols-1 sm:grid-cols-3 gap-4"
-            variants={containerVariants}
-          >
-            {[
-              { label: "طلبات نشطة", value: activeOrders.length, icon: Zap, color: "from-orange-500 to-orange-600", bg: "bg-orange-50" },
-              { label: "طلبات مكتملة", value: completedOrders.length, icon: CheckCircle2, color: "from-emerald-500 to-emerald-600", bg: "bg-emerald-50" },
-              { label: "إجمالي الإنفاق", value: `ج.م ${totalSpent.toLocaleString()}`, icon: TrendingUp, color: "from-blue-500 to-blue-600", bg: "bg-blue-50" }
-            ].map((stat, i) => (
-              <motion.div
-                key={i}
-                variants={itemVariants}
-                whileHover={{ scale: 1.05, y: -5 }}
-              >
-                <Card className="border-none shadow-md bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all">
-                  <CardContent className="p-6 flex items-center gap-4">
-                    <motion.div 
-                      className={`bg-gradient-to-br ${stat.color} p-3 rounded-xl text-white shadow-lg`}
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                    >
-                      <stat.icon className="h-6 w-6" />
-                    </motion.div>
-                    <div>
-                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">{stat.label}</div>
-                      <div className="text-2xl font-black text-slate-900">{stat.value}</div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
+{/* Removed Stats Section - Moved to separate page */}
 
           {/* Orders Tabs */}
           <motion.div variants={itemVariants}>
