@@ -66,8 +66,8 @@ const KHEDIVE_KOSHARY_RESTAURANT: Restaurant = {
   rating: "4.9",
   deliveryTime: "20-35 دقيقة",
   location: {
-    latitude: 30.2285,
-    longitude: 31.4745
+    latitude: 30.257811,
+    longitude: 31.466857
   }
 };
 
