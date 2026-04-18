@@ -32,6 +32,11 @@ export function OrdersManagement({ orders: initialOrders }: { orders: Order[] })
   const usersQuery = trpc.admin.getAllUsers.useQuery();
   const deleteOrderMutation = trpc.admin.deleteOrder.useMutation();
   
+  // تحديث الطلبات عند تغيير initialOrders
+  useEffect(() => {
+    setOrders(initialOrders);
+  }, [initialOrders]);
+  
   useEffect(() => {
     if (usersQuery.data && orders.length > 0) {
       const usersMap = new Map(usersQuery.data.map((u: any) => [u.id, u.name]));
