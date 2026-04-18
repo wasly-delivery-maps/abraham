@@ -180,10 +180,22 @@ export function RestaurantMenu() {
       const message = `طلب جديد من تطبيق وصلي 📱\n\n${orderItems}\n\nالإجمالي: ${totalPrice} ج.م\n\nالعنوان: ${addressDescription || "موقع GPS"}\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
 
       const encodedMessage = encodeURIComponent(message);
-      const whatsappUrl = `https://api.whatsapp.com/send?phone=${ROLL_WE_RESTAURANT.whatsappPhone}&text=${encodedMessage}`;
+      // استخدام رابط whatsapp:// المباشر لإجبار الهاتف على فتح التطبيق فوراً
+      const directWhatsappUrl = `whatsapp://send?phone=${ROLL_WE_RESTAURANT.whatsappPhone}&text=${encodedMessage}`;
+      const webWhatsappUrl = `https://api.whatsapp.com/send?phone=${ROLL_WE_RESTAURANT.whatsappPhone}&text=${encodedMessage}`;
 
-      // فتح واتساب
-      window.open(whatsappUrl, "_blank");
+      // محاولة فتح التطبيق مباشرة، وإذا فشل نستخدم رابط الويب
+      try {
+        window.location.href = directWhatsappUrl;
+        // ننتظر قليلاً، إذا لم يتغير الرابط (فشل الفتح المباشر)، نفتح رابط الويب في نافذة جديدة
+        setTimeout(() => {
+          if (document.hasFocus()) {
+            window.open(webWhatsappUrl, "_blank");
+          }
+        }, 500);
+      } catch (e) {
+        window.open(webWhatsappUrl, "_blank");
+      }
 
       // إنشاء طلب توصيل تلقائي
       const cartItems = cart.map((item) => ({
