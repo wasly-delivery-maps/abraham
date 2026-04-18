@@ -16,20 +16,7 @@
     <link rel="icon" type="image/jpeg" href="/logo.jpg" />
     <link rel="apple-touch-icon" href="/logo.jpg" />
     <title>منصة وصلي للتوصيل الذكية</title>
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-          appId: "c7e88fa4-df0e-42a5-960a-fd9088b949b4",
-          safari_web_id: "web.onesignal.auto.09707374-9793-470a-976a-739088b949b4",
-          notifyButton: {
-            enable: true,
-          },
-          allowLocalhostAsSecureOrigin: true,
-        });
-      });
-
       // كود طلب تثبيت التطبيق (PWA Install Prompt)
       let deferredPrompt;
       window.addEventListener('beforeinstallprompt', (e) => {
@@ -107,7 +94,7 @@
         setTimeout(async () => {
           console.log("[PWA] Starting permission requests...");
           
-          // 1. طلب إذن الإشعارات عبر Notification API أولاً (أساسي)
+          // 1. طلب إذن الإشعارات عبر Notification API (Firebase سيتولى الباقي)
           if ("Notification" in window) {
             try {
               if (Notification.permission === 'default') {
@@ -121,29 +108,8 @@
               console.error("[PWA] Notification permission error:", error);
             }
           }
-          
-          // 2. طلب إذن الإشعارات عبر OneSignal (إضافي)
-          if (window.OneSignalDeferred) {
-            try {
-              window.OneSignalDeferred.push(async function(OneSignal) {
-                try {
-                  const permission = await OneSignal.Notifications.permission;
-                  console.log("[OneSignal] Current permission:", permission);
-                  if (!permission) {
-                    console.log("[OneSignal] Requesting notification permission...");
-                    await OneSignal.Notifications.requestPermission();
-                    console.log("[OneSignal] Permission request completed");
-                  }
-                } catch (error) {
-                  console.error("[OneSignal] Permission error:", error);
-                }
-              });
-            } catch (error) {
-              console.error("[PWA] OneSignal error:", error);
-            }
-          }
 
-          // 3. طلب إذن الموقع الجغرافي (للخرائط وتتبع السائق)
+          // 2. طلب إذن الموقع الجغرافي (للخرائط وتتبع السائق)
           if ("geolocation" in navigator) {
             try {
               navigator.geolocation.getCurrentPosition(
@@ -156,7 +122,7 @@
             }
           }
 
-          // 4. طلب إذن الوسائط (صوت وتنبيهات)
+          // 3. طلب إذن الوسائط (صوت وتنبيهات)
           try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             stream.getTracks().forEach(track => track.stop()); // إغلاق الميكروفون فور الحصول على الإذن

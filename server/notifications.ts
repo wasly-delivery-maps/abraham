@@ -321,11 +321,8 @@ export async function notifyDriversOfNewOrder(
       console.warn("[Notifications] Firebase Admin SDK not initialized, skipping Firebase broadcast");
     }
 
-    // 3. Send OneSignal Push Notification to ALL drivers
-    // We target by role="driver" to ensure only drivers get the new order notification
-    console.log("[Notifications] Sending OneSignal notification to drivers");
-    await sendOneSignalNotification({ role: "driver" }, notification);
-    console.log("[Notifications] OneSignal notification sent successfully");
+    // 3. OneSignal is now deprecated - Firebase is the primary notification system
+    console.log("[Notifications] OneSignal is disabled - using Firebase exclusively");
   } catch (error) {
     console.error("[Notifications] Failed to notify drivers:", error);
   }
