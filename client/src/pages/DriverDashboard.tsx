@@ -12,6 +12,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { ChatBox } from "@/components/ChatBox";
 import { useChatContext } from "@/contexts/ChatContext";
 import { useCriticalAlerts } from "@/hooks/useCriticalAlerts";
+import { useFCM } from "@/hooks/useFCM";
 
 // Leaflet imports
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from 'react-leaflet';
