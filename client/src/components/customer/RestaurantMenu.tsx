@@ -24,6 +24,7 @@ interface Restaurant {
   whatsappPhone: string;
   address: string;
   description?: string;
+  logoUrl?: string;
 }
 
 // مطعم "رول وي" - البيانات
@@ -33,7 +34,8 @@ const ROLL_WE_RESTAURANT: Restaurant = {
   phone: "01032809502",
   whatsappPhone: "201032809502",
   address: "العبور الجديدة، مصر",
-  description: "مطعم متخصص في الكريب والرول والمكرونة",
+  description: "أشهى أنواع الكريب والرول والمكرونة والحواوشي في العبور الجديدة",
+  logoUrl: "https://web-production-0eb1b.up.railway.app/uploads/roll_we_logo.png", // سيتم رفع الصورة لهذا المسار
 };
 
 const ROLL_WE_MENU: MenuItem[] = [
@@ -232,20 +234,36 @@ export function RestaurantMenu() {
   return (
     <div className="space-y-6 pb-96" dir="rtl">
       {/* رأس المطعم */}
-      <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between text-2xl">
-            <span>{ROLL_WE_RESTAURANT.name}</span>
-            <MessageCircle className="h-6 w-6" />
-          </CardTitle>
-          <div className="space-y-2 mt-3 text-sm">
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
-              <span>{ROLL_WE_RESTAURANT.address}</span>
+      <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+        <CardHeader className="relative z-10">
+          <div className="flex items-start gap-4">
+            <div className="h-20 w-20 rounded-xl bg-white p-1 shadow-lg flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-orange-200">
+               <img 
+                src="https://web-production-0eb1b.up.railway.app/uploads/roll_we_logo.png" 
+                alt="Roll We Logo" 
+                className="max-w-full max-h-full object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "https://ui-avatars.com/api/?name=RW&background=f97316&color=fff";
+                }}
+              />
             </div>
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4" />
-              <span>{ROLL_WE_RESTAURANT.phone}</span>
+            <div className="flex-1">
+              <CardTitle className="flex items-center justify-between text-2xl">
+                <span>{ROLL_WE_RESTAURANT.name}</span>
+                <MessageCircle className="h-6 w-6 opacity-80" />
+              </CardTitle>
+              <p className="text-orange-100 text-xs mt-1 font-medium">{ROLL_WE_RESTAURANT.description}</p>
+              <div className="space-y-1.5 mt-3 text-[13px] opacity-90">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-3.5 w-3.5" />
+                  <span>{ROLL_WE_RESTAURANT.address}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone className="h-3.5 w-3.5" />
+                  <span>{ROLL_WE_RESTAURANT.phone}</span>
+                </div>
+              </div>
             </div>
           </div>
         </CardHeader>
