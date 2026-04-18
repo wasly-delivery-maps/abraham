@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ShoppingCart, Plus, Minus, X, MessageCircle, MapPin, Phone } from "lucide-react";
+import { ShoppingCart, Plus, Minus, X, MessageCircle, MapPin, Phone, Loader2 } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
 interface MenuItem {
   id: number;
@@ -80,6 +81,34 @@ export function RestaurantMenu() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("كريب");
   const [customerNotes, setCustomerNotes] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
+  
+  const createRestaurantOrderMutation = trpc.orders.createRestaurantOrder.useMutation();
+
+  // Get user's current location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            address: "موقعي الحالي",
+          });
+        },
+        (error) => {
+          console.warn("Could not get user location:", error);
+          // Use default location if geolocation fails
+          setUserLocation({
+            latitude: 30.0444,
+            longitude: 31.2357,
+            address: "موقع افتراضي",
+          });
+        }
+      );
+    }
+  }, []);
 
   const categories = Array.from(new Set(ROLL_WE_MENU.map((item) => item.category)));
   const filteredMenu = ROLL_WE_MENU.filter((item) => item.category === selectedCategory);
@@ -116,30 +145,62 @@ export function RestaurantMenu() {
 
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cart.length === 0) {
       toast.error("السلة فارغة!");
       return;
     }
 
-    // بناء رسالة الطلب
-    const orderItems = cart
-      .map((item) => `${item.name} × ${item.quantity} = ${item.price * item.quantity} ج.م`)
-      .join("\n");
+    if (!userLocation) {
+      toast.error("لم نتمكن من الحصول على موقعك. حاول لاحقاً.");
+      return;
+    }
 
-    const message = `طلب جديد من تطبيق وصلي 📱\n\n${orderItems}\n\nالإجمالي: ${totalPrice} ج.م\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
+    setIsLoading(true);
+    try {
+      // بناء رسالة الطلب للواتساب
+      const orderItems = cart
+        .map((item) => `${item.name} × ${item.quantity} = ${item.price * item.quantity} ج.م`)
+        .join("\n");
 
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${ROLL_WE_RESTAURANT.whatsappPhone}&text=${encodedMessage}`;
+      const message = `طلب جديد من تطبيق وصلي 📱\n\n${orderItems}\n\nالإجمالي: ${totalPrice} ج.م\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
 
-    // فتح واتساب
-    window.open(whatsappUrl, "_blank");
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://api.whatsapp.com/send?phone=${ROLL_WE_RESTAURANT.whatsappPhone}&text=${encodedMessage}`;
 
-    toast.success("تم إرسال الطلب للمطعم عبر واتساب!");
-    
-    // تنظيف السلة
-    setCart([]);
-    setCustomerNotes("");
+      // فتح واتساب
+      window.open(whatsappUrl, "_blank");
+
+      // إنشاء طلب توصيل تلقائي
+      const cartItems = cart.map((item) => ({
+        menuItemId: item.id,
+        quantity: item.quantity,
+        price: item.price,
+      }));
+
+      await createRestaurantOrderMutation.mutateAsync({
+        restaurantId: ROLL_WE_RESTAURANT.id,
+        items: cartItems,
+        totalPrice,
+        notes: customerNotes,
+        deliveryLocation: {
+          address: userLocation.address,
+          latitude: userLocation.latitude,
+          longitude: userLocation.longitude,
+          neighborhood: "موقع العميل",
+        },
+      });
+
+      toast.success("تم إرسال الطلب للمطعم وتم إنشاء طلب توصيل تلقائي!");
+      
+      // تنظيف السلة
+      setCart([]);
+      setCustomerNotes("");
+    } catch (error: any) {
+      toast.error(error.message || "فشل في إنشاء الطلب");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -273,10 +334,20 @@ export function RestaurantMenu() {
 
               <Button
                 onClick={handleCheckout}
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg gap-2"
+                disabled={isLoading}
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <MessageCircle className="h-5 w-5" />
-                إرسال الطلب عبر واتساب
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    جاري المعالجة...
+                  </>
+                ) : (
+                  <>
+                    <MessageCircle className="h-5 w-5" />
+                    إرسال الطلب عبر واتساب
+                  </>
+                )}
               </Button>
             </div>
           </CardContent>

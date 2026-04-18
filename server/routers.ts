@@ -321,6 +321,83 @@ export const appRouter = router({
    */
   orders: router({
     // Create new order
+    /**
+     * Create Restaurant Order - Automatically creates a delivery order from restaurant to customer
+     */
+    createRestaurantOrder: protectedProcedure
+      .input(
+        z.object({
+          restaurantId: z.number(),
+          items: z.array(
+            z.object({
+              menuItemId: z.number(),
+              quantity: z.number(),
+              price: z.number(),
+            })
+          ),
+          totalPrice: z.number(),
+          notes: z.string().optional(),
+          deliveryLocation: z.object({
+            address: z.string(),
+            latitude: z.number(),
+            longitude: z.number(),
+            neighborhood: z.string().optional(),
+          }),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "customer") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Only customers can create restaurant orders",
+          });
+        }
+
+        // Restaurant pickup location (Roll We)
+        const pickupLocation = {
+          address: "رول وي - مطعم وكافيه، العبور الجديدة",
+          latitude: 30.1856,
+          longitude: 31.2567,
+          neighborhood: "العبور الجديدة",
+        };
+
+        // Calculate distance
+        const distance = calculateDistance(
+          pickupLocation.latitude,
+          pickupLocation.longitude,
+          input.deliveryLocation.latitude,
+          input.deliveryLocation.longitude
+        );
+
+        // Estimate time
+        const estimatedTime = Math.round(distance * 5 + 5);
+
+        // Create delivery order in database
+        const result = await db.createOrder({
+          customerId: ctx.user.id,
+          pickupLocation,
+          deliveryLocation: input.deliveryLocation,
+          price: input.totalPrice,
+          distance,
+          estimatedTime,
+          notes: `طلب من المطعم: ${input.notes || "بدون ملاحظات"}`,
+        });
+
+        // Notify drivers about new order
+        await notifyDriversOfNewOrder(
+          result.id,
+          `طلب توصيل جديد من مطعم رول وي بقيمة ج.م ${input.totalPrice}. اضغط للتفاصيل وقبول الطلب! 🍽️`
+        );
+
+        return {
+          success: true,
+          orderId: result.id,
+          price: input.totalPrice,
+          distance,
+          estimatedTime,
+        };
+      }),
+
     createOrder: protectedProcedure
       .input(
         z.object({
