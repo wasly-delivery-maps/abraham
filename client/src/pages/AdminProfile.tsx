@@ -94,12 +94,18 @@ export default function AdminProfile() {
 
       const base64 = await processImage(file);
       
-      await uploadAvatarMutation.mutateAsync({
+      const result = await uploadAvatarMutation.mutateAsync({
         base64,
         contentType: "image/jpeg",
       });
 
+      // تحديث بيانات المستخدم مباشرة وإعادة تحميل البيانات
+      await utils.auth.me.invalidate();
       await utils.users.getProfile.invalidate();
+      
+      // انتظر قليلاً لضمان التحديث الكامل
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       toast.success("تم تحديث صورتك الشخصية بنجاح ✅");
     } catch (error: any) {
       toast.error(error.message || "فشل في تحميل الصورة");
@@ -177,8 +183,8 @@ export default function AdminProfile() {
             <div className="relative">
               <div className="h-32 w-32 rounded-[2.5rem] bg-gradient-to-br from-blue-500 to-blue-700 p-1 shadow-2xl overflow-hidden">
                 <div className="h-full w-full rounded-[2.3rem] bg-slate-900 flex items-center justify-center overflow-hidden">
-                  {user.avatar ? (
-                    <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
+                  {user.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
                   ) : (
                     <Shield className="h-16 w-16 text-blue-500" />
                   )}
