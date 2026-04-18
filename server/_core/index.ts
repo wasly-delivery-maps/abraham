@@ -157,9 +157,12 @@ async function startServer() {
     console.log(`WebSocket server initialized on port ${port}`);
     
     // إعداد نظام التذكير الدوري للسائقين كل 30 ثانية
-    setInterval(async () => {
+    let reminderIntervalId: NodeJS.Timeout | null = null;
+    
+    reminderIntervalId = setInterval(async () => {
       try {
         const pendingOrders = await getAvailableOrders();
+        
         if (pendingOrders && pendingOrders.length > 0) {
           console.log(`[Reminder] Found ${pendingOrders.length} pending orders. Notifying drivers...`);
           
@@ -169,13 +172,29 @@ async function startServer() {
           const message = count === 1 
             ? `تذكير: يوجد طلب متاح الآن بانتظارك! 🚀` 
             : `تذكير: يوجد ${count} طلبات متاحة الآن بانتظارك! 🚀`;
-            
+          
+          console.log(`[Reminder] Sending notification for order ${pendingOrders[0].id}: ${message}`);
           await notifyDriversOfNewOrder(pendingOrders[0].id, message);
+          console.log(`[Reminder] Notification sent successfully`);
+        } else {
+          console.log(`[Reminder] No pending orders found`);
         }
       } catch (error) {
         console.error("[Reminder] Error in periodic driver notification:", error);
       }
     }, 30000); // 30 ثانية
+    
+    // Handle graceful shutdown
+    process.on('SIGTERM', () => {
+      console.log('[Server] SIGTERM received, cleaning up...');
+      if (reminderIntervalId) {
+        clearInterval(reminderIntervalId);
+      }
+      server.close(() => {
+        console.log('[Server] Server closed');
+        process.exit(0);
+      });
+    });
   });
 }
 

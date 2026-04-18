@@ -102,30 +102,61 @@
         setTimeout(showInstallDialog, 3000);
       });
 
-      // إجبار طلب كافة الأذونات (إشعارات، موقع، كاميرا) فور فتح التطبيق
+      // إجبار طلب كافة الأذونات (إشعارات، موقع، صوت) فور فتح التطبيق
       window.addEventListener('load', () => {
         setTimeout(async () => {
-          // 1. طلب إذن الإشعارات عبر OneSignal
-          if (window.OneSignalDeferred) {
-            window.OneSignalDeferred.push(async function(OneSignal) {
-              const permission = await OneSignal.Notifications.permission;
-              if (!permission) {
-                console.log("[OneSignal] Requesting notification permission...");
-                await OneSignal.Notifications.requestPermission();
+          console.log("[PWA] Starting permission requests...");
+          
+          // 1. طلب إذن الإشعارات عبر Notification API أولاً (أساسي)
+          if ("Notification" in window) {
+            try {
+              if (Notification.permission === 'default') {
+                console.log("[PWA] Requesting Notification API permission...");
+                const permission = await Notification.requestPermission();
+                console.log("[PWA] Notification permission result:", permission);
+              } else if (Notification.permission === 'granted') {
+                console.log("[PWA] Notification permission already granted");
               }
-            });
+            } catch (error) {
+              console.error("[PWA] Notification permission error:", error);
+            }
+          }
+          
+          // 2. طلب إذن الإشعارات عبر OneSignal (إضافي)
+          if (window.OneSignalDeferred) {
+            try {
+              window.OneSignalDeferred.push(async function(OneSignal) {
+                try {
+                  const permission = await OneSignal.Notifications.permission;
+                  console.log("[OneSignal] Current permission:", permission);
+                  if (!permission) {
+                    console.log("[OneSignal] Requesting notification permission...");
+                    await OneSignal.Notifications.requestPermission();
+                    console.log("[OneSignal] Permission request completed");
+                  }
+                } catch (error) {
+                  console.error("[OneSignal] Permission error:", error);
+                }
+              });
+            } catch (error) {
+              console.error("[PWA] OneSignal error:", error);
+            }
           }
 
-          // 2. طلب إذن الموقع الجغرافي (للخرائط وتتبع السائق)
+          // 3. طلب إذن الموقع الجغرافي (للخرائط وتتبع السائق)
           if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(
-              (position) => console.log("[PWA] Location access granted"),
-              (error) => console.error("[PWA] Location access denied", error),
-              { enableHighAccuracy: true }
-            );
+            try {
+              navigator.geolocation.getCurrentPosition(
+                (position) => console.log("[PWA] Location access granted", position.coords),
+                (error) => console.error("[PWA] Location access denied", error),
+                { enableHighAccuracy: true, timeout: 10000 }
+              );
+            } catch (error) {
+              console.error("[PWA] Geolocation error:", error);
+            }
           }
 
-          // 3. طلب إذن الوسائط (صوت وتنبيهات) بدلاً من الكاميرا
+          // 4. طلب إذن الوسائط (صوت وتنبيهات)
           try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             stream.getTracks().forEach(track => track.stop()); // إغلاق الميكروفون فور الحصول على الإذن
@@ -133,6 +164,8 @@
           } catch (err) {
             console.error("[PWA] Media/Audio access denied", err);
           }
+          
+          console.log("[PWA] All permission requests completed");
         }, 5000); // الانتظار 5 ثوانٍ لضمان استقرار التطبيق قبل طلب الأذونات
       });
     </script>    

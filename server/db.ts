@@ -927,11 +927,19 @@ export async function upsertPushSubscription(userId: number, subscription: any) 
   }
 
   try {
+    // Validate subscription data
+    if (!subscription.endpoint || !subscription.keys) {
+      console.error("[Database] Invalid subscription data: missing endpoint or keys");
+      throw new Error("Invalid subscription data");
+    }
+
     const values: InsertPushSubscription = {
       userId,
       endpoint: subscription.endpoint,
       keys: subscription.keys,
     };
+
+    console.log(`[Database] Upserting push subscription for user ${userId}`);
 
     await db
       .insert(pushSubscriptions)
@@ -943,6 +951,8 @@ export async function upsertPushSubscription(userId: number, subscription: any) 
           updatedAt: new Date(),
         },
       });
+    
+    console.log(`[Database] Push subscription saved successfully for user ${userId}`);
   } catch (error) {
     console.error("[Database] Failed to upsert push subscription:", error);
     throw error;

@@ -153,11 +153,11 @@ export const pushSubscriptions = mysqlTable(
   "push_subscriptions",
   {
     id: int("id").autoincrement().primaryKey(),
-    userId: int("user_id").notNull(),
+    userId: int("userId").notNull(),
     endpoint: varchar("endpoint", { length: 500 }).notNull(),
     keys: json("keys").notNull(), // { p256dh, auth }
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },
   (table) => ({
     endpointUnique: unique("endpoint_unique").on(table.endpoint),

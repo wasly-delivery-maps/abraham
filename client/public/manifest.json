@@ -10,36 +10,35 @@
   "theme_color": "#f97316",
   "orientation": "portrait",
   "gcm_sender_id": "482941778795",
-  "permissions": [
-    "notifications",
-    "gcm",
-    "geolocation",
-    "media-playback",
-    "audio-capture",
-    "background-sync",
-    "persistent-storage"
-  ],
   "icons": [
     {
       "src": "/wasly-logo-v2.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
       "src": "/wasly-logo-v2.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
   "prefer_related_applications": false,
   "categories": ["business", "lifestyle"],
+  "screenshots": [
+    {
+      "src": "/wasly-logo-v2.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
   "shortcuts": [
     {
       "name": "لوحة تحكم السائق",
       "url": "/driver/dashboard",
-      "icons": [{ "src": "/wasly-logo-v2.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/wasly-logo-v2.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

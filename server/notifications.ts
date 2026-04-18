@@ -236,10 +236,14 @@ export async function notifyDriversOfNewOrder(
   message: string
 ): Promise<void> {
   try {
+    console.log(`[Notifications] Starting notification process for order ${orderId}`);
+    
     const allUsers = await getAllUsers();
     const activeDrivers = allUsers.filter(
       (u: any) => u.role === "driver" && u.accountStatus === "active"
     );
+
+    console.log(`[Notifications] Found ${activeDrivers.length} active drivers to notify`);
 
     const notification = {
       title: "طلب توصيل جديد! 🚗",
@@ -250,17 +254,22 @@ export async function notifyDriversOfNewOrder(
     };
 
     // 1. Send Web Push to each active driver
+    console.log(`[Notifications] Sending Web Push notifications to ${activeDrivers.length} drivers`);
+    let webPushSuccessCount = 0;
     for (const driver of activeDrivers) {
       try {
         await sendPushNotificationToUser(driver.id, notification);
+        webPushSuccessCount++;
       } catch (error) {
         console.error(`[Notifications] Failed to send web push to user ${driver.id}:`, error);
       }
     }
+    console.log(`[Notifications] Web Push sent successfully to ${webPushSuccessCount}/${activeDrivers.length} drivers`);
 
     // 2. Broadcast to Firebase "drivers" topic for mobile apps
     if (admin.apps.length > 0) {
       try {
+        console.log("[Notifications] Sending Firebase broadcast to 'drivers' topic");
         const topicMessage = {
           notification: {
             title: notification.title,
@@ -295,15 +304,19 @@ export async function notifyDriversOfNewOrder(
           topic: "drivers",
         };
         await admin.messaging().send(topicMessage);
-        console.log("[Notifications] Firebase broadcast sent to 'drivers' topic");
+        console.log("[Notifications] Firebase broadcast sent to 'drivers' topic successfully");
       } catch (error) {
         console.error("[Notifications] Firebase broadcast failed:", error);
       }
+    } else {
+      console.warn("[Notifications] Firebase Admin SDK not initialized, skipping Firebase broadcast");
     }
 
     // 3. Send OneSignal Push Notification to ALL drivers
     // We target by role="driver" to ensure only drivers get the new order notification
+    console.log("[Notifications] Sending OneSignal notification to drivers");
     await sendOneSignalNotification({ role: "driver" }, notification);
+    console.log("[Notifications] OneSignal notification sent successfully");
   } catch (error) {
     console.error("[Notifications] Failed to notify drivers:", error);
   }
