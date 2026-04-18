@@ -54,7 +54,7 @@ const KHEDIVE_KOSHARY_RESTAURANT: Restaurant = {
   address: "7F49+V89 كشري الخديوي، العبور، القليوبية",
   description: "أصل الكشري المصري والطواجن البيتي في قلب العبور",
   logoUrl: "https://ui-avatars.com/api/?name=KK&background=e11d48&color=fff&size=128&bold=true",
-  coverUrl: "https://images.unsplash.com/photo-1567103472667-6898f3a79cf2?q=80&w=2000&auto=format&fit=crop",
+  coverUrl: "https://web-production-0eb1b.up.railway.app/uploads/khedive_koshary_logo_fb.webp",
   rating: "4.9",
   deliveryTime: "20-35 دقيقة"
 };
