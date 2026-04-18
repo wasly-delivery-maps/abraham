@@ -372,21 +372,28 @@ export const appRouter = router({
         // Estimate time
         const estimatedTime = Math.round(distance * 5 + 5);
 
+        // Calculate delivery price based on distance (using existing pricing logic)
+        const deliveryPrice = calculateOrderPrice(
+          pickupLocation.neighborhood || "",
+          input.deliveryLocation.neighborhood,
+          distance
+        );
+
         // Create delivery order in database
         const result = await db.createOrder({
           customerId: ctx.user.id,
           pickupLocation,
           deliveryLocation: input.deliveryLocation,
-          price: input.totalPrice,
+          price: deliveryPrice, // This is the delivery fee for the driver
           distance,
           estimatedTime,
-          notes: `طلب من المطعم: ${input.notes || "بدون ملاحظات"}`,
+          notes: `طلب من المطعم: ${input.notes || "بدون ملاحظات"}\nقيمة الطعام للمطعم: ج.م ${input.totalPrice}`,
         });
 
         // Notify drivers about new order
         await notifyDriversOfNewOrder(
           result.id,
-          `طلب توصيل جديد من مطعم رول وي بقيمة ج.م ${input.totalPrice}. اضغط للتفاصيل وقبول الطلب! 🍽️`
+          `طلب توصيل جديد من مطعم رول وي. سعر التوصيل: ج.م ${deliveryPrice}. اضغط للتفاصيل وقبول الطلب! 🍽️`
         );
 
         return {
