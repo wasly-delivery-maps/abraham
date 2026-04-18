@@ -163,7 +163,7 @@ export default function Auth() {
         password: registerData.password,
         name: registerData.name,
         email: registerData.email || undefined,
-        role: registerData.role as "customer" | "driver" | "admin",
+        role: registerData.role as "customer" | "driver",
       });
 
       // تحديث بيانات المستخدم في tRPC cache فوراً لضمان التعرف على الجلسة
@@ -284,26 +284,27 @@ export default function Auth() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
+            className="w-full"
           >
-            <Card className="w-full shadow-[0_20px_50px_rgba(0,0,0,0.2)] border-0 overflow-hidden rounded-[2.5rem] bg-white/95">
+            <Card className="border-0 shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-[2.5rem] overflow-hidden bg-white/95 backdrop-blur-sm">
               <CardContent className="p-0">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 h-20 p-2 bg-orange-50/50">
+                  <TabsList className="grid w-full grid-cols-2 h-20 p-2 bg-gray-100/50">
                     <TabsTrigger 
                       value="login" 
-                      className="rounded-2xl text-xl font-black data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-lg transition-all duration-300"
+                      className="rounded-2xl text-xl font-bold data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-lg transition-all"
                     >
-                      تسجيل الدخول
+                      دخول
                     </TabsTrigger>
                     <TabsTrigger 
                       value="register" 
-                      className="rounded-2xl text-xl font-black data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-lg transition-all duration-300"
+                      className="rounded-2xl text-xl font-bold data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-lg transition-all"
                     >
-                      إنشاء حساب
+                      تسجيل جديد
                     </TabsTrigger>
                   </TabsList>
 
-                  <div className="p-10">
+                  <div className="p-8 md:p-12">
                     <AnimatePresence mode="wait">
                       <TabsContent value="login" className="mt-0 outline-none">
                         <motion.div
@@ -313,7 +314,7 @@ export default function Auth() {
                           className="space-y-8"
                         >
                           <div className="space-y-2">
-                            <h2 className="text-4xl font-black text-gray-900 tracking-tight">أهلاً بك مجدداً!</h2>
+                            <h2 className="text-4xl font-black text-gray-900 tracking-tight">أهلاً بك مجدداً</h2>
                             <p className="text-gray-500 font-medium text-lg">سجل دخولك لمتابعة طلباتك</p>
                           </div>
 
@@ -337,12 +338,7 @@ export default function Auth() {
                               </div>
 
                               <div className="space-y-2">
-                                <div className="flex justify-between items-center">
-                                  <label className="text-sm font-bold text-gray-700 mr-1">كلمة المرور</label>
-                                  <Button variant="link" className="text-orange-600 font-bold p-0 h-auto hover:text-orange-700">
-                                    نسيت كلمة المرور؟
-                                  </Button>
-                                </div>
+                                <label className="text-sm font-bold text-gray-700 mr-1">كلمة المرور</label>
                                 <div className="relative group">
                                   <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-orange-500 transition-colors">
                                     <Lock className="h-5 w-5" />
