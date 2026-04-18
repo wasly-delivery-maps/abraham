@@ -3,24 +3,29 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, Mail, Phone, Shield, LogOut, User, Settings, ShieldCheck, ChevronLeft, Edit3, Save, X, Loader2, TrendingUp, Users, Package } from "lucide-react";
+import { ArrowRight, Mail, Phone, Shield, LogOut, User, Settings, ShieldCheck, ChevronLeft, Edit3, Save, X, Loader2, TrendingUp, Users, Package, Camera } from "lucide-react";
+
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminProfile() {
   const { user, loading, logout } = useAuth();
   const [, navigate] = useLocation();
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const utils = trpc.useUtils();
   const [editData, setEditData] = useState({
     name: "",
     email: "",
     phone: "",
   });
+
+  const uploadAvatarMutation = trpc.users.uploadAvatar.useMutation();
 
   useEffect(() => {
     if (user) {
@@ -33,6 +38,75 @@ export default function AdminProfile() {
   }, [user]);
 
   const updateProfileMutation = trpc.users.updateProfile.useMutation();
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("حجم الملف كبير جداً، يرجى اختيار صورة أقل من 20 ميجابايت");
+      return;
+    }
+
+    setIsUploading(true);
+    
+    try {
+      const processImage = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const MAX_WIDTH = 360;
+              const MAX_HEIGHT = 360;
+              let width = img.width;
+              let height = img.height;
+
+              let offsetX = 0;
+              let offsetY = 0;
+              if (width > height) {
+                offsetX = (width - height) / 2;
+                width = height;
+              } else {
+                offsetY = (height - width) / 2;
+                height = width;
+              }
+
+              canvas.width = MAX_WIDTH;
+              canvas.height = MAX_HEIGHT;
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                ctx.drawImage(img, offsetX, offsetY, width, height, 0, 0, MAX_WIDTH, MAX_HEIGHT);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                resolve(dataUrl.split(',')[1]);
+              } else {
+                reject(new Error("Could not get canvas context"));
+              }
+            };
+            img.onerror = () => reject(new Error("Failed to load image"));
+          };
+          reader.onerror = () => reject(new Error("Failed to read file"));
+        });
+      };
+
+      const base64 = await processImage(file);
+      
+      await uploadAvatarMutation.mutateAsync({
+        base64,
+        contentType: "image/jpeg",
+      });
+
+      await utils.users.getProfile.invalidate();
+      toast.success("تم تحديث صورتك الشخصية بنجاح ✅");
+    } catch (error: any) {
+      toast.error(error.message || "فشل في تحميل الصورة");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -101,11 +175,31 @@ export default function AdminProfile() {
 
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="relative">
-              <div className="h-32 w-32 rounded-[2.5rem] bg-gradient-to-br from-blue-500 to-blue-700 p-1 shadow-2xl">
+              <div className="h-32 w-32 rounded-[2.5rem] bg-gradient-to-br from-blue-500 to-blue-700 p-1 shadow-2xl overflow-hidden">
                 <div className="h-full w-full rounded-[2.3rem] bg-slate-900 flex items-center justify-center overflow-hidden">
-                  <Shield className="h-16 w-16 text-blue-500" />
+                  {user.avatar ? (
+                    <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <Shield className="h-16 w-16 text-blue-500" />
+                  )}
                 </div>
               </div>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all disabled:opacity-50"
+              >
+                {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
+              </motion.button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
             </div>
             
             <div className="text-center md:text-right">
