@@ -27,6 +27,12 @@ export default function AdminStats() {
   const totalCustomers = stats?.totalCustomers || users.filter((u) => u.role === "customer").length;
   const totalUsers = stats?.totalUsers || users.length;
   const totalRevenue = stats?.totalRevenue || orders.reduce((sum, o) => sum + (o.price || 0), 0);
+  
+  // حساب إجمالي العمولات المستحقة من السائقين
+  const drivers = users.filter((u) => u.role === "driver");
+  const totalPendingCommissions = drivers.reduce((sum, driver: any) => {
+    return sum + (typeof driver.pendingCommission === "number" ? driver.pendingCommission : 0);
+  }, 0);
 
   if (loading || statsQuery.isLoading || usersQuery.isLoading || ordersQuery.isLoading) {
     return (
@@ -187,7 +193,7 @@ export default function AdminStats() {
             </Card>
           </motion.div>
 
-          {/* Total Revenue Card */}
+          {/* Total Pending Commissions Card */}
           <motion.div variants={itemVariants}>
             <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden hover:shadow-3xl transition-all group h-full">
               <CardContent className="p-8">
@@ -196,13 +202,13 @@ export default function AdminStats() {
                     <BarChart3 className="h-6 w-6" />
                   </div>
                   <Badge className="bg-green-100 text-green-600 border-none px-3 py-1 rounded-full font-black text-[10px]">
-                    الأرباح
+                    العمولات
                   </Badge>
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-slate-400 font-bold text-xs uppercase tracking-wider">إجمالي الأرباح</h3>
-                  <div className="text-4xl font-black text-slate-900">ج.م {totalRevenue.toLocaleString()}</div>
-                  <p className="text-[10px] font-bold text-slate-400 mt-3">إجمالي المبيعات</p>
+                  <h3 className="text-slate-400 font-bold text-xs uppercase tracking-wider">إجمالي العمولات المستحقة</h3>
+                  <div className="text-4xl font-black text-slate-900">ج.م {totalPendingCommissions.toLocaleString()}</div>
+                  <p className="text-[10px] font-bold text-slate-400 mt-3">مستحقة من {drivers.length} سائق</p>
                 </div>
               </CardContent>
             </Card>
@@ -245,7 +251,7 @@ export default function AdminStats() {
           <div className="flex-1">
             <h4 className="text-lg font-black text-slate-900">رؤية المسؤول</h4>
             <p className="text-slate-600 font-medium">
-              يعمل النظام بكفاءة عالية مع {totalUsers} مستخدم نشط و{totalOrders} طلب معالج. استمر في مراقبة الأداء والعمل على تحسين تجربة المستخدم.
+              يوجد {totalPendingCommissions.toLocaleString()} ج.م عمولات مستحقة من {drivers.length} سائق. تابع قائمة العمولات لضمان سداد السائقين في الوقت المناسب وتحسين أداء النظام.
             </p>
           </div>
           <Button 
