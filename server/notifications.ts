@@ -1,14 +1,14 @@
-import { getFirebaseMessaging } from "./firebase-admin-config";
-import { getDb } from "./db";
-import { pushSubscriptions } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { adminMessaging } from "./firebase-admin-config";
+import { db } from "./db";
+import { users, pushSubscriptions } from "@drizzle/schema";
+import { eq, and } from "drizzle-orm";
 
 /**
  * إرسال إشعار لموضوع معين (Topic)
  */
 export async function sendToTopic(topic: string, title: string, body: string, data?: any) {
   try {
-    const messaging = getFirebaseMessaging();
+    const messaging = adminMessaging();
     if (!messaging) {
       console.error("[Notifications] Firebase Admin not initialized");
       return false;
@@ -71,9 +71,8 @@ export async function notifyDriversOfNewOrder(orderId: number) {
  */
 export async function sendToUser(userId: number, title: string, body: string, data?: any) {
   try {
-    const messaging = getFirebaseMessaging();
-    const db = await getDb();
-    if (!messaging || !db) return false;
+    const messaging = adminMessaging();
+    if (!messaging) return false;
 
     // جلب توكنات المستخدم من قاعدة البيانات
     const userSubs = await db
