@@ -16,7 +16,7 @@ if (vapidPublicKey && vapidPrivateKey) {
 }
 
 // Configure Firebase Admin SDK
-const firebaseConfig = process.env.FIREBASE_SERVICE_ACCOUNT;
+const firebaseConfig = process.env.FIREBASE_SERVICE_ACCOUNT_KEY || process.env.FIREBASE_SERVICE_ACCOUNT;
 if (firebaseConfig) {
   try {
     let serviceAccount;
