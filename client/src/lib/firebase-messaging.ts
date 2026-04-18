@@ -10,6 +10,7 @@
 import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging';
 import { firebaseConfig, firebaseVapidKey, validateFirebaseConfig } from './firebase-config';
+import { registerServiceWorker, unregisterOldServiceWorkers, checkServiceWorkerStatus } from './service-worker-register';
 
 let messaging: any = null;
 let isInitialized = false;
@@ -31,6 +32,21 @@ export async function initializeFirebaseMessaging() {
       console.warn('[FCM] Firebase Cloud Messaging is not supported in this browser');
       return false;
     }
+
+    // Clean up old Service Workers first
+    console.log('[FCM] Cleaning up old Service Workers...');
+    await unregisterOldServiceWorkers();
+
+    // Register new Service Worker aggressively
+    console.log('[FCM] Registering new Service Worker...');
+    const swRegistered = await registerServiceWorker();
+    if (!swRegistered) {
+      console.warn('[FCM] Failed to register Service Worker, but continuing...');
+    }
+
+    // Check Service Worker status
+    const swActive = await checkServiceWorkerStatus();
+    console.log('[FCM] Service Worker active:', swActive);
 
     // Initialize Firebase app
     const app = initializeApp(firebaseConfig);
