@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Trash2, Search } from "lucide-react";
+import { Trash2, Search, MessageCircle } from "lucide-react";
 
 interface Order {
   id: number;
@@ -15,6 +15,8 @@ interface Order {
   createdAt: Date;
   customerName?: string;
   driverName?: string;
+  pickupLocation?: any;
+  deliveryLocation?: any;
 }
 
 export function OrdersManagement({ orders: initialOrders }: { orders: Order[] }) {
@@ -57,6 +59,28 @@ export function OrdersManagement({ orders: initialOrders }: { orders: Order[] })
     } catch (error) {
       toast.error("فشل في حذف الطلب");
     }
+  };
+
+  const handleSendWhatsApp = (order: Order) => {
+    // جلب بيانات السائق
+    const driver = ordersWithNames.find((o) => o.id === order.id)?.driverName || "غير مسند";
+    
+    // بناء الرسالة
+    const pickupAddress = order.pickupLocation?.address || "عنوان الاستلام";
+    const deliveryAddress = order.deliveryLocation?.address || "عنوان التسليم";
+    const price = order.price ? order.price.toFixed(2) : "0.00";
+    
+    const message = `لديك طلب جديد 📦\n\nرقم الطلب: #${order.id}\nالعميل: ${order.customerName || "عميل"}\nمن: ${pickupAddress}\nإلى: ${deliveryAddress}\nالسعر: ج.م ${price}\nالحالة: ${getStatusLabel(order.status)}\n\nيرجى الضغط على الرابط أدناه للمتابعة:\n${window.location.origin}`;
+    
+    // ترميز الرسالة
+    const encodedMessage = encodeURIComponent(message);
+    
+    // فتح واتساب برسالة مُعدة
+    // ملاحظة: هذا الرابط سيفتح واتساب ويعرض نافذة اختيار جهة الاتصال
+    const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+    
+    window.open(whatsappUrl, "_blank");
+    toast.success("تم فتح واتساب - اختر رقم السائق وأرسل الرسالة");
   };
 
   const getStatusLabel = (status: string) => {
@@ -146,6 +170,7 @@ export function OrdersManagement({ orders: initialOrders }: { orders: Order[] })
                 <th className="text-right py-3 px-4 font-semibold">الحالة</th>
                 <th className="text-right py-3 px-4 font-semibold">التاريخ</th>
                 <th className="text-right py-3 px-4 font-semibold">الإجراءات</th>
+                <th className="text-right py-3 px-4 font-semibold">واتساب</th>
               </tr>
             </thead>
             <tbody>
@@ -180,6 +205,18 @@ export function OrdersManagement({ orders: initialOrders }: { orders: Order[] })
                       >
                         <Trash2 className="h-3 w-3" />
                         حذف
+                      </Button>
+                    </td>
+                    <td className="py-3 px-4">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleSendWhatsApp(order)}
+                        className="gap-1 bg-green-50 hover:bg-green-100 border-green-300 text-green-700"
+                        title="إرسال تفاصيل الطلب للسائق عبر واتساب"
+                      >
+                        <MessageCircle className="h-3 w-3" />
+                        إرسال
                       </Button>
                     </td>
                   </tr>
