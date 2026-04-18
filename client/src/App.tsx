@@ -14,6 +14,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import CreateOrder from "./pages/CreateOrder";
 import DriverProfile from "./pages/DriverProfile";
 import DriverSupport from "./pages/DriverSupport";
+import DriverStats from "./pages/DriverStats";
 import CustomerProfile from "./pages/CustomerProfile";
 import CustomerStats from "./pages/CustomerStats";
 
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/customer/create-order" component={() => <ProtectedRoute component={CreateOrder} requiredRole="customer" />} />
       <Route path="/driver/dashboard" component={() => <ProtectedRoute component={DriverDashboard} requiredRole="driver" />} />
       <Route path="/driver/profile" component={() => <ProtectedRoute component={DriverProfile} requiredRole="driver" />} />
+      <Route path="/driver/stats" component={() => <ProtectedRoute component={DriverStats} requiredRole="driver" />} />
       <Route path="/driver/support" component={() => <ProtectedRoute component={DriverSupport} requiredRole="driver" />} />
       <Route path="/admin/dashboard" component={() => <ProtectedRoute component={AdminDashboard} requiredRole="admin" />} />
       <Route path="/404" component={NotFound} />

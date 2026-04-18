@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Navigation, Phone, Package, CheckCircle2, Clock, DollarSign, TrendingUp, User, LogOut, Loader2, ChevronRight, Truck, Map as MapIcon, ShieldCheck, Info, Zap, Route, MessageSquare } from "lucide-react";
+import { MapPin, Navigation, Phone, Package, CheckCircle2, Clock, DollarSign, TrendingUp, User, LogOut, Loader2, ChevronRight, Truck, Map as MapIcon, ShieldCheck, Info, Zap, Route, MessageSquare, BarChart3 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -13,6 +13,7 @@ import { ChatBox } from "@/components/ChatBox";
 import { useChatContext } from "@/contexts/ChatContext";
 import { useCriticalAlerts } from "@/hooks/useCriticalAlerts";
 import { useFCM } from "@/hooks/useFCM";
+import { Link } from "wouter";
 
 // Leaflet imports
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from 'react-leaflet';
@@ -648,14 +649,22 @@ export default function DriverDashboard() {
                 <p className="text-white/50 text-[10px] font-black uppercase tracking-widest">مدينة العبور • متصل الآن</p>
               </div>
             </div>
-            <div className="flex gap-3">
+            <div className="flex items-center gap-3">
+            <Link href="/driver/stats">
               <Button 
                 variant="ghost" 
                 className="h-12 w-12 rounded-2xl bg-white/5 hover:bg-white/10 p-0"
-                onClick={() => navigate("/driver/profile")}
               >
-                <User className="h-5 w-5 text-white" />
+                <BarChart3 className="h-5 w-5 text-white" />
               </Button>
+            </Link>
+            <Button 
+              variant="ghost" 
+              className="h-12 w-12 rounded-2xl bg-white/5 hover:bg-white/10 p-0"
+              onClick={() => navigate("/driver/profile")}
+            >
+              <User className="h-5 w-5 text-white" />
+            </Button>
               <Button 
                 variant="ghost" 
                 className="h-12 w-12 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 p-0"
@@ -666,23 +675,7 @@ export default function DriverDashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {stats.map((stat, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-                <Card className="border-none bg-white/5 backdrop-blur-md rounded-3xl overflow-hidden border border-white/10">
-                  <CardContent className="p-6 flex items-center gap-5">
-                    <div className={`h-14 w-14 rounded-2xl ${stat.bg} flex items-center justify-center`}>
-                      <stat.icon className={`h-7 w-7 ${stat.color}`} />
-                    </div>
-                    <div>
-                      <p className="text-white/50 text-[10px] font-black uppercase tracking-widest">{stat.label}</p>
-                      <p className="text-2xl font-black text-white">{stat.value}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+          {/* Removed Stats Grid - Moved to separate page */}
 
           {/* تم إخفاء زر تفعيل الإشعارات بناءً على طلب المستخدم */}
         </div>
