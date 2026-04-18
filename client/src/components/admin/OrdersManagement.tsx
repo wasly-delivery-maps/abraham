@@ -89,8 +89,22 @@ export function OrdersManagement({ orders: initialOrders }: { orders: Order[] })
     }
     
     // استخدام رابط whatsapp:// لفتح التطبيق مباشرة على الموبايل
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
-    window.open(whatsappUrl, "_blank");
+    const directWhatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`;
+    const webWhatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+
+    // محاولة فتح التطبيق مباشرة، وإذا فشل نستخدم رابط الويب
+    try {
+      window.location.href = directWhatsappUrl;
+      // ننتظر قليلاً، إذا لم يتغير الرابط (فشل الفتح المباشر)، نفتح رابط الويب في نافذة جديدة
+      setTimeout(() => {
+        if (document.hasFocus()) {
+          window.open(webWhatsappUrl, "_blank");
+        }
+      }, 500);
+    } catch (e) {
+      window.open(webWhatsappUrl, "_blank");
+    }
+    
     toast.success("جاري فتح واتساب...");
   };
 
