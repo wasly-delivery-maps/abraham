@@ -136,13 +136,34 @@ export default function CustomerProfile() {
 
   const handleSaveProfile = async () => {
     try {
-      await updateProfileMutation.mutateAsync(editData);
+      // تنظيف البيانات قبل الإرسال: إزالة الحقول الفارغة أو غير الصالحة
+      const cleanData: any = {};
+      if (editData.name && editData.name.trim().length >= 2) cleanData.name = editData.name.trim();
+      
+      // التحقق من صحة البريد الإلكتروني قبل إرساله
+      if (editData.email && editData.email.trim() !== "") {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (emailRegex.test(editData.email.trim())) {
+          cleanData.email = editData.email.trim();
+        }
+      }
+      
+      if (editData.phone && editData.phone.trim().length >= 10) cleanData.phone = editData.phone.trim();
+
+      if (Object.keys(cleanData).length === 0) {
+        setIsEditing(false);
+        return;
+      }
+
+      await updateProfileMutation.mutateAsync(cleanData);
       // تحديث بيانات المستخدم في السياق (Context) لضمان ظهور التغييرات فوراً
       await utils.auth.me.invalidate();
       toast.success("تم تحديث البيانات بنجاح ✨");
       setIsEditing(false);
-    } catch (error) {
-      toast.error("فشل في تحديث البيانات");
+    } catch (error: any) {
+      console.error("Update profile error:", error);
+      const message = error.message || "فشل في تحديث البيانات";
+      toast.error(message);
     }
   };
 

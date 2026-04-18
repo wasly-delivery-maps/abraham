@@ -209,10 +209,10 @@ export const appRouter = router({
     updateProfile: protectedProcedure
       .input(
         z.object({
-          name: z.string().min(2).optional(),
-          email: z.string().email().optional(),
-          phone: z.string().min(10).optional(),
-          avatarUrl: z.string().optional(),
+          name: z.string().min(2).optional().or(z.literal("")),
+          email: z.string().email().optional().or(z.literal("")),
+          phone: z.string().min(10).optional().or(z.literal("")),
+          avatarUrl: z.string().optional().or(z.literal("")),
         })
       )
       .mutation(async ({ ctx, input }) => {
