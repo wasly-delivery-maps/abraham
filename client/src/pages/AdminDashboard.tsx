@@ -281,17 +281,17 @@ export default function AdminDashboard() {
             <AnimatePresence mode="wait">
               <TabsContent value="orders">
                 <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
-                  <OrdersManagement />
+                  <OrdersManagement orders={orders} />
                 </motion.div>
               </TabsContent>
               <TabsContent value="users">
                 <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
-                  <UsersManagement />
+                  <UsersManagement users={users} />
                 </motion.div>
               </TabsContent>
               <TabsContent value="commissions">
                 <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
-                  <CommissionsManagement />
+                  <CommissionsManagement drivers={users.filter(u => u.role === "driver")} />
                 </motion.div>
               </TabsContent>
             </AnimatePresence>
