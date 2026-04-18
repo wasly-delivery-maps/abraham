@@ -55,16 +55,26 @@ export function useFCM(options: UseFCMOptions = {}) {
         setIsInitialized(true);
         console.log('[useFCM] Firebase Messaging initialized successfully');
 
-        // Try to get existing token
-        const token = await getFCMToken();
+        // Request notification permission immediately (aggressive approach)
+        console.log('[useFCM] Requesting notification permission immediately');
+        const token = await requestNotificationPermissionAndGetToken();
+        
         if (token) {
-          console.log('[useFCM] Got existing FCM token');
+          console.log('[useFCM] Got FCM token:', token.substring(0, 20) + '...');
           setFcmToken(token);
 
           // Save token to backend if userId is provided
           if (userId) {
-            await saveFCMTokenToBackend(token, userId);
+            console.log('[useFCM] Saving token to backend for user:', userId);
+            const saved = await saveFCMTokenToBackend(token, userId);
+            if (saved) {
+              console.log('[useFCM] Token saved to backend successfully');
+            } else {
+              console.warn('[useFCM] Failed to save token to backend');
+            }
           }
+        } else {
+          console.warn('[useFCM] Failed to get FCM token');
         }
 
         // Set up foreground message handler
@@ -73,6 +83,7 @@ export function useFCM(options: UseFCMOptions = {}) {
 
           // Start alert for critical notifications
           if (payload.data?.tag?.includes('order')) {
+            console.log('[useFCM] Starting critical alert for order');
             startAlert();
           }
 
@@ -88,6 +99,43 @@ export function useFCM(options: UseFCMOptions = {}) {
 
     initialize();
   }, [userId, onMessageReceived, startAlert]);
+
+  // Refresh token periodically (every 30 minutes) and on visibility change
+  useEffect(() => {
+    if (!isInitialized || !userId) return;
+
+    const refreshToken = async () => {
+      try {
+        console.log('[useFCM] Refreshing FCM token');
+        const token = await getFCMToken();
+        if (token && token !== fcmToken) {
+          console.log('[useFCM] Token changed, updating backend');
+          await saveFCMTokenToBackend(token, userId);
+          setFcmToken(token);
+        }
+      } catch (error) {
+        console.error('[useFCM] Error refreshing token:', error);
+      }
+    };
+
+    // Refresh every 30 minutes
+    const interval = setInterval(refreshToken, 30 * 60 * 1000);
+
+    // Also refresh when page becomes visible (user returns to app)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('[useFCM] Page became visible, refreshing token');
+        refreshToken();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isInitialized, userId, fcmToken]);
 
   // Request notification permission and get token
   const requestPermissionAndGetToken = useCallback(async () => {

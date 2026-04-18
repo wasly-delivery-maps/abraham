@@ -16,6 +16,7 @@ importScripts('https://www.gstatic.com/firebasejs/11.5.0/firebase-messaging-comp
 let audioContext = null;
 let currentAudioSource = null;
 let alertIntervalId = null;
+let lastNotificationTime = 0;
 
 /**
  * Initialize audio context for playing sounds
@@ -33,11 +34,16 @@ function initAudioContext() {
 }
 
 /**
- * Play alert sound
+ * Play alert sound using Web Audio API
  */
 async function playAlertSound() {
   try {
     const response = await fetch('/alert.mp3');
+    if (!response.ok) {
+      console.warn('[FCM-SW] Alert sound file not found, using fallback');
+      return;
+    }
+    
     const arrayBuffer = await response.arrayBuffer();
     
     const ctx = initAudioContext();
@@ -66,7 +72,7 @@ async function playAlertSound() {
     currentAudioSource.connect(ctx.destination);
     currentAudioSource.start(0);
     
-    console.log('[FCM-SW] Alert sound started');
+    console.log('[FCM-SW] Alert sound played');
   } catch (error) {
     console.error('[FCM-SW] Failed to play alert sound:', error);
   }
@@ -110,7 +116,64 @@ function stopContinuousAlert() {
 }
 
 /**
- * Handle background messages from Firebase
+ * Handle Firebase messages in the background
+ */
+if (typeof firebase !== 'undefined' && firebase.messaging) {
+  const messaging = firebase.messaging();
+  
+  messaging.onBackgroundMessage((payload) => {
+    console.log('[FCM-SW] Background message received:', payload);
+    
+    const title = payload.notification?.title || 'طلب جديد من Wasly';
+    const body = payload.notification?.body || 'لديك إشعار جديد';
+    const icon = payload.notification?.icon || '/logo.jpg';
+    const badge = payload.notification?.badge || '/logo.jpg';
+    const tag = payload.data?.tag || 'fcm-notification';
+    const orderId = payload.data?.orderId;
+
+    const options = {
+      body,
+      icon,
+      badge,
+      tag,
+      requireInteraction: true,
+      visibility: 'public',
+      data: {
+        orderId,
+        url: payload.data?.url || '/driver/dashboard',
+      },
+      actions: [
+        {
+          action: 'accept',
+          title: 'قبول الطلب',
+        },
+        {
+          action: 'dismiss',
+          title: 'تجاهل',
+        }
+      ]
+    };
+
+    console.log('[FCM-SW] Showing notification:', title);
+    
+    // Start continuous alert for critical notifications (new orders)
+    if (tag && tag.includes('order')) {
+      console.log('[FCM-SW] Critical notification detected - starting continuous alert');
+      startContinuousAlert();
+    }
+    
+    return self.registration.showNotification(title, options)
+      .then(() => {
+        console.log('[FCM-SW] Notification shown successfully');
+      })
+      .catch((error) => {
+        console.error('[FCM-SW] Failed to show notification:', error);
+      });
+  });
+}
+
+/**
+ * Handle push events (for web push protocol)
  */
 self.addEventListener('push', (event) => {
   console.log('[FCM-SW] Push event received');
@@ -256,4 +319,20 @@ self.addEventListener('message', (event) => {
     console.log('[FCM-SW] Received start alert message');
     startContinuousAlert();
   }
+});
+
+/**
+ * Activate event - clean up old caches
+ */
+self.addEventListener('activate', (event) => {
+  console.log('[FCM-SW] Service Worker activated');
+  event.waitUntil(clients.claim());
+});
+
+/**
+ * Install event
+ */
+self.addEventListener('install', (event) => {
+  console.log('[FCM-SW] Service Worker installed');
+  self.skipWaiting();
 });
