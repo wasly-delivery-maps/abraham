@@ -232,43 +232,8 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Stats Cards Section */}
-      <div className="container mx-auto px-6 -mt-12 pb-12 relative z-20">
-        <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-        >
-          {[
-            { label: "المستخدمين", value: totalUsers, sub: `${totalDrivers} سائق | ${totalCustomers} عميل`, icon: Users, color: "from-blue-500 to-blue-600", bg: "bg-blue-50" },
-            { label: "إجمالي الطلبات", value: totalOrders, sub: "منذ انطلاق النظام", icon: ShoppingBag, color: "from-orange-500 to-orange-600", bg: "bg-orange-50" },
-            { label: "طلبات نشطة", value: activeOrders, sub: "جاري توصيلها الآن", icon: Zap, color: "from-purple-500 to-purple-600", bg: "bg-purple-50" },
-            { label: "إجمالي الأرباح", value: `ج.م ${stats?.totalRevenue || orders.reduce((sum, o) => sum + (o.price || 0), 0)}`, sub: "إجمالي المبيعات", icon: BarChart3, color: "from-emerald-500 to-emerald-600", bg: "bg-emerald-50" }
-          ].map((stat, i) => (
-            <motion.div key={i} variants={itemVariants}>
-              <Card className="border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden hover:shadow-2xl transition-all group h-full">
-                <CardContent className="p-8">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className={`bg-gradient-to-br ${stat.color} p-4 rounded-2xl text-white shadow-lg group-hover:scale-110 transition-transform`}>
-                      <stat.icon className="h-6 w-6" />
-                    </div>
-                    <Badge className="bg-slate-100 text-slate-500 border-none px-3 py-1 rounded-full font-black text-[10px]">
-                      إحصائيات
-                    </Badge>
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-slate-400 font-bold text-xs uppercase tracking-wider">{stat.label}</h3>
-                    <div className="text-3xl font-black text-slate-900">{stat.value}</div>
-                    <p className="text-[10px] font-bold text-slate-400 mt-2">{stat.sub}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Management Tabs Section */}
+      {/* Management Tabs Section */}
+      <div className="container mx-auto px-6 pb-12 relative z-20">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
