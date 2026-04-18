@@ -95,15 +95,6 @@ const ROLL_WE_MENU: MenuItem[] = [
   { id: 21, name: "حواوشي لحم 🥩", category: "حواوشي", price: 40 },
   { id: 22, name: "حواوشي مختلط 🥙", category: "حواوشي", price: 45 },
   { id: 23, name: "حواوشي جبن 🧀", category: "حواوشي", price: 30 },
-  { id: 24, name: "عصير برتقال 🍊", category: "مشروبات", price: 15 },
-  { id: 25, name: "عصير ليمون 🍋", category: "مشروبات", price: 15 },
-  { id: 26, name: "مشروب غازي 🥤", category: "مشروبات", price: 10 },
-  { id: 27, name: "قهوة ☕", category: "مشروبات", price: 20 },
-  { id: 28, name: "شاي 🍵", category: "مشروبات", price: 10 },
-  { id: 29, name: "بطاطس مقلية 🍟", category: "تسلية", price: 20 },
-  { id: 30, name: "دجاج مقلي 🍗", category: "تسلية", price: 35 },
-  { id: 31, name: "سلطة 🥗", category: "تسلية", price: 25 },
-  { id: 32, name: "خبز 🍞", category: "تسلية", price: 5 },
 ];
 
 const KHEDIVE_KOSHARY_MENU: MenuItem[] = [
