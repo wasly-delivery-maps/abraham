@@ -37,7 +37,7 @@ export default function Home() {
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="bg-orange-600 p-2 rounded-xl shadow-lg shadow-orange-200">
-              <Zap className="text-white h-6 w-6 fill-current" />
+              <Truck className="text-white h-7 w-7" />
             </div>
             <span className="text-2xl font-black bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">وصلي</span>
           </div>
@@ -102,9 +102,9 @@ export default function Home() {
             <div className="relative">
               <div className="relative z-10 animate-float">
                 <img 
-                  src="https://manus-uploads.s3.amazonaws.com/modern-rider.png"
+                  src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663574548635/TFCiPaicWQMgbGKm.png"
                   alt="وصلي - سائق توصيل"
-                  className="w-full h-auto drop-shadow-[0_35px_35px_rgba(234,88,12,0.3)] rounded-[3rem]"
+                  className="w-full h-auto drop-shadow-[0_35px_35px_rgba(234,88_12,0.3)] rounded-[3rem]"
                 />
               </div>
               {/* Decorative Elements */}
