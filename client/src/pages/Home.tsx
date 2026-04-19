@@ -65,11 +65,11 @@ export default function Home() {
                 <span>الخدمة الأسرع في مدينة العبور</span>
               </div>
               <h1 className="text-5xl lg:text-7xl font-black text-gray-900 leading-[1.1]">
-                شحنتك في أمان <br />
-                <span className="text-orange-600">توصيل ذكي</span> بضغطة زر
+                جعان ومش عايز <br />
+                <span className="text-orange-600">تستنى؟</span> وصلي يوصلك
               </h1>
               <p className="text-xl text-gray-600 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                منصة وصلي تربطك بأفضل السائقين المحترفين لضمان وصول طرودك في أسرع وقت ممكن وبأعلى معايير الأمان والموثوقية.
+                سواء كنت عايز تطلب أكل من مطعمك المفضل أو تبعت طرد مهم، وصلي بيجيبلك كل طلباتك لحد باب البيت في أسرع وقت وبأمان تام.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link href="/auth">
@@ -124,14 +124,14 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              { icon: Zap, title: "سرعة فائقة", desc: "نصل إليك في غضون دقائق من طلب الخدمة بفضل توزيعنا الذكي.", color: "orange" },
-              { icon: Shield, title: "أمان مطلق", desc: "جميع السائقين معتمدون ويخضعون لفحوصات أمنية دورية.", color: "blue" },
-              { icon: MapPin, title: "تتبع دقيق", desc: "شاهد طردك وهو يتحرك على الخريطة في الوقت الفعلي بدقة متناهية.", color: "green" },
-              { icon: Clock, title: "متاح دائماً", desc: "لا نتوقف أبداً، خدمتنا متاحة 24 ساعة طوال أيام الأسبوع.", color: "purple" },
-              { icon: Star, title: "جودة مضمونة", desc: "نظام تقييم دقيق يضمن لك الحصول على أفضل كابتن دائماً.", color: "yellow" },
-              { icon: Truck, title: "أسعار عادلة", desc: "شفافية كاملة في الأسعار بدون أي رسوم خفية أو مفاجئة.", color: "red" }
-            ].map((feature, idx) => (
+              {[
+                { icon: Zap, title: "توصيل وجبات", desc: "اطلب أكلك من المطاعم المتعاقدة معانا ويوصلك سخن وفريش.", color: "orange" },
+                { icon: Truck, title: "توصيل طرود", desc: "ابعت واستلم أي حاجة في مدينة العبور بضغطة زر واحدة.", color: "blue" },
+                { icon: MapPin, title: "تتبع لايف", desc: "تابع طلبك وهو جاي لك على الخريطة لحظة بلحظة لحد ما يوصل.", color: "green" },
+                { icon: Clock, title: "متاح دائماً", desc: "جعان في نص الليل؟ وصلي شغال معاك 24 ساعة طوال أيام الأسبوع.", color: "purple" },
+                { icon: Star, title: "أفضل المطاعم", desc: "متعاقدين مع أكبر مطاعم العبور لضمان تنوع الوجبات وجودتها.", color: "yellow" },
+                { icon: Shield, title: "أمان وموثوقية", desc: "سائقين محترفين وأسعار عادلة وشفافة بدون أي رسوم مخفية.", color: "red" }
+              ].map((feature, idx) => (
               <Card key={idx} className="group border-none shadow-sm hover:shadow-2xl transition-all duration-500 p-4 rounded-[2rem] bg-[#fdfdfd] hover:-translate-y-2">
                 <CardHeader>
                   <div className={`bg-${feature.color}-100 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500`}>
