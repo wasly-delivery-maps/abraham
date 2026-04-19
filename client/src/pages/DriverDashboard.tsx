@@ -298,22 +298,31 @@ export default function DriverDashboard() {
 
   const handleLogout = async () => {
     try {
-      // 1. Close all open UI components first
-      setShowMapModal(false);
-      setIsChatOpen(false);
-      setSelectedOrderId(null);
-      
-      // 2. Stop alert sound
+      // 1. Stop alert sound first
       if (isAlertActive()) {
         await stopAlert();
       }
+
+      // 2. Close all UI components and clear states
+      setShowMapModal(false);
+      setIsChatOpen(false);
+      setSelectedOrderId(null);
+      setMapModalData(null);
       
-      // 3. Clear any background intervals or timers if necessary
-      
-      // 4. Perform logout and navigation
-      await logout();
-      navigate("/auth");
-      toast.success("تم تسجيل الخروج بنجاح");
+      // 3. Give React a moment to unmount/close modals before logging out
+      // This prevents the #300 error which happens when state updates during unmounting
+      setTimeout(async () => {
+        try {
+          await logout();
+          // Force a clean navigation
+          window.location.href = "/auth";
+          toast.success("تم تسجيل الخروج بنجاح");
+        } catch (err) {
+          console.error("Logout error:", err);
+          navigate("/auth");
+        }
+      }, 100);
+
     } catch (error) {
       toast.error("فشل تسجيل الخروج");
     }
