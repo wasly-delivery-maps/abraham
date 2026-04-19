@@ -277,97 +277,7 @@ export default function DriverDashboard() {
     setShowMapModal(true);
   };
 
-  const MapModal = () => {
-    if (!showMapModal || !mapModalData) return null;
-    
-    const { order, type } = mapModalData;
-    const start: [number, number] = driverLocation 
-      ? [driverLocation.latitude, driverLocation.longitude]
-      : [30.1200, 31.4500];
-    const pickup: [number, number] = [order.pickupLocation.latitude, order.pickupLocation.longitude];
-    const destination: [number, number] = [order.deliveryLocation.latitude, order.deliveryLocation.longitude];
 
-    const bounds = L.latLngBounds([start, pickup, destination]);
-    const [resetCounter, setResetCounter] = useState(0);
-
-    return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          className="bg-white rounded-3xl shadow-2xl w-full max-w-lg md:max-w-4xl h-[85vh] md:max-h-[90vh] overflow-hidden flex flex-col mx-auto"
-        >
-          <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-orange-50 to-blue-50">
-            <h2 className="text-2xl font-black text-gray-800">
-              {type === "pickup" ? "📍 موقع الاستلام" : "🎯 المسار الكامل"}
-            </h2>
-            <button
-              onClick={() => setShowMapModal(false)}
-              className="text-gray-500 hover:text-gray-700 text-3xl font-bold transition-colors"
-            >
-              ✕
-            </button>
-          </div>
-          
-          <div className="flex-1 overflow-hidden">
-            <MapContainer
-              center={start}
-              zoom={13}
-              style={{ height: "100%", width: "100%" }}
-            >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; OpenStreetMap contributors'
-              />
-              <ChangeView bounds={bounds} shouldFit={true} resetTrigger={resetCounter} />
-              <MapControls bounds={bounds} onResetClick={() => setResetCounter(prev => prev + 1)} />
-              <Marker position={start} icon={iconA}>
-                <Popup>📍 موقعك الحالي</Popup>
-              </Marker>
-              <Marker position={pickup} icon={iconB}>
-                <Popup>📦 موقع الاستلام</Popup>
-              </Marker>
-              {type === "delivery" && (
-                <>
-                  <Marker position={destination} icon={iconB}>
-                    <Popup>🎯 موقع التسليم</Popup>
-                  </Marker>
-                  <RoutingPolyline start={start} end={pickup} />
-                  <RoutingPolyline start={pickup} end={destination} />
-                </>
-              )}
-              {type === "pickup" && (
-                <RoutingPolyline start={start} end={pickup} />
-              )}
-            </MapContainer>
-          </div>
-
-          <div className="p-6 border-t bg-gray-50 flex gap-3">
-            <Button
-              onClick={() => setShowMapModal(false)}
-              className="flex-1 bg-gray-600 hover:bg-gray-700 text-white h-12 font-bold rounded-2xl"
-            >
-              إغلاق الخريطة
-            </Button>
-            <a
-              href={type === "pickup" 
-                ? `https://www.google.com/maps/dir/?api=1&origin=${start[0]},${start[1]}&destination=${pickup[0]},${pickup[1]}&travelmode=driving`
-                : `https://www.google.com/maps/dir/?api=1&origin=${start[0]},${start[1]}&destination=${destination[0]},${destination[1]}&waypoints=${pickup[0]},${pickup[1]}&travelmode=driving`
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1"
-            >
-              <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white h-12 font-bold rounded-2xl">
-                🗺️ فتح في خرائط جوجل
-              </Button>
-            </a>
-          </div>
-        </motion.div>
-      </div>
-    );
-  };
 
 
   const handleAcceptOrder = async (orderId: number) => {
@@ -711,6 +621,96 @@ export default function DriverDashboard() {
   const selectedOrder = (orders || []).find(o => o?.id === selectedOrderId) || (availableOrders || []).find(o => o?.id === selectedOrderId);
   const otherUserName = orderDetailsQuery.data?.customer?.name || selectedOrder?.customer?.name || "العميل";
 
+  const mapModal = useMemo(() => {
+    if (!showMapModal || !mapModalData) return null;
+    
+    const { order, type } = mapModalData;
+    const start: [number, number] = driverLocation 
+      ? [driverLocation.latitude, driverLocation.longitude]
+      : [30.1200, 31.4500];
+    const pickup: [number, number] = [order.pickupLocation.latitude, order.pickupLocation.longitude];
+    const destination: [number, number] = [order.deliveryLocation.latitude, order.deliveryLocation.longitude];
+
+    const bounds = L.latLngBounds([start, pickup, destination]);
+
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          className="bg-white rounded-3xl shadow-2xl w-full max-w-lg md:max-w-4xl h-[85vh] md:max-h-[90vh] overflow-hidden flex flex-col mx-auto"
+        >
+          <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-orange-50 to-blue-50">
+            <h2 className="text-2xl font-black text-gray-800">
+              {type === "pickup" ? "📍 موقع الاستلام" : "🎯 المسار الكامل"}
+            </h2>
+            <button
+              onClick={() => setShowMapModal(false)}
+              className="text-gray-500 hover:text-gray-700 text-3xl font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-hidden">
+            <MapContainer
+              center={start}
+              zoom={13}
+              style={{ height: "100%", width: "100%" }}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; OpenStreetMap contributors'
+              />
+              <ChangeView bounds={bounds} shouldFit={true} />
+              <Marker position={start} icon={iconA}>
+                <Popup>📍 موقعك الحالي</Popup>
+              </Marker>
+              <Marker position={pickup} icon={iconB}>
+                <Popup>📦 موقع الاستلام</Popup>
+              </Marker>
+              {type === "delivery" && (
+                <>
+                  <Marker position={destination} icon={iconB}>
+                    <Popup>🎯 موقع التسليم</Popup>
+                  </Marker>
+                  <RoutingPolyline start={start} end={pickup} />
+                  <RoutingPolyline start={pickup} end={destination} />
+                </>
+              )}
+              {type === "pickup" && (
+                <RoutingPolyline start={start} end={pickup} />
+              )}
+            </MapContainer>
+          </div>
+
+          <div className="p-6 border-t bg-gray-50 flex gap-3">
+            <Button
+              onClick={() => setShowMapModal(false)}
+              className="flex-1 bg-gray-600 hover:bg-gray-700 text-white h-12 font-bold rounded-2xl"
+            >
+              إغلاق الخريطة
+            </Button>
+            <a
+              href={type === "pickup" 
+                ? `https://www.google.com/maps/dir/?api=1&origin=${start[0]},${start[1]}&destination=${pickup[0]},${pickup[1]}&travelmode=driving`
+                : `https://www.google.com/maps/dir/?api=1&origin=${start[0]},${start[1]}&destination=${destination[0]},${destination[1]}&waypoints=${pickup[0]},${pickup[1]}&travelmode=driving`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1"
+            >
+              <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white h-12 font-bold rounded-2xl">
+                🗺️ فتح في خرائط جوجل
+              </Button>
+            </a>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }, [showMapModal, mapModalData, driverLocation]);
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-24" dir="rtl">
       {/* Header */}
@@ -845,7 +845,7 @@ export default function DriverDashboard() {
       )}
 
       <AnimatePresence>
-        {showMapModal && <MapModal />}
+        {mapModal}
       </AnimatePresence>
     </div>
   );
