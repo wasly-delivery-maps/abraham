@@ -167,6 +167,24 @@ export default function DriverDashboard() {
 
   const hasNavigatedRef = useRef(false);
 
+  // Handle hardware back button for mobile apps
+  useEffect(() => {
+    const handleBackButton = (e: PopStateEvent) => {
+      if (showMapModal) {
+        e.preventDefault();
+        setShowMapModal(false);
+        // Push state again to keep user on the same page
+        window.history.pushState(null, "", window.location.pathname);
+      }
+    };
+
+    window.addEventListener('popstate', handleBackButton);
+    // Initial state push to enable popstate interception
+    window.history.pushState(null, "", window.location.pathname);
+
+    return () => window.removeEventListener('popstate', handleBackButton);
+  }, [showMapModal]);
+
   const ordersQuery = trpc.orders.getDriverOrders.useQuery(undefined, {
     enabled: !!user && user.role === "driver",
     refetchInterval: 15000,
@@ -310,28 +328,22 @@ export default function DriverDashboard() {
         await stopAlert();
       }
 
-      // 2. Close all UI components and clear states
+      // 2. Clear states to minimize re-render impact
       setShowMapModal(false);
       setIsChatOpen(false);
-      setSelectedOrderId(null);
-      setMapModalData(null);
       
-      // 3. Give React a moment to unmount/close modals before logging out
-      // This prevents the #300 error which happens when state updates during unmounting
-      setTimeout(async () => {
-        try {
-          await logout();
-          // Force a clean navigation
-          window.location.href = "/auth";
-          toast.success("تم تسجيل الخروج بنجاح");
-        } catch (err) {
-          console.error("Logout error:", err);
-          navigate("/auth");
-        }
-      }, 100);
-
+      // 3. Perform logout
+      await logout();
+      
+      // 4. Force a FULL page reload to the auth page
+      // This is the most reliable way to prevent React Error #300 during logout
+      // as it completely destroys the current React tree and memory state.
+      window.location.replace("/auth");
+      
     } catch (error) {
-      toast.error("فشل تسجيل الخروج");
+      console.error("Logout error:", error);
+      // Fallback: force reload even if mutation fails
+      window.location.replace("/auth");
     }
   };
 
