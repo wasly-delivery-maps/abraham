@@ -299,7 +299,7 @@ export default function DriverDashboard() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+          className="bg-white rounded-3xl shadow-2xl w-full max-w-lg md:max-w-4xl h-[85vh] md:max-h-[90vh] overflow-hidden flex flex-col mx-auto"
         >
           <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-orange-50 to-blue-50">
             <h2 className="text-2xl font-black text-gray-800">
