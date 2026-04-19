@@ -37,7 +37,7 @@ export default function Home() {
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="bg-orange-600 p-2 rounded-xl">
-              <Truck className="text-white h-6 w-6" />
+              <img src="https://d2xsxph8kpxj0f.cloudfront.net/310519663447379287/3dBv4SsFHSJkfRF8vck3um/delivery-rider_ca25e1da.jpg" className="h-6 w-6 object-contain brightness-0 invert" alt="وصلي" />
             </div>
             <span className="text-2xl font-black bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">وصلي</span>
           </div>
