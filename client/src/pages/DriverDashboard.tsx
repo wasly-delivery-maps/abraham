@@ -49,34 +49,28 @@ const iconB = L.divIcon({
 });
 
 // Component to auto-fit map bounds with zoom lock
-function ChangeView({ bounds, shouldFit }: { bounds: L.LatLngBoundsExpression; shouldFit: boolean }) {
+function ChangeView({ bounds, shouldFit, resetTrigger }: { bounds: L.LatLngBoundsExpression; shouldFit: boolean; resetTrigger?: number }) {
   const map = useMap();
+  const [hasFitted, setHasFitted] = useState(false);
+
   useEffect(() => {
-    if (bounds && shouldFit) {
+    setHasFitted(false);
+  }, [resetTrigger]);
+
+  useEffect(() => {
+    if (bounds && shouldFit && !hasFitted) {
       map.fitBounds(bounds, { padding: [50, 50] });
+      setHasFitted(true);
     }
-  }, [bounds, map, shouldFit]);
+  }, [bounds, map, shouldFit, hasFitted]);
   return null;
 }
 
 // Component to handle zoom lock and reset button
 function MapControls({ bounds, onResetClick }: { bounds: L.LatLngBoundsExpression; onResetClick: () => void }) {
   const map = useMap();
-  const [isZoomLocked, setIsZoomLocked] = useState(false);
-
-  useEffect(() => {
-    const handleZoom = () => {
-      setIsZoomLocked(true);
-    };
-
-    map.on('zoom', handleZoom);
-    return () => {
-      map.off('zoom', handleZoom);
-    };
-  }, [map]);
 
   const handleReset = () => {
-    setIsZoomLocked(false);
     onResetClick();
     if (bounds) {
       map.fitBounds(bounds, { padding: [50, 50] });
@@ -293,6 +287,9 @@ export default function DriverDashboard() {
     const pickup: [number, number] = [order.pickupLocation.latitude, order.pickupLocation.longitude];
     const destination: [number, number] = [order.deliveryLocation.latitude, order.deliveryLocation.longitude];
 
+    const bounds = L.latLngBounds([start, pickup, destination]);
+    const [resetCounter, setResetCounter] = useState(0);
+
     return (
       <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <motion.div
@@ -323,6 +320,8 @@ export default function DriverDashboard() {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; OpenStreetMap contributors'
               />
+              <ChangeView bounds={bounds} shouldFit={true} resetTrigger={resetCounter} />
+              <MapControls bounds={bounds} onResetClick={() => setResetCounter(prev => prev + 1)} />
               <Marker position={start} icon={iconA}>
                 <Popup>📍 موقعك الحالي</Popup>
               </Marker>
@@ -528,6 +527,7 @@ export default function DriverDashboard() {
     const bounds = isPickupValid && isDeliveryValid 
       ? L.latLngBounds([pickupLat, pickupLng], [deliveryLat, deliveryLng])
       : null;
+    const [resetCounter, setResetCounter] = useState(0);
 
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}>
@@ -574,8 +574,8 @@ export default function DriverDashboard() {
                     start={[pickupLat, pickupLng]}
                     end={[deliveryLat, deliveryLng]}
                   />
-                  {bounds && <ChangeView bounds={bounds} shouldFit={true} />}
-                  {bounds && <MapControls bounds={bounds} onResetClick={() => {}} />}
+                  {bounds && <ChangeView bounds={bounds} shouldFit={true} resetTrigger={resetCounter} />}
+                  {bounds && <MapControls bounds={bounds} onResetClick={() => setResetCounter(prev => prev + 1)} />}
                 </MapContainer>
               </div>
             )}
