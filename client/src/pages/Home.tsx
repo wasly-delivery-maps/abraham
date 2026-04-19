@@ -102,9 +102,9 @@ export default function Home() {
             <div className="relative">
               <div className="relative z-10 animate-float">
                 <img 
-                  src="https://d2xsxph8kpxj0f.cloudfront.net/310519663447379287/3dBv4SsFHSJkfRF8vck3um/delivery-rider_ca25e1da.jpg"
+                  src="https://manus-uploads.s3.amazonaws.com/modern-rider.png"
                   alt="وصلي - سائق توصيل"
-                  className="w-full h-auto drop-shadow-[0_35px_35px_rgba(234,88,12,0.3)]"
+                  className="w-full h-auto drop-shadow-[0_35px_35px_rgba(234,88,12,0.3)] rounded-[3rem]"
                 />
               </div>
               {/* Decorative Elements */}
