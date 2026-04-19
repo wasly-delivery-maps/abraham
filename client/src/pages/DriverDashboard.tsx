@@ -474,6 +474,8 @@ export default function DriverDashboard() {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   />
+                  <ChangeView bounds={bounds} shouldFit={true} resetTrigger={resetCounter} />
+                  <MapControls bounds={bounds} onResetClick={() => setResetCounter(prev => prev + 1)} />
                   <Marker position={[pickupLat, pickupLng]} icon={iconA}>
                     <Popup>نقطة الاستلام</Popup>
                   </Marker>
@@ -484,8 +486,6 @@ export default function DriverDashboard() {
                     start={[pickupLat, pickupLng]}
                     end={[deliveryLat, deliveryLng]}
                   />
-                  {bounds && <ChangeView bounds={bounds} shouldFit={true} resetTrigger={resetCounter} />}
-                  {bounds && <MapControls bounds={bounds} onResetClick={() => setResetCounter(prev => prev + 1)} />}
                 </MapContainer>
               </div>
             )}
