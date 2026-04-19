@@ -33,7 +33,7 @@ let DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-// Custom icons for A and B
+// Custom icons for A (Pickup) and B (Delivery)
 const iconA = L.divIcon({
   className: 'custom-div-icon',
   html: "<div style='background-color:#f97316; color:white; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; border:3px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3);'>A</div>",
@@ -46,6 +46,13 @@ const iconB = L.divIcon({
   html: "<div style='background-color:#3b82f6; color:white; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; border:3px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3);'>B</div>",
   iconSize: [30, 30],
   iconAnchor: [15, 15]
+});
+
+const iconDriver = L.divIcon({
+  className: 'custom-div-icon',
+  html: "<div style='background-color:#10b981; color:white; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 0 10px rgba(16,185,129,0.5);'><div style='width:8px; height:8px; background:white; border-radius:50%;'></div></div>",
+  iconSize: [24, 24],
+  iconAnchor: [12, 12]
 });
 
 // Component to auto-fit map bounds with zoom lock
@@ -665,16 +672,16 @@ export default function DriverDashboard() {
                 attribution='&copy; OpenStreetMap contributors'
               />
               <ChangeView bounds={bounds} shouldFit={true} />
-              <Marker position={start} icon={iconA}>
-                <Popup>📍 موقعك الحالي</Popup>
+              <Marker position={start} icon={iconDriver}>
+                <Popup>📍 موقعك الحالي (أنت هنا)</Popup>
               </Marker>
-              <Marker position={pickup} icon={iconB}>
-                <Popup>📦 موقع الاستلام</Popup>
+              <Marker position={pickup} icon={iconA}>
+                <Popup>📦 موقع الاستلام (A)</Popup>
               </Marker>
               {type === "delivery" && (
                 <>
                   <Marker position={destination} icon={iconB}>
-                    <Popup>🎯 موقع التسليم</Popup>
+                    <Popup>🎯 موقع التسليم (B)</Popup>
                   </Marker>
                   <RoutingPolyline start={start} end={pickup} />
                   <RoutingPolyline start={pickup} end={destination} />
