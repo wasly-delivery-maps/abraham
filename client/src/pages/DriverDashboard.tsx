@@ -298,11 +298,19 @@ export default function DriverDashboard() {
 
   const handleLogout = async () => {
     try {
-      // Stop alert when driver logs out
+      // 1. Close all open UI components first
+      setShowMapModal(false);
+      setIsChatOpen(false);
+      setSelectedOrderId(null);
+      
+      // 2. Stop alert sound
       if (isAlertActive()) {
         await stopAlert();
       }
       
+      // 3. Clear any background intervals or timers if necessary
+      
+      // 4. Perform logout and navigation
       await logout();
       navigate("/auth");
       toast.success("تم تسجيل الخروج بنجاح");
