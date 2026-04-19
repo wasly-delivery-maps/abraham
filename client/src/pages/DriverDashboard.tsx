@@ -322,29 +322,18 @@ export default function DriverDashboard() {
   };
 
   const handleLogout = async () => {
+    // Force immediate UI cleanup
+    setShowMapModal(false);
+    setIsChatOpen(false);
+    
+    // Most reliable way: tell server to logout then IMMEDIATELY redirect
+    // without waiting for React to update states, which causes the crash.
     try {
-      // 1. Stop alert sound first
-      if (isAlertActive()) {
-        await stopAlert();
-      }
-
-      // 2. Clear states to minimize re-render impact
-      setShowMapModal(false);
-      setIsChatOpen(false);
-      
-      // 3. Perform logout
-      await logout();
-      
-      // 4. Force a FULL page reload to the auth page
-      // This is the most reliable way to prevent React Error #300 during logout
-      // as it completely destroys the current React tree and memory state.
-      window.location.replace("/auth");
-      
-    } catch (error) {
-      console.error("Logout error:", error);
-      // Fallback: force reload even if mutation fails
-      window.location.replace("/auth");
-    }
+      logout(); // Trigger background logout
+    } catch (e) {}
+    
+    // Immediate full page replacement - destroys the React tree and prevents Error #300
+    window.location.href = "/auth";
   };
 
   const requestPermission = async () => {
