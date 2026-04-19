@@ -461,7 +461,7 @@ export default function DriverDashboard() {
 
             {/* Map - Visible for ALL orders */}
             {isPickupValid && isDeliveryValid && (
-              <div className="h-64 w-full bg-slate-100 relative z-0" style={{ filter: 'grayscale(60%) brightness(1.1) contrast(0.95)' }}>
+              <div className="h-64 w-full bg-slate-100 relative z-0">
                 <MapContainer 
                   center={[pickupLat, pickupLng]} 
                   zoom={13} 
