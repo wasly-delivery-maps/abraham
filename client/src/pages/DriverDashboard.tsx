@@ -467,34 +467,18 @@ export default function DriverDashboard() {
               {getStatusBadge(order.status)}
             </div>
 
-            {/* Map - Visible for ALL orders */}
+            {/* Interactive Map Button - Replaces the auto-map */}
             {isPickupValid && isDeliveryValid && (
-              <div className="h-64 w-full bg-slate-100 relative z-0">
-                <MapContainer 
-                  center={[pickupLat, pickupLng]} 
-                  zoom={13} 
-                  style={{ height: '100%', width: '100%' }}
-                  zoomControl={false}
-                  dragging={true}
-                  scrollWheelZoom={false}
+              <div className="px-8 pt-4">
+                <Button 
+                  onClick={(e) => { e.stopPropagation(); openMaps(order, "delivery"); }}
+                  className="w-full py-10 rounded-3xl bg-slate-50 hover:bg-orange-50 border-2 border-dashed border-slate-200 hover:border-orange-200 text-slate-500 hover:text-orange-600 transition-all flex flex-col gap-2 group"
                 >
-                  <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  />
-                  <ChangeView bounds={bounds} shouldFit={true} resetTrigger={resetCounter} />
-                  <MapControls bounds={bounds} onResetClick={() => setResetCounter(prev => prev + 1)} />
-                  <Marker position={[pickupLat, pickupLng]} icon={iconA}>
-                    <Popup>نقطة الاستلام</Popup>
-                  </Marker>
-                  <Marker position={[deliveryLat, deliveryLng]} icon={iconB}>
-                    <Popup>وجهة التسليم</Popup>
-                  </Marker>
-                  <RoutingPolyline 
-                    start={[pickupLat, pickupLng]}
-                    end={[deliveryLat, deliveryLng]}
-                  />
-                </MapContainer>
+                  <div className="p-3 bg-white rounded-2xl shadow-sm group-hover:scale-110 transition-transform">
+                    <MapIcon className="h-6 w-6" />
+                  </div>
+                  <span className="font-black text-sm">📍 عرض المسار ونقاط الاستلام والتسليم على الخريطة</span>
+                </Button>
               </div>
             )}
 
