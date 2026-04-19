@@ -165,11 +165,11 @@ export default function Home() {
                     سجل حسابك الآن
                   </Button>
                 </Link>
-                <Link href="/auth">
+                <a href="https://wa.me/201557564373" target="_blank" rel="noopener noreferrer">
                   <Button size="lg" variant="outline" className="border-2 border-white/30 text-white hover:bg-white/10 text-lg px-12 py-8 rounded-2xl font-black">
                     تحدث مع الدعم
                   </Button>
-                </Link>
+                </a>
               </div>
             </div>
           </div>
