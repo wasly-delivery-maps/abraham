@@ -36,6 +36,21 @@ export default function Auth() {
   // tRPC mutations
   const loginMutation = trpc.auth.login.useMutation();
   const registerMutation = trpc.auth.register.useMutation();
+  const { user, isAuthenticated, loading: authLoading } = trpc.auth.me.useQuery();
+
+  useEffect(() => {
+    // If user is already authenticated, redirect them back to their dashboard
+    // This prevents logging out when pressing the back button from the dashboard
+    if (!authLoading && isAuthenticated && user) {
+      if (user.role === "driver") {
+        navigate("/driver/dashboard");
+      } else if (user.role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/customer/dashboard");
+      }
+    }
+  }, [isAuthenticated, user, authLoading, navigate]);
 
   useEffect(() => {
     try {
