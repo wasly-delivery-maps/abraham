@@ -62,6 +62,11 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     }
   }, [onLocationSelect]);
 
+  const handleAddressChange = (newAddr: string) => {
+    setAddress(newAddr);
+    onLocationSelect({ address: newAddr, latitude: position[0], longitude: position[1] });
+  };
+
   useEffect(() => {
     if (initialLocation) {
       reverseGeocode(initialLocation.latitude, initialLocation.longitude);
@@ -210,7 +215,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
         </div>
       )}
 
-      <div className="h-[400px] w-full rounded-[2rem] overflow-hidden border-4 border-white shadow-2xl relative z-10" style={{ filter: 'grayscale(60%) brightness(1.1) contrast(0.95)' }}>
+      <div className="h-[400px] w-full rounded-[2rem] overflow-hidden border-4 border-white shadow-2xl relative z-10">
         <MapContainer center={position} zoom={14} style={{ height: '100%', width: '100%' }}>
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -226,8 +231,14 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
               <MapPin className="h-5 w-5 text-orange-600" />
             </div>
             <div className="flex-1">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">الموقع المختار</p>
-              <p className="text-xs font-bold text-slate-700 leading-relaxed line-clamp-2">{address || 'جاري تحديد الموقع...'}</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">الموقع المختار (يمكنك التعديل)</p>
+              <textarea
+                value={address}
+                onChange={(e) => handleAddressChange(e.target.value)}
+                className="w-full text-xs font-bold text-slate-700 bg-transparent border-none focus:ring-0 p-0 resize-none leading-relaxed"
+                rows={2}
+                placeholder="جاري تحديد الموقع..."
+              />
             </div>
           </div>
         </div>
