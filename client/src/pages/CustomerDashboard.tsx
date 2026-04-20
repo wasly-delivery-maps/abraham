@@ -13,7 +13,7 @@ import { RestaurantMenu } from "@/components/customer/RestaurantMenu";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -44,12 +44,77 @@ const iconDestination = L.divIcon({
   iconAnchor: [12, 12]
 });
 
-function ChangeView({ center }: { center: [number, number] }) {
+// Custom icons for A (Pickup) and B (Delivery)
+const iconA = L.divIcon({
+  className: 'custom-div-icon',
+  html: "<div style='background-color:#f97316; color:white; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; border:3px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3);'>A</div>",
+  iconSize: [30, 30],
+  iconAnchor: [15, 15]
+});
+
+const iconB = L.divIcon({
+  className: 'custom-div-icon',
+  html: "<div style='background-color:#3b82f6; color:white; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; border:3px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3);'>B</div>",
+  iconSize: [30, 30],
+  iconAnchor: [15, 15]
+});
+
+function ChangeView({ center, bounds, shouldFit }: { center?: [number, number], bounds?: L.LatLngBoundsExpression, shouldFit?: boolean }) {
   const map = useMap();
   useEffect(() => {
-    map.setView(center);
-  }, [center, map]);
+    if (center) {
+      map.setView(center);
+    }
+    if (bounds && shouldFit) {
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [center, bounds, shouldFit, map]);
   return null;
+}
+
+// Component to draw routing path
+function RoutingPolyline({ start, end }: { start: [number, number]; end: [number, number] }) {
+  const [routeCoordinates, setRouteCoordinates] = useState<[number, number][]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRoute = async () => {
+      try {
+        const response = await fetch(
+          `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&geometries=geojson`
+        );
+        const data = await response.json();
+        
+        if (data.routes && data.routes.length > 0) {
+          const coordinates = data.routes[0].geometry.coordinates.map((coord: [number, number]) => [
+            coord[1],
+            coord[0],
+          ] as [number, number]);
+          setRouteCoordinates(coordinates);
+        }
+      } catch (error) {
+        console.error('Error fetching route:', error);
+        setRouteCoordinates([start, end]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRoute();
+  }, [start, end]);
+
+  if (loading || routeCoordinates.length === 0) {
+    return null;
+  }
+
+  return (
+    <Polyline
+      positions={routeCoordinates}
+      color="#f97316"
+      weight={4}
+      opacity={0.8}
+    />
+  );
 }
 
 // Cancel Order Button Component
@@ -98,6 +163,7 @@ export default function CustomerDashboard() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatOrderId, setChatOrderId] = useState<number | null>(null);
   const { unreadCounts } = useChatContext();
+  const [showMapModal, setShowMapModal] = useState(false);
 
   const ordersQuery = trpc.orders.getCustomerOrders.useQuery(undefined, {
     refetchInterval: 5000,
@@ -147,11 +213,11 @@ export default function CustomerDashboard() {
   // حماية زر الرجوع في الهاتف لمنع الخروج من الحساب
   useEffect(() => {
     const handleBackButton = (e: PopStateEvent) => {
-      if (isDetailsOpen || isChatOpen) {
+      if (isDetailsOpen || isChatOpen || showMapModal) {
         e.preventDefault();
         setIsDetailsOpen(false);
         setIsChatOpen(false);
-        // إعادة إضافة الحالة للتاريخ لمنع الخروج من الصفحة
+        setShowMapModal(false);
         window.history.pushState(null, "", window.location.pathname);
       }
     };
@@ -162,7 +228,7 @@ export default function CustomerDashboard() {
     return () => {
       window.removeEventListener("popstate", handleBackButton);
     };
-  }, [isDetailsOpen, isChatOpen]);
+  }, [isDetailsOpen, isChatOpen, showMapModal]);
 
   const getStatusInfo = (status: string) => {
     const statusMap: Record<string, { label: string, color: string, icon: any }> = {
@@ -180,6 +246,119 @@ export default function CustomerDashboard() {
   const activeOrders = orders.filter((o) => !["delivered", "cancelled"].includes(o.status));
   const completedOrders = orders.filter((o) => ["delivered", "cancelled"].includes(o.status));
   const totalSpent = orders.reduce((sum, o) => sum + (o.price || 0), 0);
+
+  const mapModal = useMemo(() => {
+    if (!showMapModal || !orderDetailsQuery.data) return null;
+    
+    const order = orderDetailsQuery.data;
+    const driverLoc = order.assignedDriver?.lastLocation;
+    
+    const driver: [number, number] = driverLoc 
+      ? [driverLoc.latitude, driverLoc.longitude]
+      : [30.1200, 31.4500];
+    const pickup: [number, number] = [order.pickupLocation.latitude, order.pickupLocation.longitude];
+    const destination: [number, number] = [order.deliveryLocation.latitude, order.deliveryLocation.longitude];
+
+    const bounds = L.latLngBounds([driver, pickup, destination]);
+
+    return (
+      <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-lg md:max-w-4xl h-[85vh] md:max-h-[90vh] overflow-hidden flex flex-col mx-auto border border-white/20"
+        >
+          <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-orange-50 to-blue-50">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-2xl bg-white shadow-sm flex items-center justify-center">
+                <Navigation className="h-5 w-5 text-orange-600 animate-pulse" />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-slate-900">تتبع السائق</h2>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">تتبع مباشر • طلب #{order.id}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowMapModal(false)}
+              className="h-10 w-10 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-hidden relative">
+            <MapContainer
+              center={driver}
+              zoom={13}
+              style={{ height: "100%", width: "100%" }}
+              zoomControl={false}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; OpenStreetMap contributors'
+              />
+              <ChangeView bounds={bounds} shouldFit={true} />
+              
+              <Marker position={driver} icon={iconDriver}>
+                <Popup>📍 موقع المندوب الحالي</Popup>
+              </Marker>
+              
+              <Marker position={pickup} icon={iconA}>
+                <Popup>📦 موقع الاستلام (المطعم)</Popup>
+              </Marker>
+              
+              <Marker position={destination} icon={iconB}>
+                <Popup>🎯 موقع التسليم (منزلك)</Popup>
+              </Marker>
+              
+              <RoutingPolyline start={driver} end={pickup} />
+              <RoutingPolyline start={pickup} end={destination} />
+            </MapContainer>
+
+            {/* Floating Info Overlay */}
+            <div className="absolute bottom-6 left-6 right-6 z-[400]">
+              <div className="bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-white flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                    <User className="h-5 w-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-slate-900">{order.assignedDriver?.name || "المندوب"}</p>
+                    <p className="text-[10px] font-bold text-slate-500">جاري التوصيل الآن</p>
+                  </div>
+                </div>
+                {order.assignedDriver?.phone && (
+                  <a href={`tel:${order.assignedDriver.phone}`} className="h-10 w-10 rounded-full bg-orange-600 flex items-center justify-center text-white shadow-lg shadow-orange-200">
+                    <Phone className="h-4 w-4" />
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 border-t bg-slate-50 flex gap-3">
+            <Button
+              onClick={() => setShowMapModal(false)}
+              className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 h-14 font-black rounded-2xl transition-all"
+            >
+              إغلاق الخريطة
+            </Button>
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&origin=${driver[0]},${driver[1]}&destination=${destination[0]},${destination[1]}&waypoints=${pickup[0]},${pickup[1]}&travelmode=driving`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1"
+            >
+              <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white h-14 font-black rounded-2xl shadow-xl shadow-orange-100 transition-all">
+                🗺️ فتح في خرائط جوجل
+              </Button>
+            </a>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }, [showMapModal, orderDetailsQuery.data]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -640,44 +819,18 @@ export default function CustomerDashboard() {
                   </div>
                 </div>
 
-                {/* Live Tracking Map */}
+{/* Live Tracking Map Button */}
                 {['accepted', 'arrived', 'in_transit'].includes(orderDetailsQuery.data.status) && orderDetailsQuery.data.assignedDriver?.lastLocation && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1">
-                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
-                        تتبع مباشر للمندوب
-                      </p>
-                    </div>
-                    <div className="h-48 w-full rounded-2xl overflow-hidden border border-slate-100 shadow-inner z-0">
-                      <MapContainer 
-                        center={[orderDetailsQuery.data.assignedDriver.lastLocation.latitude, orderDetailsQuery.data.assignedDriver.lastLocation.longitude]} 
-                        zoom={15} 
-                        style={{ height: '100%', width: '100%' }}
-                        zoomControl={false}
-                      >
-                        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                        <ChangeView center={[orderDetailsQuery.data.assignedDriver.lastLocation.latitude, orderDetailsQuery.data.assignedDriver.lastLocation.longitude]} />
-                        
-                        {/* Driver Marker */}
-                        <Marker 
-                          position={[orderDetailsQuery.data.assignedDriver.lastLocation.latitude, orderDetailsQuery.data.assignedDriver.lastLocation.longitude]}
-                          icon={iconDriver}
-                        >
-                          <Popup>المندوب هنا</Popup>
-                        </Marker>
-
-                        {/* Destination Marker */}
-                        {orderDetailsQuery.data.deliveryLocation?.latitude && (
-                          <Marker 
-                            position={[orderDetailsQuery.data.deliveryLocation.latitude, orderDetailsQuery.data.deliveryLocation.longitude]}
-                            icon={iconDestination}
-                          >
-                            <Popup>موقع التسليم</Popup>
-                          </Marker>
-                        )}
-                      </MapContainer>
-                    </div>
+                  <div className="space-y-4">
+                    <Button 
+                      onClick={() => setShowMapModal(true)}
+                      className="w-full py-10 rounded-3xl bg-slate-900 hover:bg-orange-600 text-white transition-all flex flex-col gap-2 group shadow-xl shadow-slate-200"
+                    >
+                      <div className="p-3 bg-white/10 rounded-2xl group-hover:scale-110 transition-transform">
+                        <MapIcon className="h-6 w-6 text-orange-500" />
+                      </div>
+                      <span className="font-black text-sm">📍 تتبع السائق</span>
+                    </Button>
                   </div>
                 )}
 
@@ -774,14 +927,20 @@ export default function CustomerDashboard() {
 
       {/* Chat Box */}
       {isChatOpen && chatOrderId && (
-        <ChatBox
+        <ChatBox 
           orderId={chatOrderId}
           userId={user.id}
           userRole="customer"
           userName={user.name}
-          otherUserName={
-            orders.find(o => o.id === chatOrderId)?.driver?.name || 
-            orderDetailsQuery.data?.assignedDriver?.name || 
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+        />
+      )}
+
+      <AnimatePresence>
+        {mapModal}
+      </AnimatePresence>
+    </div>rderDetailsQuery.data?.assignedDriver?.name || 
             "السائق"
           }
           isOpen={isChatOpen}
