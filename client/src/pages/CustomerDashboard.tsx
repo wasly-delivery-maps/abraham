@@ -641,7 +641,7 @@ export default function CustomerDashboard() {
                 </div>
 
                 {/* Live Tracking Map */}
-                {orderDetailsQuery.data.status === 'in_transit' && orderDetailsQuery.data.assignedDriver?.lastLocation && (
+                {['accepted', 'arrived', 'in_transit'].includes(orderDetailsQuery.data.status) && orderDetailsQuery.data.assignedDriver?.lastLocation && (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1">
