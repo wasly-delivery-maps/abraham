@@ -38,10 +38,15 @@ export default function Home() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-orange-50 shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-2 rounded-xl shadow-lg shadow-orange-200 transform hover:rotate-12 transition-transform">
-              <Truck className="text-white h-6 w-6 sm:h-7 sm:w-7" />
+            <div className="relative group">
+              <img 
+                src="/assets/logo.jpg" 
+                alt="وصلي" 
+                className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl shadow-md group-hover:scale-110 transition-transform duration-300"
+              />
+              <div className="absolute -inset-1 bg-orange-500/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
-            <span className="text-xl sm:text-2xl font-black bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent tracking-tight">وصلي</span>
+            <span className="text-xl sm:text-2xl font-black bg-gradient-to-r from-orange-600 to-[#1D2B53] bg-clip-text text-transparent tracking-tight">وصلي</span>
           </div>
           
           {/* Desktop Menu */}
@@ -119,7 +124,7 @@ export default function Home() {
                 <Zap className="h-4 w-4 fill-orange-500" />
                 <span>الخدمة الأسرع في مدينة العبور ⚡</span>
               </div>
-              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-gray-900 leading-[1.2] sm:leading-[1.1]">
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-[#1D2B53] leading-[1.2] sm:leading-[1.1]">
                 جعان ومش عايز <br className="hidden sm:block" />
                 <span className="text-orange-600 relative inline-block">
                   تستنى؟
@@ -138,7 +143,7 @@ export default function Home() {
                   </Button>
                 </Link>
                 <Link href="/auth">
-                  <Button size="lg" variant="outline" className="text-lg px-8 sm:px-10 py-6 sm:py-8 rounded-2xl font-black border-2 border-orange-100 hover:bg-orange-50 hover:border-orange-600 hover:text-orange-600 transition-all active:scale-95">
+                  <Button size="lg" variant="outline" className="text-lg px-8 sm:px-10 py-6 sm:py-8 rounded-2xl font-black border-2 border-[#1D2B53]/10 text-[#1D2B53] hover:bg-[#1D2B53]/5 hover:border-[#1D2B53] transition-all active:scale-95">
                     انضم ككابتن 🏍️
                   </Button>
                 </Link>
