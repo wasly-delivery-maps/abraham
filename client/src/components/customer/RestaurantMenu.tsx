@@ -263,11 +263,16 @@ export function RestaurantMenu() {
       return;
     }
 
+    // التأكد من وجود موقع العميل، وإذا لم يوجد نستخدم موقع افتراضي مع تنبيه
     const finalLocation = userLocation || {
       latitude: 30.1856,
       longitude: 31.2567,
       address: "موقع العميل (العبور الجديدة)",
     };
+
+    if (!userLocation) {
+      toast.warning("لم نتمكن من تحديد موقعك بدقة، سيتم استخدام موقع تقريبي.");
+    }
 
     setIsLoading(true);
     try {
@@ -298,18 +303,22 @@ export function RestaurantMenu() {
         price: item.price,
       }));
 
+      // إرسال الطلب للخلفية مع تثبيت المواقع بدقة
       await createRestaurantOrderMutation.mutateAsync({
         restaurantId: selectedRestaurant.id,
         items: cartItems,
         totalPrice,
         notes: customerNotes,
+        // موقع الاستلام هو دائماً موقع المطعم الثابت
         pickupLocation: {
           address: selectedRestaurant.address,
           latitude: selectedRestaurant.location.latitude,
           longitude: selectedRestaurant.location.longitude,
+          neighborhood: "موقع المطعم",
         },
+        // موقع التسليم هو موقع العميل المكتشف تلقائياً
         deliveryLocation: {
-          address: finalLocation.address,
+          address: addressDescription || "موقع العميل المكتشف",
           latitude: finalLocation.latitude,
           longitude: finalLocation.longitude,
           neighborhood: "موقع العميل",
@@ -319,6 +328,7 @@ export function RestaurantMenu() {
       toast.success("تم إرسال الطلب للمطعم وتم إنشاء طلب توصيل تلقائي!");
       setCart([]);
       setCustomerNotes("");
+      setAddressDescription("");
     } catch (error: any) {
       toast.error(error.message || "فشل في إنشاء الطلب");
     } finally {
@@ -505,15 +515,19 @@ export function RestaurantMenu() {
 
               <div className="p-4 space-y-4">
                 <div className="space-y-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <MapPin className="h-4 w-4 text-orange-500" />
+                    <span className="text-xs font-bold text-slate-400">عنوان التوصيل</span>
+                  </div>
                   <input
                     type="text"
-                    placeholder="العنوان بالتفصيل (رقم العمارة، الشقة، الدور)..."
+                    placeholder="رقم العمارة، الشقة، الدور، أو علامة مميزة..."
                     value={addressDescription}
                     onChange={(e) => setAddressDescription(e.target.value)}
                     className="w-full bg-slate-800 border-none rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 transition-all"
                   />
                   <textarea
-                    placeholder="ملاحظات إضافية للسائق أو المطعم..."
+                    placeholder="ملاحظات إضافية للمطعم (اختياري)..."
                     value={customerNotes}
                     onChange={(e) => setCustomerNotes(e.target.value)}
                     className="w-full bg-slate-800 border-none rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 transition-all h-20 resize-none"
