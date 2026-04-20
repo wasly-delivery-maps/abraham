@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
-import { Truck, MapPin, Clock, Star, Zap, Shield, ArrowRight, CheckCircle2, Menu, X } from "lucide-react";
+import { Truck, MapPin, Clock, Star, Zap, Shield, ArrowRight, CheckCircle2, Menu, X, Facebook } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 
@@ -306,9 +306,14 @@ export default function Home() {
             <div>
               <h4 className="font-bold text-gray-900 mb-6">تابعنا</h4>
               <div className="flex gap-4">
-                <div className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-orange-600 hover:border-orange-600 transition-all cursor-pointer">f</div>
-                <div className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-orange-600 hover:border-orange-600 transition-all cursor-pointer">t</div>
-                <div className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-orange-600 hover:border-orange-600 transition-all cursor-pointer">i</div>
+                <a 
+                  href="https://www.facebook.com/share/1CcUsu4dwU/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-12 h-12 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-[#1877F2] hover:bg-[#1877F2] hover:text-white hover:border-[#1877F2] transition-all duration-300 shadow-sm hover:shadow-lg hover:-translate-y-1"
+                >
+                  <Facebook className="h-6 w-6 fill-current" />
+                </a>
               </div>
             </div>
           </div>
