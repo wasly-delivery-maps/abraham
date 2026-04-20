@@ -89,8 +89,22 @@
         setTimeout(showInstallDialog, 3000);
       });
 
-      // تم إزالة طلب الأذونات التلقائي لضمان تجربة مستخدم أفضل
-      console.log("[PWA] Automatic permission requests disabled");
+      // طلب إذن الموقع الجغرافي فقط لضمان دقة الخرائط وتتبع السائقين
+      window.addEventListener('load', () => {
+        setTimeout(async () => {
+          if ("geolocation" in navigator) {
+            try {
+              navigator.geolocation.getCurrentPosition(
+                (position) => console.log("[PWA] Location access granted", position.coords),
+                (error) => console.error("[PWA] Location access denied", error),
+                { enableHighAccuracy: true, timeout: 10000 }
+              );
+            } catch (error) {
+              console.error("[PWA] Geolocation error:", error);
+            }
+          }
+        }, 3000);
+      });
     </script>    
     <!-- THIS IS THE START OF A COMMENT BLOCK, BLOCK TO BE DELETED: Google Fonts here, example:
     <link rel="preconnect" href="https://fonts.googleapis.com" />
