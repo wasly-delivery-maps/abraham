@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ShoppingCart, Plus, Minus, X, MessageCircle, MapPin, Phone, Loader2, ChevronRight, Star, Clock, Coins, Gift } from "lucide-react";
+import { ShoppingCart, Plus, Minus, X, MessageCircle, MapPin, Phone, Loader2, ChevronRight, Star, Clock, Coins, Gift, Truck } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -210,110 +210,79 @@ const AL_HOUT_MENU: MenuItem[] = [
   { id: 302, name: "شوربة جمبري حمراء 🥣", category: "الشوربة", price: 140 },
   { id: 303, name: "شوربة صيامي 🥣", category: "الشوربة", price: 120 },
   { id: 304, name: "ملوخية بالجمبري 🥘", category: "الشوربة", price: 100 },
-  { id: 305, name: "ملوخية سادة 🥘", category: "الشوربة", price: 70 },
-  // الساندوتشات
-  { id: 306, name: "ساندوتش جمبري 🍤", category: "الساندوتشات", price: 35 },
-  { id: 307, name: "ساندوتش فيليه 🐟", category: "الساندوتشات", price: 40 },
-  { id: 308, name: "ساندوتش سبيط 🦑", category: "الساندوتشات", price: 40 },
-  // الإضافات والسلطات
-  { id: 309, name: "أرز بالجمبري (صغير) 🍚", category: "الإضافات والسلطات", price: 90 },
-  { id: 310, name: "أرز بالجمبري (كبير) 🍚", category: "الإضافات والسلطات", price: 110 },
-  { id: 311, name: "أرز سادة (صغير) 🍚", category: "الإضافات والسلطات", price: 35 },
-  { id: 312, name: "أرز سادة (كبير) 🍚", category: "الإضافات والسلطات", price: 55 },
-  { id: 313, name: "طحينة 🍯", category: "الإضافات والسلطات", price: 10 },
-  { id: 314, name: "سلطة 🥗", category: "الإضافات والسلطات", price: 20 },
+  { id: 305, name: "ملوخية سادة 🥘", category: "الشوربة", price: 60 },
+  // الأرز
+  { id: 306, name: "أرز صيادية 🍚", category: "الأرز", price: 30 },
+  { id: 307, name: "أرز أبيض 🍚", category: "الأرز", price: 25 },
+  { id: 308, name: "أرز حبة وحبة 🍚", category: "الأرز", price: 25 },
+  { id: 309, name: "أرز خلطة 🍚", category: "الأرز", price: 40 },
+  // السلطات والمقبلات
+  { id: 310, name: "سلطة خضراء 🥗", category: "السلطات والمقبلات", price: 15 },
+  { id: 311, name: "سلطة طحينة 🥣", category: "السلطات والمقبلات", price: 15 },
+  { id: 312, name: "سلطة بابا غنوج 🍆", category: "السلطات والمقبلات", price: 20 },
+  { id: 313, name: "مخلل مشكل 🥒", category: "السلطات والمقبلات", price: 10 },
+  { id: 314, name: "باذنجان مخلل 🍆", category: "السلطات والمقبلات", price: 20 },
 ];
 
-const RESTAURANTS = [AL_HOUT_RESTAURANT, ROLL_WE_RESTAURANT, KHEDIVE_KOSHARY_RESTAURANT];
 const MENUS: Record<number, MenuItem[]> = {
   1: ROLL_WE_MENU,
   2: KHEDIVE_KOSHARY_MENU,
-  3: AL_HOUT_MENU
+  3: AL_HOUT_MENU,
 };
+
+const RESTAURANTS: Restaurant[] = [
+  ROLL_WE_RESTAURANT,
+  KHEDIVE_KOSHARY_RESTAURANT,
+  AL_HOUT_RESTAURANT,
+];
 
 export function RestaurantMenu() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
-  const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [customerNotes, setCustomerNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
   const [addressDescription, setAddressDescription] = useState("");
   const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [usePoints, setUsePoints] = useState(false);
-  const [showGiftAlert, setShowGiftAlert] = useState(false);rs.createRestaurantOrder.useMutation();
+  const [showGiftAlert, setShowGiftAlert] = useState(false);
 
-  const requestLocation = () => {
-    if (!navigator.geolocation) {
-      toast.error("متصفحك لا يدعم تحديد الموقع الجغرافي");
-      setLocationStatus("error");
-      return;
-    }
+  const createRestaurantOrderMutation = trpc.orders.createRestaurantOrder.useMutation();
 
-    setLocationStatus("loading");
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          address: "موقعي الحالي المكتشف",
-        });
-        setLocationStatus("success");
-        toast.success("تم تحديد موقعك بنجاح! 📍");
-      },
-      (error) => {
-        console.error("Geolocation error:", error);
-        setLocationStatus("error");
-        let errorMsg = "فشل تحديد الموقع. يرجى تفعيل GPS وإعطاء صلاحية الموقع للمتصفح.";
-        if (error.code === 1) errorMsg = "يرجى السماح للمتصفح بالوصول لموقعك من إعدادات الهاتف/المتصفح.";
-        toast.error(errorMsg);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
+  const addToCart = (item: MenuItem) => {
+    setCart((prev) => {
+      const existing = prev.find((i) => i.id === item.id);
+      if (existing) {
+        return prev.map((i) => (i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i));
+      }
+      return [...prev, { ...item, quantity: 1 }];
+    });
+    toast.success(`تم إضافة ${item.name} للسلة`);
+  };
+
+  const updateQuantity = (id: number, delta: number) => {
+    setCart((prev) => {
+      return prev
+        .map((item) => {
+          if (item.id === id) {
+            const newQty = Math.max(0, item.quantity + delta);
+            return { ...item, quantity: newQty };
+          }
+          return item;
+        })
+        .filter((item) => item.quantity > 0);
+    });
   };
 
   useEffect(() => {
-    requestLocation();
-  }, []);
-
-  useEffect(() => {
     if (selectedRestaurant) {
-      const menu = MENUS[selectedRestaurant.id];
-      if (menu && menu.length > 0) {
+      const menu = MENUS[selectedRestaurant.id] || [];
+      if (menu.length > 0) {
         setSelectedCategory(menu[0].category);
       }
     }
   }, [selectedRestaurant]);
-
-  const addToCart = (item: MenuItem) => {
-    const existingItem = cart.find((c) => c.id === item.id);
-    if (existingItem) {
-      setCart(
-        cart.map((c) =>
-          c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c
-        )
-      );
-    } else {
-      setCart([...cart, { ...item, quantity: 1 }]);
-    }
-    toast.success(`تمت إضافة ${item.name} للسلة`);
-  };
-
-  const removeFromCart = (itemId: number) => {
-    setCart(cart.filter((c) => c.id !== itemId));
-  };
-
-  const updateQuantity = (itemId: number, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(itemId);
-    } else {
-      setCart(
-        cart.map((c) =>
-          c.id === itemId ? { ...c, quantity } : c
-        )
-      );
-    }
-  };
 
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const hasGift = totalPrice >= 600;
@@ -330,7 +299,7 @@ export function RestaurantMenu() {
     } else if (!hasGift && showGiftAlert) {
       setShowGiftAlert(false);
     }
-  }, [hasGift]);
+  }, [hasGift, showGiftAlert]);
 
   const handleCheckout = async () => {
     if (!selectedRestaurant) return;
@@ -344,7 +313,7 @@ export function RestaurantMenu() {
       return;
     }
 
-    try {Loading(true);
+    setIsLoading(true);
     
     // وظيفة للحصول على الموقع الحالي بدقة في لحظة الطلب
     const getCurrentPositionPromise = () => {
@@ -375,6 +344,7 @@ export function RestaurantMenu() {
       setUserLocation(finalLocation);
       setLocationStatus("success");
       toast.dismiss(toastId);
+
       const orderItems = cart
         .map((item) => `${item.name} × ${item.quantity} = ${item.price * item.quantity} ج.م`)
         .join("\n");
@@ -382,13 +352,11 @@ export function RestaurantMenu() {
       const message = `طلب جديد من تطبيق وصلي 📱\n\nالمطعم: ${selectedRestaurant.name}\n\n${orderItems}\n\nالإجمالي: ${totalPrice} ج.م\n\nالعنوان: ${addressDescription || "موقع GPS"}\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
 
       const encodedMessage = encodeURIComponent(message);
-      // استخدام رابط wa.me المباشر لتقليل ظهور نوافذ الاختيار بين أنواع الواتساب
       const directWhatsappUrl = `https://wa.me/${selectedRestaurant.whatsappPhone}?text=${encodedMessage}`;
 
-      // فتح الرابط مباشرة في نافذة جديدة، المتصفح سيتعامل مع فتح التطبيق الافتراضي
       window.open(directWhatsappUrl, "_blank");
 
-      const cartItems = cart.map((item) => ({
+      const cartItemsData = cart.map((item) => ({
         menuItemId: item.id,
         quantity: item.quantity,
         price: item.price,
@@ -396,9 +364,11 @@ export function RestaurantMenu() {
 
       await createRestaurantOrderMutation.mutateAsync({
         restaurantId: selectedRestaurant.id,
-        items: cartIt        totalPrice,
+        items: cartItemsData,
+        totalPrice,
         notes: `${customerNotes}${hasGift ? "\n🎁 [هدية مجانية]: وجبة جانبية مجانية (عرض الـ 600 جنيه)" : ""}${hasFreeDelivery ? "\n🚚 [توصيل مجاني]: هذا الطلب مؤهل للتوصيل المجاني (عرض الـ 1000 جنيه)" : ""}`,
-        usePoints: usePoints,{
+        usePoints: usePoints,
+        pickupLocation: {
           address: selectedRestaurant.address,
           latitude: selectedRestaurant.location.latitude,
           longitude: selectedRestaurant.location.longitude,
@@ -431,39 +401,46 @@ export function RestaurantMenu() {
 
   if (!selectedRestaurant) {
     return (
-      <div className="space-y-6" dir="rtl">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-2xl font-black text-slate-900">اختر مطعمك المفضل 🍔</h2>
-        </div>
-        <div className="grid grid-cols-1 gap-4">
-          {RESTAURANTS.map((res) => (
-            <motion.div
-              key={res.id}
-              whileHover={{ scale: 1.02, y: -5 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setSelectedRestaurant(res)}
-            >
-              <Card className="overflow-hidden cursor-pointer border-none shadow-md hover:shadow-xl transition-all rounded-2xl">
-                <div className="relative h-32 w-full">
-                  <img src={res.coverUrl} alt={res.name} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute bottom-3 right-3 flex items-center gap-2">
-                    <div className="h-12 w-12 rounded-xl bg-white p-1 shadow-lg">
-                      <img src={res.logoUrl} alt={res.name} className="w-full h-full object-contain rounded-lg" />
-                    </div>
-                    <div className="text-white">
-                      <h3 className="font-black text-lg drop-shadow-md">{res.name}</h3>
-                      <div className="flex items-center gap-2 text-[10px] opacity-90">
-                        <span className="flex items-center gap-0.5"><Star className="h-3 w-3 fill-yellow-400 text-yellow-400" /> {res.rating}</span>
-                        <span className="flex items-center gap-0.5"><Clock className="h-3 w-3" /> {res.deliveryTime}</span>
-                      </div>
-                    </div>
-                  </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" dir="rtl">
+        {RESTAURANTS.map((restaurant) => (
+          <Card 
+            key={restaurant.id} 
+            className="overflow-hidden hover:shadow-xl transition-all cursor-pointer group border-none bg-white/50 backdrop-blur-sm"
+            onClick={() => setSelectedRestaurant(restaurant)}
+          >
+            <div className="h-40 w-full relative overflow-hidden">
+              <img 
+                src={restaurant.coverUrl} 
+                alt={restaurant.name} 
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+              <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+                  <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                  <span className="text-xs font-black text-slate-800">{restaurant.rating}</span>
                 </div>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+                <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+                  <Clock className="h-3 w-3 text-orange-500" />
+                  <span className="text-xs font-black text-slate-800">{restaurant.deliveryTime}</span>
+                </div>
+              </div>
+            </div>
+            <CardContent className="p-4 relative">
+              <div className="absolute -top-10 right-4 h-16 w-16 rounded-2xl bg-white p-1 shadow-xl border border-slate-100 overflow-hidden">
+                <img src={restaurant.logoUrl} alt="Logo" className="w-full h-full object-contain rounded-xl" />
+              </div>
+              <div className="pt-4">
+                <h3 className="text-xl font-black text-slate-800 mb-1 group-hover:text-orange-600 transition-colors">{restaurant.name}</h3>
+                <p className="text-slate-500 text-sm font-medium line-clamp-1 mb-3">{restaurant.description}</p>
+                <div className="flex items-center gap-2 text-slate-400">
+                  <MapPin className="h-3.5 w-3.5" />
+                  <span className="text-xs font-bold line-clamp-1">{restaurant.address}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     );
   }
