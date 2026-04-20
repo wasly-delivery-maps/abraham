@@ -84,15 +84,20 @@ export const appRouter = router({
         ctx.res.cookie(COOKIE_NAME, sessionToken, {
           ...cookieOptions,
           maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
-        });
-
-        return {
+        })        return {
           success: true,
           user: {
             id: user.id,
-            phone: user.phone,
             name: user.name,
+            phone: user.phone,
             email: user.email,
+            role: user.role,
+            accountStatus: input.status,
+            pendingCommission: user.pendingCommission,
+            isActive: input.status === "active",
+          },
+        };
+      }), email: user.email,
             role: user.role,
             avatarUrl: user.avatarUrl,
           },
@@ -1219,7 +1224,12 @@ export const appRouter = router({
           user: {
             id: user.id,
             name: user.name,
-            accountStatus: user.accountStatus,
+            phone: user.phone,
+            email: user.email,
+            role: user.role,
+            accountStatus: input.status,
+            pendingCommission: user.pendingCommission,
+            isActive: input.status === "active",
           },
         };
       }),

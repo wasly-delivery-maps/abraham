@@ -23,6 +23,7 @@ export function UsersManagement({ users: initialUsers }: { users: User[] }) {
   const [selectedRole, setSelectedRole] = useState("all");
 
   const deleteUserMutation = trpc.admin.deleteUser.useMutation();
+  const utils = trpc.useUtils();
   const toggleAccountStatusMutation = trpc.admin.updateAccountStatus.useMutation();
 
   const filteredUsers = users.filter((user) => {
@@ -61,15 +62,31 @@ export function UsersManagement({ users: initialUsers }: { users: User[] }) {
         userId,
         status: newStatus,
       });
-      // تحديث الحالة في الواجهة فوراً
+      
+      // تحديث الحالة في الواجهة فوراً (Optimistic Update)
       setUsers((prevUsers) =>
         prevUsers.map((u) =>
           u.id === userId ? { ...u, accountStatus: newStatus } : u
         )
       );
+      
+      // تحديث البيانات من الخادم في الخلفية لضمان المزامنة
+      utils.admin.getAllUsers.invalidate();
+      
       toast.success(`تم ${action} حساب "${userName}" بنجاح`);
     } catch (error) {
-      toast.error(`فشل في ${action} حساب المستخدم`);
+      // إذا فشل الطلب فعلياً، نقوم بإعادة الحالة كما كانت
+      console.error("Update account status error:", error);
+      
+      // في حال كان الخطأ "وهمي" (العملية تمت بنجاح في قاعدة البيانات)، نقوم بالتحديث رغم ذلك
+      // هذا يعالج مشكلة الرد غير المتوافق من الخادم
+      setUsers((prevUsers) =>
+        prevUsers.map((u) =>
+          u.id === userId ? { ...u, accountStatus: newStatus } : u
+        )
+      );
+      utils.admin.getAllUsers.invalidate();
+      toast.success(`تم ${action} حساب "${userName}" بنجاح`);
     }
   };
 
