@@ -76,12 +76,7 @@ if ('serviceWorker' in navigator) {
           }
         });
         
-        // مراقبة المستودع للتحديثات كل دقيقة
-        setInterval(() => {
-          registration.update().catch((error) => {
-            console.warn('[PWA] Failed to check for updates:', error);
-          });
-        }, 60000);
+
       })
       .catch((error) => {
         console.error('[PWA] Service Worker registration failed:', error);
