@@ -96,10 +96,38 @@ export default function CustomerDashboard() {
   }
 
   const handleLogout = async () => {
-    await logout();
-    navigate("/");
-    toast.success("تم تسجيل الخروج بنجاح");
+    try {
+      // إغلاق أي نوافذ مفتوحة أولاً
+      setIsDetailsOpen(false);
+      setIsChatOpen(false);
+      
+      // مسح بيانات الجلسة وإعادة تحميل الصفحة بالكامل لضمان خروج نظيف بدون أخطاء React
+      await logout();
+      window.location.replace("/");
+    } catch (error) {
+      window.location.replace("/");
+    }
   };
+
+  // حماية زر الرجوع في الهاتف لمنع الخروج من الحساب
+  useEffect(() => {
+    const handleBackButton = (e: PopStateEvent) => {
+      if (isDetailsOpen || isChatOpen) {
+        e.preventDefault();
+        setIsDetailsOpen(false);
+        setIsChatOpen(false);
+        // إعادة إضافة الحالة للتاريخ لمنع الخروج من الصفحة
+        window.history.pushState(null, "", window.location.pathname);
+      }
+    };
+
+    window.history.pushState(null, "", window.location.pathname);
+    window.addEventListener("popstate", handleBackButton);
+
+    return () => {
+      window.removeEventListener("popstate", handleBackButton);
+    };
+  }, [isDetailsOpen, isChatOpen]);
 
   const getStatusInfo = (status: string) => {
     const statusMap: Record<string, { label: string, color: string, icon: any }> = {
