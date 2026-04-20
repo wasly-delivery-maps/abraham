@@ -472,8 +472,8 @@ export default function Auth() {
                                     <SelectValue placeholder="اختر نوع الحساب" />
                                   </SelectTrigger>
                                   <SelectContent className="rounded-2xl border-gray-100 shadow-2xl">
-                                    <SelectItem value="customer" className="h-12 text-lg font-medium focus:bg-orange-50 focus:text-orange-600">عميل (أريد إرسال طرود)</SelectItem>
-                                    <SelectItem value="driver" className="h-12 text-lg font-medium focus:bg-orange-50 focus:text-orange-600">كابتن (أريد توصيل طرود)</SelectItem>
+                                    <SelectItem value="customer" className="h-12 text-lg font-medium focus:bg-orange-50 focus:text-orange-600">عميل</SelectItem>
+                                    <SelectItem value="driver" className="h-12 text-lg font-medium focus:bg-orange-50 focus:text-orange-600">كابتن</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
