@@ -256,19 +256,11 @@ export function RestaurantMenu() {
       const message = `طلب جديد من تطبيق وصلي 📱\n\nالمطعم: ${selectedRestaurant.name}\n\n${orderItems}\n\nالإجمالي: ${totalPrice} ج.م\n\nالعنوان: ${addressDescription || "موقع GPS"}\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
 
       const encodedMessage = encodeURIComponent(message);
-      const directWhatsappUrl = `whatsapp://send?phone=${selectedRestaurant.whatsappPhone}&text=${encodedMessage}`;
-      const webWhatsappUrl = `https://api.whatsapp.com/send?phone=${selectedRestaurant.whatsappPhone}&text=${encodedMessage}`;
+      // استخدام رابط wa.me المباشر لتقليل ظهور نوافذ الاختيار بين أنواع الواتساب
+      const directWhatsappUrl = `https://wa.me/${selectedRestaurant.whatsappPhone}?text=${encodedMessage}`;
 
-      try {
-        window.location.href = directWhatsappUrl;
-        setTimeout(() => {
-          if (document.hasFocus()) {
-            window.open(webWhatsappUrl, "_blank");
-          }
-        }, 500);
-      } catch (e) {
-        window.open(webWhatsappUrl, "_blank");
-      }
+      // فتح الرابط مباشرة في نافذة جديدة، المتصفح سيتعامل مع فتح التطبيق الافتراضي
+      window.open(directWhatsappUrl, "_blank");
 
       const cartItems = cart.map((item) => ({
         menuItemId: item.id,
