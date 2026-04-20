@@ -126,7 +126,7 @@ const ROLL_WE_RESTAURANT: Restaurant = {
   name: "رول وي - مطعم وكافيه",
   phone: "01032809502",
   whatsappPhone: "201032809502",
-  address: "7GG2+462، العبور، محافظة القليوبية 6363322",
+  address: "7GG2+462 ملعب حي الحرية, العبور، محافظة القليوبية 6363322",
   description: "أشهى أنواع الكريب والرول والمكرونة والحواوشي في العبور",
   logoUrl: "https://ui-avatars.com/api/?name=RW&background=f97316&color=fff&size=128&bold=true",
   coverUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format&fit=crop",
@@ -166,17 +166,6 @@ const ROLL_WE_MENU: MenuItem[] = [
   { id: 21, name: "حواوشي لحم 🥩", category: "حواوشي", price: 40 },
   { id: 22, name: "حواوشي مختلط 🥙", category: "حواوشي", price: 45 },
   { id: 23, name: "حواوشي جبن 🧀", category: "حواوشي", price: 30 },
-  // مشروبات
-  { id: 24, name: "عصير برتقال 🍊", category: "مشروبات", price: 15 },
-  { id: 25, name: "عصير ليمون 🍋", category: "مشروبات", price: 15 },
-  { id: 26, name: "مشروب غازي 🥤", category: "مشروبات", price: 10 },
-  { id: 27, name: "قهوة ☕", category: "مشروبات", price: 20 },
-  { id: 28, name: "شاي 🍵", category: "مشروبات", price: 10 },
-  // تسلية
-  { id: 29, name: "بطاطس مقلية 🍟", category: "تسلية", price: 20 },
-  { id: 30, name: "دجاج مقلي 🍗", category: "تسلية", price: 35 },
-  { id: 31, name: "سلطة 🥗", category: "تسلية", price: 25 },
-  { id: 32, name: "خبز 🍞", category: "تسلية", price: 5 },
 ];
 
 const RESTAURANTS = [ROLL_WE_RESTAURANT, KHEDIVE_KOSHARY_RESTAURANT];
