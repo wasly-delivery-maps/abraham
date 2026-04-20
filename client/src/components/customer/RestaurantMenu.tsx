@@ -465,11 +465,29 @@ export function RestaurantMenu() {
 
       <div className="relative rounded-2xl overflow-hidden shadow-xl mb-6 group">
         <div className="h-48 w-full relative">
-          <img 
-            src={selectedRestaurant.coverUrl} 
-            alt="Restaurant Cover" 
-            className="w-full h-full object-cover brightness-100 group-hover:scale-105 transition-transform duration-700"
-          />
+          {selectedRestaurant.id === 3 ? (
+            <motion.img 
+              src={selectedRestaurant.coverUrl} 
+              alt="Restaurant Cover" 
+              className="w-full h-full object-cover brightness-110"
+              animate={{ 
+                scale: [1, 1.1, 1],
+                x: [0, 10, -10, 0],
+                y: [0, -5, 5, 0]
+              }}
+              transition={{ 
+                duration: 20, 
+                repeat: Infinity, 
+                ease: "easeInOut" 
+              }}
+            />
+          ) : (
+            <img 
+              src={selectedRestaurant.coverUrl} 
+              alt="Restaurant Cover" 
+              className="w-full h-full object-cover brightness-100 group-hover:scale-105 transition-transform duration-700"
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
         </div>
 
