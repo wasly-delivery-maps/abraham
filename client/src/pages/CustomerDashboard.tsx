@@ -332,7 +332,7 @@ export default function CustomerDashboard() {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: idx * 0.1 }}
                           >
-                            <Card className={`hover:shadow-xl transition-all border-l-4 rounded-2xl overflow-hidden ${
+                            <Card className={`hover:shadow-lg transition-all border-l-4 rounded-xl overflow-hidden ${
                               order.status === 'pending' ? 'border-amber-500 bg-gradient-to-br from-amber-50 to-white' :
                               order.status === 'assigned' ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-white' :
                               order.status === 'accepted' ? 'border-indigo-500 bg-gradient-to-br from-indigo-50 to-white' :
@@ -340,59 +340,42 @@ export default function CustomerDashboard() {
                               order.status === 'arrived' ? 'border-orange-500 bg-gradient-to-br from-orange-50 to-white' :
                               'border-slate-300 bg-white'
                             }`}>
-                              <CardContent className="p-6">
-                                <div className="flex flex-col md:flex-row justify-between gap-6">
-                                  <div className="flex-1 space-y-4">
-                                    <div className="flex items-center justify-between md:justify-start gap-4">
-                                      <span className="text-sm font-black text-slate-900">طلب #{order.id}</span>
-                                      <motion.div
-                                        whileHover={{ scale: 1.1 }}
-                                      >
-                                        <Badge className={`${status.color} border-none font-bold px-3 py-1 rounded-full text-[10px] shadow-sm`}>
-                                          {status.label}
-                                        </Badge>
-                                      </motion.div>
+                              <CardContent className="p-4">
+                                <div className="flex flex-col md:flex-row justify-between gap-4">
+                                  <div className="flex-1 space-y-2">
+                                    <div className="flex items-center justify-between md:justify-start gap-3">
+                                      <span className="text-xs font-black text-slate-900">طلب #{order.id}</span>
+                                      <Badge className={`${status.color} border-none font-bold px-2 py-0.5 rounded-full text-[9px] shadow-sm`}>
+                                        {status.label}
+                                      </Badge>
                                     </div>
-                                    <div className="space-y-3">
-                                      <div className="flex items-start gap-3">
-                                        <motion.div 
-                                          className="h-2 w-2 rounded-full bg-orange-600 mt-1.5 flex-shrink-0"
-                                          animate={{ scale: [1, 1.5, 1] }}
-                                          transition={{ duration: 2, repeat: Infinity }}
-                                        />
-                                        <p className="text-sm font-medium text-slate-600 line-clamp-1">{order.pickupLocation?.address}</p>
+                                    <div className="space-y-1.5">
+                                      <div className="flex items-start gap-2">
+                                        <div className="h-1.5 w-1.5 rounded-full bg-orange-600 mt-1 flex-shrink-0" />
+                                        <p className="text-[11px] font-medium text-slate-600 line-clamp-1">{order.pickupLocation?.address}</p>
                                       </div>
-                                      <div className="flex items-start gap-3">
-                                        <MapPin className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                                        <p className="text-sm font-medium text-slate-600 line-clamp-1">{order.deliveryLocation?.address}</p>
+                                      <div className="flex items-start gap-2">
+                                        <MapPin className="h-3 w-3 text-blue-600 flex-shrink-0 mt-0.5" />
+                                        <p className="text-[11px] font-medium text-slate-600 line-clamp-1">{order.deliveryLocation?.address}</p>
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-4 border-t md:border-t-0 pt-4 md:pt-0">
-                                    <motion.div 
-                                      className="text-2xl font-black text-slate-900"
-                                      animate={{ scale: [1, 1.05, 1] }}
-                                      transition={{ duration: 2, repeat: Infinity }}
-                                    >
+                                  <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-3 border-t md:border-t-0 pt-3 md:pt-0">
+                                    <div className="text-xl font-black text-slate-900">
                                       ج.م {order.price}
-                                    </motion.div>
+                                    </div>
                                     <div className="flex items-center gap-2">
                                       {!["in_transit", "arrived", "delivered", "cancelled"].includes(order.status) && (
                                         <CancelOrderButton orderId={order.id} onSuccess={() => ordersQuery.refetch()} />
                                       )}
-                                      <motion.div
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        onClick={() => handleShowDetails(order.id)}
+                                        className="h-8 rounded-lg font-bold text-[10px] border-orange-200 text-orange-600 hover:bg-orange-50 transition-all"
                                       >
-                                        <Button 
-                                          variant="outline" 
-                                          size="sm" 
-                                          onClick={() => handleShowDetails(order.id)}
-                                          className="rounded-lg font-bold text-xs border-orange-200 text-orange-600 hover:bg-orange-50 transition-all"
-                                        >
-                                          التفاصيل
-                                        </Button>
-                                      </motion.div>
+                                        التفاصيل
+                                      </Button>
                                     </div>
                                   </div>
                                 </div>

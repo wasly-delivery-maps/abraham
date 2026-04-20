@@ -231,9 +231,9 @@ const MENUS: Record<number, MenuItem[]> = {
 };
 
 const RESTAURANTS: Restaurant[] = [
-  ROLL_WE_RESTAURANT,
-  KHEDIVE_KOSHARY_RESTAURANT,
   AL_HOUT_RESTAURANT,
+  KHEDIVE_KOSHARY_RESTAURANT,
+  ROLL_WE_RESTAURANT,
 ];
 
 export function RestaurantMenu() {
@@ -401,41 +401,41 @@ export function RestaurantMenu() {
 
   if (!selectedRestaurant) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" dir="rtl">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" dir="rtl">
         {RESTAURANTS.map((restaurant) => (
           <Card 
             key={restaurant.id} 
-            className="overflow-hidden hover:shadow-xl transition-all cursor-pointer group border-none bg-white/50 backdrop-blur-sm"
+            className="overflow-hidden hover:shadow-lg transition-all cursor-pointer group border-none bg-white/50 backdrop-blur-sm rounded-xl"
             onClick={() => setSelectedRestaurant(restaurant)}
           >
-            <div className="h-40 w-full relative overflow-hidden">
+            <div className="h-32 w-full relative overflow-hidden">
               <img 
                 src={restaurant.coverUrl} 
                 alt={restaurant.name} 
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-              <div className="absolute bottom-3 right-3 flex items-center gap-2">
-                <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
-                  <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
-                  <span className="text-xs font-black text-slate-800">{restaurant.rating}</span>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+              <div className="absolute bottom-2 right-2 flex items-center gap-1.5">
+                <div className="bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
+                  <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500" />
+                  <span className="text-[10px] font-black text-slate-800">{restaurant.rating}</span>
                 </div>
-                <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
-                  <Clock className="h-3 w-3 text-orange-500" />
-                  <span className="text-xs font-black text-slate-800">{restaurant.deliveryTime}</span>
+                <div className="bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
+                  <Clock className="h-2.5 w-2.5 text-orange-500" />
+                  <span className="text-[10px] font-black text-slate-800">{restaurant.deliveryTime}</span>
                 </div>
               </div>
             </div>
-            <CardContent className="p-4 relative">
-              <div className="absolute -top-10 right-4 h-16 w-16 rounded-2xl bg-white p-1 shadow-xl border border-slate-100 overflow-hidden">
-                <img src={restaurant.logoUrl} alt="Logo" className="w-full h-full object-contain rounded-xl" />
+            <CardContent className="p-3 relative">
+              <div className="absolute -top-8 right-3 h-12 w-12 rounded-xl bg-white p-1 shadow-lg border border-slate-50 overflow-hidden">
+                <img src={restaurant.logoUrl} alt="Logo" className="w-full h-full object-contain rounded-lg" />
               </div>
-              <div className="pt-4">
-                <h3 className="text-xl font-black text-slate-800 mb-1 group-hover:text-orange-600 transition-colors">{restaurant.name}</h3>
-                <p className="text-slate-500 text-sm font-medium line-clamp-1 mb-3">{restaurant.description}</p>
-                <div className="flex items-center gap-2 text-slate-400">
-                  <MapPin className="h-3.5 w-3.5" />
-                  <span className="text-xs font-bold line-clamp-1">{restaurant.address}</span>
+              <div className="pt-2">
+                <h3 className="text-lg font-black text-slate-800 mb-0.5 group-hover:text-orange-600 transition-colors">{restaurant.name}</h3>
+                <p className="text-slate-500 text-[11px] font-medium line-clamp-1 mb-2">{restaurant.description}</p>
+                <div className="flex items-center gap-1.5 text-slate-400">
+                  <MapPin className="h-3 w-3" />
+                  <span className="text-[10px] font-bold line-clamp-1">{restaurant.address}</span>
                 </div>
               </div>
             </CardContent>
