@@ -170,21 +170,6 @@ export async function upsertUser(user: InsertUser): Promise<any> {
       values.accountStatus = 'active';
     }
 
-    if (user.points !== undefined) {
-      values.points = user.points;
-      updateSet.points = user.points;
-    }
-
-    if (user.referralCode !== undefined) {
-      values.referralCode = user.referralCode;
-      updateSet.referralCode = user.referralCode;
-    }
-
-    if (user.referredBy !== undefined) {
-      values.referredBy = user.referredBy;
-      updateSet.referredBy = user.referredBy;
-    }
-
     if (Object.keys(updateSet).length === 0) {
       updateSet.lastSignedIn = new Date();
     }
@@ -343,7 +328,7 @@ export async function updateDriverLocation(
  */
 export async function updateUserProfile(
   userId: number,
-  data: { name?: string; email?: string; phone?: string; avatarUrl?: string; points?: number; referralCode?: string; referredBy?: number }
+  data: { name?: string; email?: string; phone?: string; avatarUrl?: string }
 ) {
   const db = await getDb();
   if (!db) {
@@ -357,9 +342,6 @@ export async function updateUserProfile(
     if (data.email !== undefined) updateSet.email = data.email;
     if (data.phone !== undefined) updateSet.phone = data.phone;
     if (data.avatarUrl !== undefined) updateSet.avatarUrl = data.avatarUrl;
-    if (data.points !== undefined) updateSet.points = data.points;
-    if (data.referralCode !== undefined) updateSet.referralCode = data.referralCode;
-    if (data.referredBy !== undefined) updateSet.referredBy = data.referredBy;
 
     if (Object.keys(updateSet).length === 0) {
       return await getUserById(userId);
@@ -1011,29 +993,4 @@ export async function getPushSubscriptionsByUserId(userId: number) {
     console.error("[Database] Failed to get push subscriptions:", error);
     return [];
   }
-}
-
-/**
- * Get user by referral code
- */
-export async function getUserByReferralCode(referralCode: string) {
-  const db = await getDb();
-  if (!db) return undefined;
-  
-  const result = await db.select().from(users).where(eq(users.referralCode, referralCode)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
-}
-
-/**
- * Update user points (increment/decrement)
- */
-export async function updateUserPoints(userId: number, pointsDelta: number) {
-  const user = await getUserById(userId);
-  if (!user) return;
-  
-  const currentPoints = user.points || 0;
-  const newPoints = Math.max(0, currentPoints + pointsDelta);
-  
-  await updateUserProfile(userId, { points: newPoints });
-  return newPoints;
 }

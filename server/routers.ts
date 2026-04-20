@@ -38,7 +38,6 @@ export const appRouter = router({
           name: z.string().min(2, "الاسم يجب أن يكون حرفين على الأقل"),
           email: z.string().email("البريد الإلكتروني غير صحيح").optional(),
           role: z.enum(["customer", "driver", "admin"]).default("customer"),
-          referralCode: z.string().optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -59,20 +58,6 @@ export const appRouter = router({
         // إذا كان المستخدم سائقاً، يتم تعطيل حسابه تلقائياً حتى يتم تفعيله من الإدارة
         const isActive = input.role !== "driver";
         
-        // Handle referral code if provided
-        let referredBy: number | undefined;
-        if (input.referralCode) {
-          const referrer = await db.getUserByReferralCode(input.referralCode);
-          if (referrer) {
-            referredBy = referrer.id;
-            // Give referrer 5 points for new referral
-            await db.updateUserPoints(referrer.id, 5);
-          }
-        }
-
-        // Generate unique referral code for new user
-        const newReferralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-        
         await db.upsertUser({
           openId,
           phone: input.phone,
@@ -82,9 +67,6 @@ export const appRouter = router({
           role: input.role,
           isActive,
           accountStatus: input.role === "driver" ? "suspended" : "active",
-          referralCode: newReferralCode,
-          referredBy,
-          points: referredBy ? 5 : 0, // Give 5 points to the new user if they were referred
         });
 
         // Get the created user
@@ -222,8 +204,6 @@ export const appRouter = router({
         role: user.role,
         isActive: user.isActive,
         avatarUrl: user.avatarUrl,
-        points: user.points,
-        referralCode: user.referralCode,
         latitude: user.latitude ? parseFloat(user.latitude.toString()) : null,
         longitude: user.longitude ? parseFloat(user.longitude.toString()) : null,
       };
@@ -373,7 +353,6 @@ export const appRouter = router({
             longitude: z.number(),
             neighborhood: z.string().optional(),
           }),
-          usePoints: z.boolean().optional().default(false),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -421,24 +400,15 @@ export const appRouter = router({
           distance
         );
 
-        // Handle points usage
-        let finalDeliveryPrice = deliveryPrice;
-        const user = await db.getUserById(ctx.user.id);
-        if (input.usePoints && user && user.points >= 30) {
-          const discount = Math.min(deliveryPrice, user.points); // Each point = 1 EGP
-          finalDeliveryPrice = Math.max(0, deliveryPrice - discount);
-          await db.updateUserPoints(ctx.user.id, -discount);
-        }
-
         // Create delivery order in database
         const result = await db.createOrder({
           customerId: ctx.user.id,
           pickupLocation,
           deliveryLocation: input.deliveryLocation,
-          price: finalDeliveryPrice, // This is the delivery fee for the driver
+          price: deliveryPrice, // This is the delivery fee for the driver
           distance,
           estimatedTime,
-          notes: `المطعم: ${restaurantName}\nالعنوان: ${input.deliveryLocation.address}\nالملاحظات: ${input.notes || "بدون ملاحظات"}\nقيمة الطعام: ج.م ${input.totalPrice}${input.usePoints ? "\n(تم استخدام النقاط للخصم)" : ""}`,
+          notes: `المطعم: ${restaurantName}\nالعنوان: ${input.deliveryLocation.address}\nالملاحظات: ${input.notes || "بدون ملاحظات"}\nقيمة الطعام: ج.م ${input.totalPrice}`,
         });
 
         // Notify drivers about new order
@@ -995,9 +965,6 @@ export const appRouter = router({
         
         // Update order status to delivered
         await db.updateOrderStatus(input.orderId, "delivered");
-
-        // Add 3 points to customer for successful delivery
-        await db.updateUserPoints(order.customerId, 3);
         
         // Update driver debt and commission
         const driver = await db.getUserById(ctx.user.id);
