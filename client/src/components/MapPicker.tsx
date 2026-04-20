@@ -2,10 +2,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Search, MapPin, Loader2, X, Map as MapIcon, ExternalLink } from 'lucide-react';
+import { Search, MapPin, Loader2, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 // Fix Leaflet icon issue
 // @ts-ignore
@@ -23,7 +22,6 @@ interface MapPickerProps {
   initialLocation?: { latitude: number; longitude: number };
   title?: string;
   placeholder?: string;
-  buttonText?: string;
 }
 
 interface SearchResult {
@@ -41,7 +39,7 @@ function MapUpdater({ center }: { center: [number, number] }) {
   return null;
 }
 
-export default function MapPicker({ onLocationSelect, initialLocation, title, placeholder, buttonText }: MapPickerProps) {
+export default function MapPicker({ onLocationSelect, initialLocation, title, placeholder }: MapPickerProps) {
   const [position, setPosition] = useState<[number, number]>(
     initialLocation ? [initialLocation.latitude, initialLocation.longitude] : OBUR_CENTER
   );
@@ -50,7 +48,6 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
   const reverseGeocode = useCallback(async (lat: number, lon: number) => {
@@ -141,10 +138,6 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     }
   };
 
-  const openInGoogleMaps = () => {
-    window.open(`https://www.google.com/maps/search/?api=1&query=${position[0]},${position[1]}`, '_blank');
-  };
-
   function LocationMarker() {
     useMapEvents({
       click(e) {
@@ -159,111 +152,91 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
   }
 
   return (
-    <div className="w-full">
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogTrigger asChild>
-          <Button 
-            variant="outline" 
-            className="w-full h-16 rounded-2xl border-2 border-dashed border-slate-300 hover:border-orange-500 hover:bg-orange-50 transition-all flex items-center justify-between px-6 group"
-          >
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-slate-100 rounded-xl group-hover:bg-orange-100 transition-colors">
-                <MapPin className="h-5 w-5 text-slate-500 group-hover:text-orange-600" />
-              </div>
-              <div className="text-right">
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{title || "الموقع"}</p>
-                <p className="text-sm font-bold text-slate-700 line-clamp-1">{address || buttonText || "اضغط لتحديد الموقع على الخريطة"}</p>
-              </div>
-            </div>
-            <MapIcon className="h-5 w-5 text-slate-400 group-hover:text-orange-500" />
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-none rounded-[2.5rem] shadow-2xl bg-white" dir="rtl">
-          <DialogHeader className="p-6 pb-2 flex flex-row items-center justify-between">
-            <DialogTitle className="text-2xl font-black text-slate-900 flex items-center gap-2">
-              <span className="bg-orange-100 p-2 rounded-xl">🎯</span>
-              {title || "تحديد الموقع"}
-            </DialogTitle>
-            <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="rounded-full hover:bg-slate-100">
-              <X className="h-6 w-6 text-slate-500" />
-            </Button>
-          </DialogHeader>
+    <div className="space-y-4 w-full">
+      {title && <h3 className="text-lg font-black text-slate-800 mr-2">{title}</h3>}
+      
+      <div className="relative flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+          <Input
+            placeholder={placeholder || "ابحث عن موقع..."}
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            onFocus={() => searchQuery && setShowResults(true)}
+            className="h-14 pr-12 rounded-2xl border-slate-200 bg-white shadow-sm focus:ring-orange-500 font-bold"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setSearchResults([]);
+                setShowResults(false);
+              }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
+        </div>
+        <Button 
+          onClick={handleSearch} 
+          disabled={isSearching || searchResults.length === 0}
+          className="h-14 px-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black transition-all disabled:opacity-50"
+        >
+          {isSearching ? <Loader2 className="h-5 w-5 animate-spin" /> : "بحث"}
+        </Button>
+      </div>
 
-          <div className="px-6 pb-4">
-            <div className="relative flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                <Input
-                  placeholder={placeholder || "ابحث عن موقع..."}
-                  value={searchQuery}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="h-12 pr-12 rounded-xl border-slate-100 bg-slate-50 focus:bg-white focus:ring-orange-500 font-bold transition-all"
-                />
-              </div>
-            </div>
-
-            {showResults && searchResults.length > 0 && (
-              <div className="absolute left-6 right-6 z-[1001] mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 max-h-60 overflow-y-auto">
-                {searchResults.map((result, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSelectResult(result)}
-                    className="w-full text-right p-4 hover:bg-orange-50 border-b border-slate-50 last:border-b-0 transition-colors flex items-start gap-3"
-                  >
-                    <MapPin className="h-4 w-4 text-orange-600 mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="font-bold text-slate-900 text-sm">{result.display_name.split(',')[0]}</p>
-                      <p className="text-[10px] text-slate-500 line-clamp-1">{result.display_name}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="h-[400px] w-full relative">
-            <MapContainer center={position} zoom={14} style={{ height: '100%', width: '100%' }}>
-              <TileLayer
-                attribution='&copy; OpenStreetMap'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <LocationMarker />
-              <MapUpdater center={position} />
-            </MapContainer>
-            
-            <div className="absolute bottom-4 left-4 right-4 z-[1000]">
-              <div className="bg-white/95 backdrop-blur-sm p-3 rounded-2xl shadow-lg border border-white/50">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-orange-50 rounded-lg">
-                    <MapPin className="h-4 w-4 text-orange-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">العنوان المختار</p>
-                    <p className="text-xs font-bold text-slate-700 leading-relaxed line-clamp-2">{address || "جاري التحديد..."}</p>
-                  </div>
+      {showResults && searchResults.length > 0 && (
+        <div className="absolute top-20 right-0 left-0 z-50 bg-white rounded-2xl shadow-2xl border border-slate-200 max-h-96 overflow-y-auto">
+          {searchResults.map((result, index) => (
+            <button
+              key={index}
+              onClick={() => handleSelectResult(result)}
+              className="w-full text-right p-4 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition-colors"
+            >
+              <div className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 text-orange-600 flex-shrink-0 mt-1" />
+                <div className="flex-1">
+                  <p className="font-bold text-slate-900 text-sm">{result.display_name.split(',')[0]}</p>
+                  <p className="text-xs text-slate-500 mt-1 line-clamp-2">{result.display_name}</p>
                 </div>
               </div>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* تكبير حجم الخريطة لتشغل مساحة أكبر (600px بدلاً من 400px) */}
+      <div className="h-[600px] w-full rounded-[2rem] overflow-hidden border-4 border-white shadow-2xl relative z-10">
+        <MapContainer center={position} zoom={14} style={{ height: '100%', width: '100%' }}>
+          <TileLayer
+            attribution='&copy; OpenStreetMap'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <LocationMarker />
+          <MapUpdater center={position} />
+        </MapContainer>
+        
+        <div className="absolute bottom-6 left-6 right-6 z-[1000]">
+          <div className="bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-white flex items-start gap-3">
+            <div className="p-2 bg-orange-100 rounded-xl">
+              <MapPin className="h-5 w-5 text-orange-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">الموقع المختار (يمكنك التعديل)</p>
+              <textarea
+                value={address}
+                onChange={(e) => handleAddressChange(e.target.value)}
+                className="w-full text-xs font-bold text-slate-700 bg-transparent border-none focus:ring-0 p-0 resize-none leading-relaxed"
+                rows={2}
+                placeholder="جاري تحديد الموقع..."
+              />
             </div>
           </div>
-
-          <div className="p-6 grid grid-cols-2 gap-4 bg-slate-50/50">
-            <Button 
-              onClick={openInGoogleMaps}
-              className="h-14 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-black shadow-lg shadow-orange-200 flex items-center justify-center gap-2"
-            >
-              <ExternalLink className="h-5 w-5" />
-              فتح في خرائط جوجل
-            </Button>
-            <Button 
-              onClick={() => setIsOpen(false)}
-              className="h-14 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white font-black shadow-lg shadow-slate-200"
-            >
-              إغلاق الخريطة
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
     </div>
   );
 }
