@@ -55,6 +55,9 @@ export const appRouter = router({
 
         // Create user
         const openId = `phone-${input.phone}`;
+        // إذا كان المستخدم سائقاً، يتم تعطيل حسابه تلقائياً حتى يتم تفعيله من الإدارة
+        const isActive = input.role !== "driver";
+        
         await db.upsertUser({
           openId,
           phone: input.phone,
@@ -62,7 +65,8 @@ export const appRouter = router({
           name: input.name,
           email: input.email,
           role: input.role,
-          isActive: true,
+          isActive,
+          accountStatus: input.role === "driver" ? "suspended" : "active",
         });
 
         // Get the created user
