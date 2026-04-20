@@ -26,18 +26,35 @@ export function useAuth(options?: UseAuthOptions) {
 
   const logout = useCallback(async () => {
     try {
-      await logoutMutation.mutateAsync();
-    } catch (error: unknown) {
-      if (
-        error instanceof TRPCClientError &&
-        error.data?.code === "UNAUTHORIZED"
-      ) {
-        return;
+      // محاولة استدعاء logout من الخادم
+      try {
+        await logoutMutation.mutateAsync();
+      } catch (error: unknown) {
+        // إذا حدث خطأ UNAUTHORIZED، تجاهله (المستخدم بالفعل غير مصرح)
+        if (
+          error instanceof TRPCClientError &&
+          error.data?.code === "UNAUTHORIZED"
+        ) {
+          // تجاهل الخطأ وتابع مع التنظيف المحلي
+          console.warn("[Auth] User already unauthorized, proceeding with cleanup");
+        } else {
+          // إذا كان هناك خطأ آخر، أعد رفعه
+          throw error;
+        }
       }
-      throw error;
     } finally {
+      // تنظيف البيانات المحلية بغض النظر عن نجاح الخادم
       utils.auth.me.setData(undefined, null);
       await utils.auth.me.invalidate();
+      
+      // مسح localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('manus-runtime-user-info');
+        // مسح أي بيانات أخرى متعلقة بالمستخدم
+        localStorage.removeItem('sidebar-width');
+      }
+      
+      console.log("[Auth] Logout cleanup completed successfully");
     }
   }, [logoutMutation, utils]);
 

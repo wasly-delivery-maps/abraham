@@ -322,18 +322,33 @@ export default function DriverDashboard() {
   };
 
   const handleLogout = async () => {
-    // Force immediate UI cleanup
-    setShowMapModal(false);
-    setIsChatOpen(false);
-    
-    // Most reliable way: tell server to logout then IMMEDIATELY redirect
-    // without waiting for React to update states, which causes the crash.
     try {
-      logout(); // Trigger background logout
-    } catch (e) {}
-    
-    // Immediate full page replacement - destroys the React tree and prevents Error #300
-    window.location.href = "/auth";
+      // إغلاق أي نوافذ مفتوحة أولاً
+      setShowMapModal(false);
+      setIsChatOpen(false);
+      
+      // إيقاف التنبيهات الصوتية إن وجدت
+      if (isAlertActive()) {
+        try {
+          await stopAlert();
+        } catch (e) {
+          console.warn('[Logout] Error stopping alert:', e);
+        }
+      }
+      
+      // استدعاء logout من الخادم وانتظار اكتماله
+      await logout();
+      
+      // تأخير صغير لضمان اكتمال التنظيف
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // استبدال الصفحة بالكامل بدلاً من window.location.href لتجنب أخطاء React
+      window.location.replace("/auth");
+    } catch (error) {
+      console.error('[Logout] Error during logout:', error);
+      // حتى في حالة الخطأ، أعد التوجيه إلى صفحة تسجيل الدخول
+      window.location.replace("/auth");
+    }
   };
 
   const requestPermission = async () => {

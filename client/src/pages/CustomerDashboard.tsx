@@ -101,11 +101,18 @@ export default function CustomerDashboard() {
       setIsDetailsOpen(false);
       setIsChatOpen(false);
       
-      // مسح بيانات الجلسة وإعادة تحميل الصفحة بالكامل لضمان خروج نظيف بدون أخطاء React
+      // استدعاء logout وانتظار اكتماله
       await logout();
-      window.location.replace("/");
+      
+      // تأخير صغير لضمان اكتمال التنظيف
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // استبدال الصفحة بالكامل بدلاً من navigate لتجنب أخطاء React
+      window.location.replace("/auth");
     } catch (error) {
-      window.location.replace("/");
+      console.error('[Logout] Error during logout:', error);
+      // حتى في حالة الخطأ، أعد التوجيه إلى صفحة تسجيل الدخول
+      window.location.replace("/auth");
     }
   };
 
