@@ -288,7 +288,7 @@ export default function CustomerDashboard() {
               <Link href="/customer/create-order">
                 <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-black px-8 py-6 rounded-xl shadow-lg shadow-orange-200 transition-all">
                   <Plus className="h-5 w-5 ml-2" />
-                  اطلب الآن
+                  طلب مندوب توصيل
                 </Button>
               </Link>
             </motion.div>
