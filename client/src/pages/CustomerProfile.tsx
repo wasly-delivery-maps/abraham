@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, Mail, Phone, MapPin, Truck, LogOut, User, Settings, ShieldCheck, ChevronLeft, Camera, Edit3, Save, X, MessageCircle, ShoppingBag, HelpCircle, Loader2, Upload } from "lucide-react";
+import { ArrowRight, Mail, Phone, MapPin, Truck, LogOut, User, Settings, ShieldCheck, ChevronLeft, Camera, Edit3, Save, X, MessageCircle, ShoppingBag, HelpCircle, Loader2, Upload, Share2, Copy, Gift, Coins } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
@@ -171,6 +171,31 @@ export default function CustomerProfile() {
   const completedOrders = orders.filter((o) => o.status === "delivered").length;
   const activeOrders = orders.filter((o) => !["delivered", "cancelled"].includes(o.status)).length;
   const totalSpent = orders.reduce((sum, o) => sum + (o.price || 0), 0);
+  const userPoints = (user as any).points || 0;
+  const referralCode = (user as any).referralCode || "";
+
+  const handleCopyReferral = () => {
+    navigator.clipboard.writeText(referralCode);
+    toast.success("تم نسخ كود الإحالة بنجاح 📋");
+  };
+
+  const handleShareApp = async () => {
+    const shareText = `استخدم كود الإحالة الخاص بي (${referralCode}) في تطبيق وصلي واحصل على نقاط مجانية! 🎁\nرابط التطبيق: ${window.location.origin}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'تطبيق وصلي',
+          text: shareText,
+          url: window.location.origin,
+        });
+      } catch (err) {
+        console.error("Share error:", err);
+      }
+    } else {
+      navigator.clipboard.writeText(shareText);
+      toast.success("تم نسخ رابط المشاركة بنجاح 📋");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans" dir="rtl">
@@ -288,6 +313,51 @@ export default function CustomerProfile() {
 
       {/* Content Section */}
       <div className="container mx-auto px-6 -mt-20 pb-20 relative z-20">
+        {/* Referral Section */}
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="mb-8"
+        >
+          <Card className="bg-gradient-to-r from-orange-500 to-orange-600 border-none text-white rounded-[2.5rem] shadow-xl overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl" />
+            <CardContent className="p-8 relative z-10">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-16 w-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+                    <Gift className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black mb-1">شارك التطبيق واربح نقاط! 🎁</h3>
+                    <p className="text-white/80 text-sm font-bold">كل إحالة ناجحة تمنحك 5 نقاط مجانية.</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md p-2 rounded-2xl w-full md:w-auto">
+                  <div className="px-4 py-2">
+                    <p className="text-[10px] text-white/60 font-bold uppercase tracking-widest">كود الإحالة</p>
+                    <p className="text-xl font-black tracking-widest">{referralCode}</p>
+                  </div>
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    className="h-12 w-12 rounded-xl hover:bg-white/20 text-white"
+                    onClick={handleCopyReferral}
+                  >
+                    <Copy className="h-5 w-5" />
+                  </Button>
+                  <Button 
+                    size="icon" 
+                    className="h-12 w-12 rounded-xl bg-white text-orange-600 hover:bg-slate-100 shadow-lg"
+                    onClick={handleShareApp}
+                  >
+                    <Share2 className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Stats */}
           <div className="lg:col-span-4 space-y-6">
@@ -299,6 +369,7 @@ export default function CustomerProfile() {
                 </h3>
                 <div className="space-y-4">
                   {[
+                    { label: "رصيد النقاط", value: `${userPoints} نقطة`, color: "text-yellow-600", bg: "bg-yellow-50" },
                     { label: "طلبات نشطة", value: activeOrders, color: "text-orange-600", bg: "bg-orange-50" },
                     { label: "طلبات مكتملة", value: completedOrders, color: "text-emerald-600", bg: "bg-emerald-50" },
                     { label: "إجمالي الإنفاق", value: `ج.م ${totalSpent.toLocaleString()}`, color: "text-blue-600", bg: "bg-blue-50" }

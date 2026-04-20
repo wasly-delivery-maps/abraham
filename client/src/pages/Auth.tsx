@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, Eye, EyeOff, Phone, Lock, Mail, User, Truck, ShieldCheck } from "lucide-react";
+import { Loader2, Eye, EyeOff, Phone, Lock, Mail, User, Truck, ShieldCheck, Gift } from "lucide-react";
 import { normalizePhoneNumber } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
@@ -31,6 +31,7 @@ export default function Auth() {
     email: "",
     password: "",
     role: "customer",
+    referralCode: "",
   });
 
   // tRPC mutations
@@ -179,6 +180,7 @@ export default function Auth() {
         name: registerData.name,
         email: registerData.email || undefined,
         role: registerData.role as "customer" | "driver",
+        referralCode: registerData.referralCode || undefined,
       });
 
       // تحديث بيانات المستخدم في tRPC cache فوراً لضمان التعرف على الجلسة
@@ -207,6 +209,7 @@ export default function Auth() {
         email: "",
         password: "",
         role: "customer",
+        referralCode: "",
       });
 
       // تأخير بسيط لضمان تحديث الحالة قبل الانتقال
@@ -443,20 +446,38 @@ export default function Auth() {
                               </div>
                             </div>
 
-                            <div className="space-y-2">
-                              <label className="text-sm font-bold text-gray-700 mr-1">البريد الإلكتروني (اختياري)</label>
-                              <div className="relative group">
-                                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-orange-500 transition-colors">
-                                  <Mail className="h-5 w-5" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                              <div className="space-y-2">
+                                <label className="text-sm font-bold text-gray-700 mr-1">البريد الإلكتروني (اختياري)</label>
+                                <div className="relative group">
+                                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-orange-500 transition-colors">
+                                    <Mail className="h-5 w-5" />
+                                  </div>
+                                  <Input
+                                    type="email"
+                                    placeholder="name@example.com"
+                                    className="h-14 pr-12 bg-gray-50 border-gray-200 rounded-2xl focus:ring-orange-500 focus:border-orange-500 text-lg font-medium transition-all"
+                                    value={registerData.email}
+                                    onChange={(e) => handleRegisterChange("email", e.target.value)}
+                                    disabled={isRegisterPending}
+                                  />
                                 </div>
-                                <Input
-                                  type="email"
-                                  placeholder="name@example.com"
-                                  className="h-14 pr-12 bg-gray-50 border-gray-200 rounded-2xl focus:ring-orange-500 focus:border-orange-500 text-lg font-medium transition-all"
-                                  value={registerData.email}
-                                  onChange={(e) => handleRegisterChange("email", e.target.value)}
-                                  disabled={isRegisterPending}
-                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <label className="text-sm font-bold text-gray-700 mr-1">كود الإحالة (اختياري)</label>
+                                <div className="relative group">
+                                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-orange-500 transition-colors">
+                                    <Gift className="h-5 w-5" />
+                                  </div>
+                                  <Input
+                                    placeholder="كود الخصم"
+                                    className="h-14 pr-12 bg-gray-50 border-gray-200 rounded-2xl focus:ring-orange-500 focus:border-orange-500 text-lg font-medium transition-all"
+                                    value={registerData.referralCode}
+                                    onChange={(e) => handleRegisterChange("referralCode", e.target.value)}
+                                    disabled={isRegisterPending}
+                                  />
+                                </div>
                               </div>
                             </div>
 

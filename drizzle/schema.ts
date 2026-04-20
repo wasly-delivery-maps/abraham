@@ -45,6 +45,9 @@ export const users = mysqlTable("users", {
   lastSignedIn: timestamp("lastSignedIn"),
   loginMethod: varchar("loginMethod", { length: 64 }),
   avatarUrl: longtext("avatarUrl"),
+  points: int("points").default(0).notNull(),
+  referralCode: varchar("referralCode", { length: 20 }).unique(),
+  referredBy: int("referredBy"),
 });
 
 /**
