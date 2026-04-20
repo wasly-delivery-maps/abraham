@@ -126,7 +126,7 @@ const ROLL_WE_RESTAURANT: Restaurant = {
   name: "رول وي - مطعم وكافيه",
   phone: "01032809502",
   whatsappPhone: "201032809502",
-  address: "العبور الجديدة، مصر",
+  address: "7GG2+462، العبور، محافظة القليوبية 6363322",
   description: "أشهى أنواع الكريب والرول والمكرونة والحواوشي في العبور الجديدة",
   logoUrl: "https://ui-avatars.com/api/?name=RW&background=f97316&color=fff&size=128&bold=true",
   coverUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format&fit=crop",
