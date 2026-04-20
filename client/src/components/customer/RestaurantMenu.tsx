@@ -218,13 +218,15 @@ export function RestaurantMenu() {
       return;
     }
 
-    if (!userLocation) {
-      toast.error("يجب تفعيل الموقع الجغرافي (GPS) لتحديد مكان التوصيل بدقة قبل إتمام الطلب.");
-      requestLocation();
-      return;
-    }
+    const finalLocation = userLocation || {
+      latitude: 30.1856,
+      longitude: 31.2567,
+      address: "موقع العميل (العبور الجديدة)",
+    };
 
-    const finalLocation = userLocation;
+    if (!userLocation) {
+      toast.warning("لم نتمكن من تحديد موقعك بدقة، سيتم استخدام موقع تقريبي.");
+    }
 
     setIsLoading(true);
     try {
@@ -458,30 +460,13 @@ export function RestaurantMenu() {
                     <MapPin className="h-4 w-4 text-orange-500" />
                     <span className="text-xs font-bold text-slate-400">عنوان التوصيل</span>
                   </div>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="رقم العمارة، الشقة، الدور، أو علامة مميزة..."
-                      value={addressDescription}
-                      onChange={(e) => setAddressDescription(e.target.value)}
-                      className="flex-1 bg-slate-800 border-none rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 transition-all"
-                    />
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={requestLocation}
-                      className={`h-11 w-11 rounded-xl bg-slate-800 hover:bg-slate-700 ${locationStatus === 'success' ? 'text-emerald-500' : 'text-orange-500'}`}
-                      title="تحديث الموقع"
-                    >
-                      {locationStatus === 'loading' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Navigation className="h-5 w-5" />}
-                    </Button>
-                  </div>
-                  {locationStatus === 'error' && (
-                    <p className="text-[10px] text-rose-400 font-bold px-1">⚠️ فشل تحديد الموقع، يرجى تفعيل GPS والضغط على أيقونة السهم.</p>
-                  )}
-                  {locationStatus === 'success' && (
-                    <p className="text-[10px] text-emerald-400 font-bold px-1">✅ تم تحديد موقعك بدقة (GPS).</p>
-                  )}
+                  <input
+                    type="text"
+                    placeholder="رقم العمارة، الشقة، الدور، أو علامة مميزة..."
+                    value={addressDescription}
+                    onChange={(e) => setAddressDescription(e.target.value)}
+                    className="w-full bg-slate-800 border-none rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 transition-all"
+                  />
                   <textarea
                     placeholder="ملاحظات إضافية للمطعم (اختياري)..."
                     value={customerNotes}
