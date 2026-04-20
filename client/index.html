@@ -156,6 +156,35 @@
       });
 
       // ============================================
+      // Force Update Handler - إجبار التحديث التلقائي
+      // ============================================
+      window.addEventListener('load', () => {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then((registration) => {
+            setInterval(() => {
+              registration.update().catch((error) => {
+                console.warn('[SW] Update check failed:', error);
+              });
+            }, 5000);
+            
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('[SW] New version available - reloading...');
+                    window.location.reload();
+                  }
+                });
+              }
+            });
+          }).catch((error) => {
+            console.warn('[SW] Service Worker registration failed:', error);
+          });
+        }
+      });
+
+      // ============================================
       // Geolocation Permission Handler
       // ============================================
       window.addEventListener('load', () => {
