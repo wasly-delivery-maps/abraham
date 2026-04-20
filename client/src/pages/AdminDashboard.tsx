@@ -60,13 +60,9 @@ export default function AdminDashboard() {
   }
 
   const handleLogout = async () => {
-    try {
-      logout().catch(err => console.warn('[Logout] Server error:', err));
-      window.location.href = "/auth";
-    } catch (error) {
-      console.error('[Logout] Critical error:', error);
-      window.location.href = "/auth";
-    }
+    await logout();
+    navigate("/");
+    toast.success("تم تسجيل الخروج بنجاح");
   };
 
   // تم نقل منطق التصدير إلى مكون ReportExporter المتقدم

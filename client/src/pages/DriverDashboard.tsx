@@ -322,33 +322,14 @@ export default function DriverDashboard() {
   };
 
   const handleLogout = async () => {
-    try {
-      // إغلاق أي نوافذ مفتوحة أولاً
-      setShowMapModal(false);
-      setIsChatOpen(false);
-      
-      // إيقاف التنبيهات الصوتية إن وجدت
-      if (isAlertActive()) {
-        try {
-          await stopAlert();
-        } catch (e) {
-          console.warn('[Logout] Error stopping alert:', e);
-        }
-      }
-      
-      // استدعاء logout من الخادم وانتظار اكتماله
-      await logout();
-      
-      // تأخير صغير لضمان اكتمال التنظيف
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // استبدال الصفحة بالكامل بدلاً من window.location.href لتجنب أخطاء React
-      window.location.replace("/auth");
-    } catch (error) {
-      console.error('[Logout] Error during logout:', error);
-      // حتى في حالة الخطأ، أعد التوجيه إلى صفحة تسجيل الدخول
-      window.location.replace("/auth");
+    setShowMapModal(false);
+    setIsChatOpen(false);
+    if (isAlertActive()) {
+      stopAlert().catch(e => console.warn('[Logout] Error stopping alert:', e));
     }
+    await logout();
+    navigate("/");
+    toast.success("تم تسجيل الخروج بنجاح");
   };
 
   const requestPermission = async () => {

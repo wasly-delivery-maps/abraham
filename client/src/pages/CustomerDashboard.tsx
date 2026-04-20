@@ -96,15 +96,11 @@ export default function CustomerDashboard() {
   }
 
   const handleLogout = async () => {
-    try {
-      setIsDetailsOpen(false);
-      setIsChatOpen(false);
-      logout().catch(err => console.warn('[Logout] Server error:', err));
-      window.location.href = "/auth";
-    } catch (error) {
-      console.error('[Logout] Critical error:', error);
-      window.location.href = "/auth";
-    }
+    setIsDetailsOpen(false);
+    setIsChatOpen(false);
+    await logout();
+    navigate("/");
+    toast.success("تم تسجيل الخروج بنجاح");
   };
 
   // حماية زر الرجوع في الهاتف لمنع الخروج من الحساب
