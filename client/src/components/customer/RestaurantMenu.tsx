@@ -120,6 +120,24 @@ const KHEDIVE_KOSHARY_MENU: MenuItem[] = [
   { id: 156, name: "موتزاريللا 🧀", category: "الإضافات", price: 25 },
 ];
 
+// مطعم "الحوت" - البيانات
+const AL_HOUT_RESTAURANT: Restaurant = {
+  id: 3,
+  name: "الحوت - Al-Hout",
+  phone: "01557564373",
+  whatsappPhone: "201557564373",
+  address: "العبور الجديدة - حي المجد - مول ريتاج - بجانب مدرسة بلال بن رباح الثانوية",
+  description: "أشهى المأكولات البحرية والأسماك",
+  logoUrl: "https://ui-avatars.com/api/?name=AH&background=0369a1&color=fff&size=128&bold=true",
+  coverUrl: "/assets/al-hout-cover.jpg",
+  rating: "5.0",
+  deliveryTime: "25-40 دقيقة",
+  location: {
+    latitude: 30.2767773,
+    longitude: 31.5299175
+  }
+};
+
 // مطعم "رول وي" - البيانات
 const ROLL_WE_RESTAURANT: Restaurant = {
   id: 1,
@@ -168,10 +186,36 @@ const ROLL_WE_MENU: MenuItem[] = [
   { id: 23, name: "حواوشي جبن 🧀", category: "حواوشي", price: 30 },
 ];
 
-const RESTAURANTS = [ROLL_WE_RESTAURANT, KHEDIVE_KOSHARY_RESTAURANT];
+const AL_HOUT_MENU: MenuItem[] = [
+  // الشوربة
+  { id: 301, name: "شوربة كريمة 🥣", category: "الشوربة", price: 140 },
+  { id: 302, name: "شوربة جمبري حمراء 🥣", category: "الشوربة", price: 140 },
+  { id: 303, name: "شوربة صيامي 🥣", category: "الشوربة", price: 120 },
+  { id: 304, name: "ملوخية بالجمبري 🥘", category: "الشوربة", price: 100 },
+  { id: 305, name: "ملوخية سادة 🥘", category: "الشوربة", price: 70 },
+  // الساندوتشات
+  { id: 306, name: "ساندوتش جمبري 🍤", category: "الساندوتشات", price: 35 },
+  { id: 307, name: "ساندوتش فيليه 🐟", category: "الساندوتشات", price: 40 },
+  { id: 308, name: "ساندوتش سبيط 🦑", category: "الساندوتشات", price: 40 },
+  // الإضافات والسلطات
+  { id: 309, name: "أرز بالجمبري (صغير) 🍚", category: "الإضافات والسلطات", price: 90 },
+  { id: 310, name: "أرز بالجمبري (كبير) 🍚", category: "الإضافات والسلطات", price: 110 },
+  { id: 311, name: "أرز سادة (صغير) 🍚", category: "الإضافات والسلطات", price: 35 },
+  { id: 312, name: "أرز سادة (كبير) 🍚", category: "الإضافات والسلطات", price: 55 },
+  { id: 313, name: "طحينة 🍯", category: "الإضافات والسلطات", price: 10 },
+  { id: 314, name: "سلطة 🥗", category: "الإضافات والسلطات", price: 20 },
+  // سوق السمك والطواجن
+  { id: 315, name: "مكرونة وايت صوص (سي فود / جمبري) 🍝", category: "سوق السمك والطواجن", price: 180 },
+  { id: 316, name: "مكرونة ريد صوص (سي فود / جمبري) 🍝", category: "سوق السمك والطواجن", price: 180 },
+  { id: 317, name: "كابوريا إسكندراني 🦀", category: "سوق السمك والطواجن", price: 130 },
+  { id: 318, name: "فيليه (وايت صوص / ريد صوص) 🐟", category: "سوق السمك والطواجن", price: 130 },
+];
+
+const RESTAURANTS = [AL_HOUT_RESTAURANT, ROLL_WE_RESTAURANT, KHEDIVE_KOSHARY_RESTAURANT];
 const MENUS: Record<number, MenuItem[]> = {
   1: ROLL_WE_MENU,
-  2: KHEDIVE_KOSHARY_MENU
+  2: KHEDIVE_KOSHARY_MENU,
+  3: AL_HOUT_MENU
 };
 
 export function RestaurantMenu() {
