@@ -56,7 +56,7 @@ export default function Home() {
               <div className="flex gap-4 pt-4">
                 <Link href="/auth">
                   <Button size="lg" className="bg-white text-orange-600 hover:bg-yellow-100 font-bold px-8 shadow-lg hover:shadow-xl transition-all">
-                    ابدأ الآن
+                    طلب مندوب توصيل
                   </Button>
                 </Link>
                 <Button 
