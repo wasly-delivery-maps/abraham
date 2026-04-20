@@ -790,10 +790,6 @@ export const appRouter = router({
               id: driver.id,
               name: driver.name,
               phone: driver.phone,
-              lastLocation: driver.latitude && driver.longitude ? {
-                latitude: parseFloat(driver.latitude.toString()),
-                longitude: parseFloat(driver.longitude.toString()),
-              } : null,
             };
           }
         }
