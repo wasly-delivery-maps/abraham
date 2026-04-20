@@ -339,7 +339,12 @@ export function RestaurantMenu() {
       return;
     }
 
-    setIsLoading(true);
+    if (!addressDescription || addressDescription.trim().length < 5) {
+      toast.error("يرجى كتابة العنوان بالتفصيل أولاً (رقم العمارة، الشقة، أو علامة مميزة)");
+      return;
+    }
+
+    try {Loading(true);
     
     // وظيفة للحصول على الموقع الحالي بدقة في لحظة الطلب
     const getCurrentPositionPromise = () => {
@@ -667,8 +672,12 @@ export function RestaurantMenu() {
                 </div>
                   <Button
                     onClick={handleCheckout}
-                    disabled={isLoading}
-                    className="bg-orange-500 hover:bg-orange-600 text-white font-black px-8 py-7 rounded-2xl shadow-lg shadow-orange-900/20 transition-all"
+                    disabled={isLoading || !addressDescription.trim()}
+                    className={`font-black px-8 py-7 rounded-2xl shadow-lg transition-all ${
+                      !addressDescription.trim() 
+                      ? "bg-slate-700 text-slate-400 cursor-not-allowed opacity-50" 
+                      : "bg-orange-500 hover:bg-orange-600 text-white shadow-orange-900/20"
+                    }`}
                   >
                     {isLoading ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
