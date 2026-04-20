@@ -218,18 +218,31 @@ export function RestaurantMenu() {
       return;
     }
 
-    const finalLocation = userLocation || {
-      latitude: 30.1856,
-      longitude: 31.2567,
-      address: "موقع العميل (العبور الجديدة)",
+    setIsLoading(true);
+    
+    // وظيفة للحصول على الموقع الحالي بدقة في لحظة الطلب
+    const getCurrentPositionPromise = () => {
+      return new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0 // إجبار المتصفح على جلب موقع جديد وليس مخزناً
+        });
+      });
     };
 
-    if (!userLocation) {
-      toast.warning("لم نتمكن من تحديد موقعك بدقة، سيتم استخدام موقع تقريبي.");
-    }
-
-    setIsLoading(true);
     try {
+      toast.info("جاري التأكد من موقعك الحالي بدقة... 📍");
+      const position = await getCurrentPositionPromise();
+      const finalLocation = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        address: "موقعي الحالي المكتشف",
+      };
+      
+      // تحديث الحالة المحلية أيضاً
+      setUserLocation(finalLocation);
+      setLocationStatus("success");
       const orderItems = cart
         .map((item) => `${item.name} × ${item.quantity} = ${item.price * item.quantity} ج.م`)
         .join("\n");
@@ -281,7 +294,13 @@ export function RestaurantMenu() {
       setCustomerNotes("");
       setAddressDescription("");
     } catch (error: any) {
-      toast.error(error.message || "فشل في إنشاء الطلب");
+      console.error("Checkout error:", error);
+      if (error.code || error.message?.includes("denied") || error.message?.includes("location")) {
+        toast.error("يجب فتح الموقع (GPS) وإعطاء صلاحية للمتصفح لإتمام الطلب. لا يمكن إرسال الطلب بدون تحديد مكانك الفعلي.");
+        setLocationStatus("error");
+      } else {
+        toast.error(error.message || "فشل في إنشاء الطلب");
+      }
     } finally {
       setIsLoading(false);
     }
