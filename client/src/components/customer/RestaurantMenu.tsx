@@ -232,8 +232,13 @@ export function RestaurantMenu() {
     };
 
     try {
-      toast.info("جاري التأكد من موقعك الحالي بدقة... 📍");
+      const toastId = toast.info("جاري التأكد من موقعك الحالي بدقة... 📍", { duration: 5000 });
       const position = await getCurrentPositionPromise();
+      
+      if (!position || !position.coords.latitude || !position.coords.longitude) {
+        throw new Error("لم نتمكن من الحصول على إحداثيات دقيقة. يرجى التأكد من فتح الـ GPS.");
+      }
+
       const finalLocation = {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
@@ -243,6 +248,7 @@ export function RestaurantMenu() {
       // تحديث الحالة المحلية أيضاً
       setUserLocation(finalLocation);
       setLocationStatus("success");
+      toast.dismiss(toastId);
       const orderItems = cart
         .map((item) => `${item.name} × ${item.quantity} = ${item.price * item.quantity} ج.م`)
         .join("\n");
