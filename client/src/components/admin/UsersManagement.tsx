@@ -61,8 +61,9 @@ export function UsersManagement({ users: initialUsers }: { users: User[] }) {
         userId,
         status: newStatus,
       });
-      setUsers(
-        users.map((u) =>
+      // تحديث الحالة في الواجهة فوراً
+      setUsers((prevUsers) =>
+        prevUsers.map((u) =>
           u.id === userId ? { ...u, accountStatus: newStatus } : u
         )
       );
