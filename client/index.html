@@ -17,17 +17,25 @@
     <link rel="apple-touch-icon" href="/logo.jpg" />
     <title>منصة وصلي للتوصيل الذكية</title>
     <script>
-      // كود طلب تثبيت التطبيق (PWA Install Prompt)
-      let deferredPrompt;
+      // ============================================
+      // PWA Install Prompt Handler
+      // ============================================
+      let deferredPrompt = null;
+      let installPromptShown = false;
+      
       window.addEventListener('beforeinstallprompt', (e) => {
+        // منع الظهور الافتراضي للنافذة
         e.preventDefault();
         deferredPrompt = e;
+        console.log('[PWA] Install prompt is ready');
         
-        // إنشاء نافذة مخصصة بدلاً من confirm الافتراضي لضمان تجربة أفضل
+        // إنشاء نافذة مخصصة بدلاً من confirm الافتراضي
         const showInstallDialog = () => {
-          if (!deferredPrompt) return;
+          if (!deferredPrompt || installPromptShown) return;
+          installPromptShown = true;
           
           const dialog = document.createElement('div');
+          dialog.id = 'pwa-install-dialog';
           dialog.style.cssText = `
             position: fixed;
             top: 50%;
@@ -36,74 +44,152 @@
             background: white;
             padding: 24px;
             border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
             z-index: 9999;
             width: 90%;
-            max-width: 400px;
+            max-width: 420px;
             text-align: center;
-            font-family: sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             direction: rtl;
+            animation: slideUp 0.3s ease-out;
           `;
           
           dialog.innerHTML = `
-            <h3 style="margin-top:0; color:#f97316;">تثبيت تطبيق واصلي</h3>
-            <p style="color:#666; line-height:1.5;">لضمان وصول الإشعارات بشكل صحيح على شاشة القفل، يرجى إضافة 'واصلي' إلى الشاشة الرئيسية.</p>
-            <div style="display:flex; gap:12px; margin-top:24px;">
-              <button id="install-btn" style="flex:1; background:#f97316; color:white; border:none; padding:12px; border-radius:8px; cursor:pointer; font-weight:bold;">حسناً</button>
-              <button id="cancel-btn" style="flex:1; background:#eee; color:#333; border:none; padding:12px; border-radius:8px; cursor:pointer;">إلغاء</button>
+            <div style="display: flex; justify-content: center; margin-bottom: 16px;">
+              <img src="/wasly-logo-v2.png" alt="Wasly" style="width: 60px; height: 60px; border-radius: 12px;">
+            </div>
+            <h3 style="margin: 0 0 8px 0; color: #1a1a1a; font-size: 18px; font-weight: 600;">تثبيت تطبيق وصلي</h3>
+            <p style="margin: 0 0 16px 0; color: #666; line-height: 1.6; font-size: 14px;">احصل على وصول أسرع وتنبيهات فورية للطلبات الجديدة</p>
+            <div style="display: flex; gap: 12px; margin-top: 24px;">
+              <button id="install-btn" style="flex: 1; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(249, 115, 22, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(249, 115, 22, 0.3)';">تثبيت الآن</button>
+              <button id="cancel-btn" style="flex: 1; background: #f0f0f0; color: #333; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#e0e0e0';" onmouseout="this.style.background='#f0f0f0';">لاحقاً</button>
             </div>
           `;
           
           const overlay = document.createElement('div');
+          overlay.id = 'pwa-install-overlay';
           overlay.style.cssText = `
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
             z-index: 9998;
+            animation: fadeIn 0.2s ease-out;
           `;
+          
+          // إضافة أنماط الرسوم المتحركة
+          if (!document.getElementById('pwa-animations-style')) {
+            const style = document.createElement('style');
+            style.id = 'pwa-animations-style';
+            style.textContent = `
+              @keyframes slideUp {
+                from {
+                  opacity: 0;
+                  transform: translate(-50%, -40%);
+                }
+                to {
+                  opacity: 1;
+                  transform: translate(-50%, -50%);
+                }
+              }
+              @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+              }
+            `;
+            document.head.appendChild(style);
+          }
           
           document.body.appendChild(overlay);
           document.body.appendChild(dialog);
           
-          document.getElementById('install-btn').onclick = async () => {
-            document.body.removeChild(dialog);
-            document.body.removeChild(overlay);
-            if (deferredPrompt) {
-              deferredPrompt.prompt();
-              const { outcome } = await deferredPrompt.userChoice;
-              console.log(`User response to install prompt: ${outcome}`);
-              deferredPrompt = null;
+          const installBtn = document.getElementById('install-btn');
+          const cancelBtn = document.getElementById('cancel-btn');
+          
+          const closeDialog = () => {
+            try {
+              document.body.removeChild(dialog);
+              document.body.removeChild(overlay);
+            } catch (e) {
+              console.warn('[PWA] Dialog already removed');
             }
           };
           
-          document.getElementById('cancel-btn').onclick = () => {
-            document.body.removeChild(dialog);
-            document.body.removeChild(overlay);
+          installBtn.onclick = async () => {
+            if (deferredPrompt) {
+              try {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`[PWA] User response to install prompt: ${outcome}`);
+                if (outcome === 'accepted') {
+                  console.log('[PWA] App installed successfully');
+                }
+              } catch (error) {
+                console.error('[PWA] Error during install:', error);
+              } finally {
+                deferredPrompt = null;
+                closeDialog();
+              }
+            }
           };
+          
+          cancelBtn.onclick = () => {
+            console.log('[PWA] User dismissed install prompt');
+            closeDialog();
+          };
+          
+          // إغلاق عند النقر على الخلفية
+          overlay.onclick = closeDialog;
         };
 
-        // إظهار النافذة بعد 3 ثوانٍ من تحميل الصفحة
-        setTimeout(showInstallDialog, 3000);
+        // إظهار النافذة بعد 2 ثانية من تحميل الصفحة
+        setTimeout(showInstallDialog, 2000);
+      });
+      
+      // التعامل مع حدث التثبيت الناجح
+      window.addEventListener('appinstalled', () => {
+        console.log('[PWA] App was installed');
+        deferredPrompt = null;
+        installPromptShown = false;
       });
 
-      // طلب إذن الموقع الجغرافي فقط لضمان دقة الخرائط وتتبع السائقين
+      // ============================================
+      // Geolocation Permission Handler
+      // ============================================
       window.addEventListener('load', () => {
-        setTimeout(async () => {
+        setTimeout(() => {
           if ("geolocation" in navigator) {
             try {
+              // طلب إذن الموقع الجغرافي بدقة عالية
               navigator.geolocation.getCurrentPosition(
-                (position) => console.log("[PWA] Location access granted", position.coords),
-                (error) => console.error("[PWA] Location access denied", error),
-                { enableHighAccuracy: true, timeout: 10000 }
+                (position) => {
+                  console.log('[PWA] Location access granted', {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    accuracy: position.coords.accuracy
+                  });
+                },
+                (error) => {
+                  console.warn('[PWA] Location access denied or unavailable', {
+                    code: error.code,
+                    message: error.message
+                  });
+                },
+                {
+                  enableHighAccuracy: true,
+                  timeout: 15000,
+                  maximumAge: 0
+                }
               );
             } catch (error) {
-              console.error("[PWA] Geolocation error:", error);
+              console.error('[PWA] Geolocation error:', error);
             }
+          } else {
+            console.warn('[PWA] Geolocation not supported by this browser');
           }
-        }, 3000);
+        }, 2000);
       });
     </script>    
     <!-- THIS IS THE START OF A COMMENT BLOCK, BLOCK TO BE DELETED: Google Fonts here, example:

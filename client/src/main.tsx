@@ -54,13 +54,15 @@ const trpcClient = trpc.createClient({
   ],
 });
 
-// تسجيل Service Worker للـ PWA
+// ============================================
+// Service Worker Registration for PWA
+// ============================================
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('/service-worker.js')
       .then((registration) => {
-        console.log('[PWA] Service Worker registered:', registration);
+        console.log('[PWA] Service Worker registered successfully:', registration);
         
         // التحقق من التحديثات
         registration.addEventListener('updatefound', () => {
@@ -68,23 +70,54 @@ if ('serviceWorker' in navigator) {
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                console.log('[PWA] New version available, please refresh');
+                console.log('[PWA] New version available, please refresh the page');
               }
             });
           }
         });
+        
+        // مراقبة المستودع للتحديثات كل دقيقة
+        setInterval(() => {
+          registration.update().catch((error) => {
+            console.warn('[PWA] Failed to check for updates:', error);
+          });
+        }, 60000);
       })
       .catch((error) => {
         console.error('[PWA] Service Worker registration failed:', error);
       });
   });
+} else {
+  console.warn('[PWA] Service Worker not supported by this browser');
 }
 
-// طلب إذن الإشعارات
-if ('Notification' in window && Notification.permission === 'default') {
-  Notification.requestPermission().then((permission) => {
-    console.log('[PWA] Notification permission:', permission);
-  });
+// ============================================
+// Notification Permission Handler
+// ============================================
+if ('Notification' in window) {
+  if (Notification.permission === 'default') {
+    Notification.requestPermission().then((permission) => {
+      console.log('[PWA] Notification permission:', permission);
+      if (permission === 'granted') {
+        console.log('[PWA] Notifications enabled successfully');
+      }
+    }).catch((error) => {
+      console.error('[PWA] Error requesting notification permission:', error);
+    });
+  } else if (Notification.permission === 'granted') {
+    console.log('[PWA] Notifications already enabled');
+  }
+} else {
+  console.warn('[PWA] Notifications not supported by this browser');
+}
+
+// ============================================
+// Geolocation API Check (Fallback)
+// ============================================
+if ('geolocation' in navigator) {
+  console.log('[PWA] Geolocation API available');
+} else {
+  console.warn('[PWA] Geolocation not supported by this browser');
 }
 
 createRoot(document.getElementById("root")!).render(
