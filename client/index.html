@@ -89,51 +89,8 @@
         setTimeout(showInstallDialog, 3000);
       });
 
-      // إجبار طلب كافة الأذونات (إشعارات، موقع، صوت) فور فتح التطبيق
-      window.addEventListener('load', () => {
-        setTimeout(async () => {
-          console.log("[PWA] Starting permission requests...");
-          
-          // 1. طلب إذن الإشعارات عبر Notification API (Firebase سيتولى الباقي)
-          if ("Notification" in window) {
-            try {
-              if (Notification.permission === 'default') {
-                console.log("[PWA] Requesting Notification API permission...");
-                const permission = await Notification.requestPermission();
-                console.log("[PWA] Notification permission result:", permission);
-              } else if (Notification.permission === 'granted') {
-                console.log("[PWA] Notification permission already granted");
-              }
-            } catch (error) {
-              console.error("[PWA] Notification permission error:", error);
-            }
-          }
-
-          // 2. طلب إذن الموقع الجغرافي (للخرائط وتتبع السائق)
-          if ("geolocation" in navigator) {
-            try {
-              navigator.geolocation.getCurrentPosition(
-                (position) => console.log("[PWA] Location access granted", position.coords),
-                (error) => console.error("[PWA] Location access denied", error),
-                { enableHighAccuracy: true, timeout: 10000 }
-              );
-            } catch (error) {
-              console.error("[PWA] Geolocation error:", error);
-            }
-          }
-
-          // 3. طلب إذن الوسائط (صوت وتنبيهات)
-          try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            stream.getTracks().forEach(track => track.stop()); // إغلاق الميكروفون فور الحصول على الإذن
-            console.log("[PWA] Media/Audio access granted");
-          } catch (err) {
-            console.error("[PWA] Media/Audio access denied", err);
-          }
-          
-          console.log("[PWA] All permission requests completed");
-        }, 5000); // الانتظار 5 ثوانٍ لضمان استقرار التطبيق قبل طلب الأذونات
-      });
+      // تم إزالة طلب الأذونات التلقائي لضمان تجربة مستخدم أفضل
+      console.log("[PWA] Automatic permission requests disabled");
     </script>    
     <!-- THIS IS THE START OF A COMMENT BLOCK, BLOCK TO BE DELETED: Google Fonts here, example:
     <link rel="preconnect" href="https://fonts.googleapis.com" />
