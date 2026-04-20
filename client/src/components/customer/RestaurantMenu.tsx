@@ -133,8 +133,8 @@ const ROLL_WE_RESTAURANT: Restaurant = {
   rating: "4.8",
   deliveryTime: "30-45 دقيقة",
   location: {
-    latitude: 30.1856,
-    longitude: 31.2567
+    latitude: 30.2752625,
+    longitude: 31.5005156
   }
 };
 
