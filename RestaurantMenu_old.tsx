@@ -120,68 +120,8 @@ const KHEDIVE_KOSHARY_MENU: MenuItem[] = [
   { id: 156, name: "موتزاريللا 🧀", category: "الإضافات", price: 25 },
 ];
 
-// مطعم "رول وي" - البيانات
-const ROLL_WE_RESTAURANT: Restaurant = {
-  id: 1,
-  name: "رول وي - مطعم وكافيه",
-  phone: "01032809502",
-  whatsappPhone: "201032809502",
-  address: "العبور الجديدة، مصر",
-  description: "أشهى أنواع الكريب والرول والمكرونة والحواوشي في العبور الجديدة",
-  logoUrl: "https://ui-avatars.com/api/?name=RW&background=f97316&color=fff&size=128&bold=true",
-  coverUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format&fit=crop",
-  rating: "4.8",
-  deliveryTime: "30-45 دقيقة",
-  location: {
-    latitude: 30.1856,
-    longitude: 31.2567
-  }
-};
-
-const ROLL_WE_MENU: MenuItem[] = [
-  // كريب
-  { id: 1, name: "كريب موزاريلا 🧀", category: "كريب", price: 45 },
-  { id: 2, name: "كريب سجق 🌭", category: "كريب", price: 55 },
-  { id: 3, name: "كريب دجاج 🍗", category: "كريب", price: 50 },
-  { id: 4, name: "كريب جبن 🧀", category: "كريب", price: 40 },
-  { id: 5, name: "كريب شوكولاتة 🍫", category: "كريب", price: 35 },
-  { id: 6, name: "كريب فراولة 🍓", category: "كريب", price: 35 },
-  { id: 7, name: "كريب عسل 🍯", category: "كريب", price: 30 },
-  { id: 8, name: "كريب نوتيلا 🍫", category: "كريب", price: 40 },
-  // رول
-  { id: 9, name: "رول موزاريلا 🧀", category: "رول", price: 50 },
-  { id: 10, name: "رول دجاج 🍗", category: "رول", price: 55 },
-  { id: 11, name: "رول سجق 🌭", category: "رول", price: 60 },
-  { id: 12, name: "رول جبن 🧀", category: "رول", price: 45 },
-  { id: 13, name: "رول خضار 🥦", category: "رول", price: 40 },
-  { id: 14, name: "رول مختلط 🥙", category: "رول", price: 65 },
-  // مكرونة
-  { id: 15, name: "مكرونة كريمة 🥛", category: "مكرونة", price: 45 },
-  { id: 16, name: "مكرونة طماطم 🍅", category: "مكرونة", price: 40 },
-  { id: 17, name: "مكرونة بشاميل 🥘", category: "مكرونة", price: 50 },
-  { id: 18, name: "مكرونة جبن 🧀", category: "مكرونة", price: 45 },
-  { id: 19, name: "مكرونة دجاج 🍗", category: "مكرونة", price: 55 },
-  // حواوشي
-  { id: 20, name: "حواوشي دجاج 🍗", category: "حواوشي", price: 35 },
-  { id: 21, name: "حواوشي لحم 🥩", category: "حواوشي", price: 40 },
-  { id: 22, name: "حواوشي مختلط 🥙", category: "حواوشي", price: 45 },
-  { id: 23, name: "حواوشي جبن 🧀", category: "حواوشي", price: 30 },
-  // مشروبات
-  { id: 24, name: "عصير برتقال 🍊", category: "مشروبات", price: 15 },
-  { id: 25, name: "عصير ليمون 🍋", category: "مشروبات", price: 15 },
-  { id: 26, name: "مشروب غازي 🥤", category: "مشروبات", price: 10 },
-  { id: 27, name: "قهوة ☕", category: "مشروبات", price: 20 },
-  { id: 28, name: "شاي 🍵", category: "مشروبات", price: 10 },
-  // تسلية
-  { id: 29, name: "بطاطس مقلية 🍟", category: "تسلية", price: 20 },
-  { id: 30, name: "دجاج مقلي 🍗", category: "تسلية", price: 35 },
-  { id: 31, name: "سلطة 🥗", category: "تسلية", price: 25 },
-  { id: 32, name: "خبز 🍞", category: "تسلية", price: 5 },
-];
-
-const RESTAURANTS = [ROLL_WE_RESTAURANT, KHEDIVE_KOSHARY_RESTAURANT];
+const RESTAURANTS = [KHEDIVE_KOSHARY_RESTAURANT];
 const MENUS: Record<number, MenuItem[]> = {
-  1: ROLL_WE_MENU,
   2: KHEDIVE_KOSHARY_MENU
 };
 
@@ -278,37 +218,18 @@ export function RestaurantMenu() {
       return;
     }
 
-    setIsLoading(true);
-    
-    // وظيفة للحصول على الموقع الحالي بدقة في لحظة الطلب
-    const getCurrentPositionPromise = () => {
-      return new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0 // إجبار المتصفح على جلب موقع جديد وليس مخزناً
-        });
-      });
+    const finalLocation = userLocation || {
+      latitude: 30.1856,
+      longitude: 31.2567,
+      address: "موقع العميل (العبور الجديدة)",
     };
 
-    try {
-      const toastId = toast.info("جاري التأكد من موقعك الحالي بدقة... 📍", { duration: 5000 });
-      const position = await getCurrentPositionPromise();
-      
-      if (!position || !position.coords.latitude || !position.coords.longitude) {
-        throw new Error("لم نتمكن من الحصول على إحداثيات دقيقة. يرجى التأكد من فتح الـ GPS.");
-      }
+    if (!userLocation) {
+      toast.warning("لم نتمكن من تحديد موقعك بدقة، سيتم استخدام موقع تقريبي.");
+    }
 
-      const finalLocation = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        address: "موقعي الحالي المكتشف",
-      };
-      
-      // تحديث الحالة المحلية أيضاً
-      setUserLocation(finalLocation);
-      setLocationStatus("success");
-      toast.dismiss(toastId);
+    setIsLoading(true);
+    try {
       const orderItems = cart
         .map((item) => `${item.name} × ${item.quantity} = ${item.price * item.quantity} ج.م`)
         .join("\n");
@@ -316,11 +237,19 @@ export function RestaurantMenu() {
       const message = `طلب جديد من تطبيق وصلي 📱\n\nالمطعم: ${selectedRestaurant.name}\n\n${orderItems}\n\nالإجمالي: ${totalPrice} ج.م\n\nالعنوان: ${addressDescription || "موقع GPS"}\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
 
       const encodedMessage = encodeURIComponent(message);
-      // استخدام رابط wa.me المباشر لتقليل ظهور نوافذ الاختيار بين أنواع الواتساب
-      const directWhatsappUrl = `https://wa.me/${selectedRestaurant.whatsappPhone}?text=${encodedMessage}`;
+      const directWhatsappUrl = `whatsapp://send?phone=${selectedRestaurant.whatsappPhone}&text=${encodedMessage}`;
+      const webWhatsappUrl = `https://api.whatsapp.com/send?phone=${selectedRestaurant.whatsappPhone}&text=${encodedMessage}`;
 
-      // فتح الرابط مباشرة في نافذة جديدة، المتصفح سيتعامل مع فتح التطبيق الافتراضي
-      window.open(directWhatsappUrl, "_blank");
+      try {
+        window.location.href = directWhatsappUrl;
+        setTimeout(() => {
+          if (document.hasFocus()) {
+            window.open(webWhatsappUrl, "_blank");
+          }
+        }, 500);
+      } catch (e) {
+        window.open(webWhatsappUrl, "_blank");
+      }
 
       const cartItems = cart.map((item) => ({
         menuItemId: item.id,
@@ -352,13 +281,7 @@ export function RestaurantMenu() {
       setCustomerNotes("");
       setAddressDescription("");
     } catch (error: any) {
-      console.error("Checkout error:", error);
-      if (error.code || error.message?.includes("denied") || error.message?.includes("location")) {
-        toast.error("يجب فتح الموقع (GPS) وإعطاء صلاحية للمتصفح لإتمام الطلب. لا يمكن إرسال الطلب بدون تحديد مكانك الفعلي.");
-        setLocationStatus("error");
-      } else {
-        toast.error(error.message || "فشل في إنشاء الطلب");
-      }
+      toast.error(error.message || "فشل في إنشاء الطلب");
     } finally {
       setIsLoading(false);
     }

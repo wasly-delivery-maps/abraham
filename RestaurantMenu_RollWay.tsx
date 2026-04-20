@@ -1,0 +1,287 @@
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { ShoppingCart, Plus, Minus, X, MessageCircle, MapPin, Phone } from "lucide-react";
+
+interface MenuItem {
+  id: number;
+  name: string;
+  category: string;
+  price: number;
+  description?: string;
+}
+
+interface CartItem extends MenuItem {
+  quantity: number;
+}
+
+interface Restaurant {
+  id: number;
+  name: string;
+  phone: string;
+  whatsappPhone: string;
+  address: string;
+  description?: string;
+}
+
+// مطعم "رول وي" - البيانات
+const ROLL_WE_RESTAURANT: Restaurant = {
+  id: 1,
+  name: "رول وي - مطعم وكافيه",
+  phone: "01032809502",
+  whatsappPhone: "201032809502",
+  address: "العبور الجديدة، مصر",
+  description: "مطعم متخصص في الكريب والرول والمكرونة",
+};
+
+const ROLL_WE_MENU: MenuItem[] = [
+  // كريب
+  { id: 1, name: "كريب موزاريلا", category: "كريب", price: 45 },
+  { id: 2, name: "كريب سجق", category: "كريب", price: 55 },
+  { id: 3, name: "كريب دجاج", category: "كريب", price: 50 },
+  { id: 4, name: "كريب جبن", category: "كريب", price: 40 },
+  { id: 5, name: "كريب شوكولاتة", category: "كريب", price: 35 },
+  { id: 6, name: "كريب فراولة", category: "كريب", price: 35 },
+  { id: 7, name: "كريب عسل", category: "كريب", price: 30 },
+  { id: 8, name: "كريب نوتيلا", category: "كريب", price: 40 },
+  // رول
+  { id: 9, name: "رول موزاريلا", category: "رول", price: 50 },
+  { id: 10, name: "رول دجاج", category: "رول", price: 55 },
+  { id: 11, name: "رول سجق", category: "رول", price: 60 },
+  { id: 12, name: "رول جبن", category: "رول", price: 45 },
+  { id: 13, name: "رول خضار", category: "رول", price: 40 },
+  { id: 14, name: "رول مختلط", category: "رول", price: 65 },
+  // مكرونة
+  { id: 15, name: "مكرونة كريمة", category: "مكرونة", price: 45 },
+  { id: 16, name: "مكرونة طماطم", category: "مكرونة", price: 40 },
+  { id: 17, name: "مكرونة بشاميل", category: "مكرونة", price: 50 },
+  { id: 18, name: "مكرونة جبن", category: "مكرونة", price: 45 },
+  { id: 19, name: "مكرونة دجاج", category: "مكرونة", price: 55 },
+  // حواوشي
+  { id: 20, name: "حواوشي دجاج", category: "حواوشي", price: 35 },
+  { id: 21, name: "حواوشي لحم", category: "حواوشي", price: 40 },
+  { id: 22, name: "حواوشي مختلط", category: "حواوشي", price: 45 },
+  { id: 23, name: "حواوشي جبن", category: "حواوشي", price: 30 },
+  // مشروبات
+  { id: 24, name: "عصير برتقال", category: "مشروبات", price: 15 },
+  { id: 25, name: "عصير ليمون", category: "مشروبات", price: 15 },
+  { id: 26, name: "مشروب غازي", category: "مشروبات", price: 10 },
+  { id: 27, name: "قهوة", category: "مشروبات", price: 20 },
+  { id: 28, name: "شاي", category: "مشروبات", price: 10 },
+  // تسلية
+  { id: 29, name: "بطاطس مقلية", category: "تسلية", price: 20 },
+  { id: 30, name: "دجاج مقلي", category: "تسلية", price: 35 },
+  { id: 31, name: "سلطة", category: "تسلية", price: 25 },
+  { id: 32, name: "خبز", category: "تسلية", price: 5 },
+];
+
+export function RestaurantMenu() {
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("كريب");
+  const [customerNotes, setCustomerNotes] = useState("");
+
+  const categories = Array.from(new Set(ROLL_WE_MENU.map((item) => item.category)));
+  const filteredMenu = ROLL_WE_MENU.filter((item) => item.category === selectedCategory);
+
+  const addToCart = (item: MenuItem) => {
+    const existingItem = cart.find((c) => c.id === item.id);
+    if (existingItem) {
+      setCart(
+        cart.map((c) =>
+          c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c
+        )
+      );
+    } else {
+      setCart([...cart, { ...item, quantity: 1 }]);
+    }
+    toast.success(`تمت إضافة ${item.name} للسلة`);
+  };
+
+  const removeFromCart = (itemId: number) => {
+    setCart(cart.filter((c) => c.id !== itemId));
+  };
+
+  const updateQuantity = (itemId: number, quantity: number) => {
+    if (quantity <= 0) {
+      removeFromCart(itemId);
+    } else {
+      setCart(
+        cart.map((c) =>
+          c.id === itemId ? { ...c, quantity } : c
+        )
+      );
+    }
+  };
+
+  const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const handleCheckout = () => {
+    if (cart.length === 0) {
+      toast.error("السلة فارغة!");
+      return;
+    }
+
+    // بناء رسالة الطلب
+    const orderItems = cart
+      .map((item) => `${item.name} × ${item.quantity} = ${item.price * item.quantity} ج.م`)
+      .join("\n");
+
+    const message = `طلب جديد من تطبيق وصلي 📱\n\n${orderItems}\n\nالإجمالي: ${totalPrice} ج.م\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${ROLL_WE_RESTAURANT.whatsappPhone}&text=${encodedMessage}`;
+
+    // فتح واتساب
+    window.open(whatsappUrl, "_blank");
+
+    toast.success("تم إرسال الطلب للمطعم عبر واتساب!");
+    
+    // تنظيف السلة
+    setCart([]);
+    setCustomerNotes("");
+  };
+
+  return (
+    <div className="space-y-6 pb-96" dir="rtl">
+      {/* رأس المطعم */}
+      <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between text-2xl">
+            <span>{ROLL_WE_RESTAURANT.name}</span>
+            <MessageCircle className="h-6 w-6" />
+          </CardTitle>
+          <div className="space-y-2 mt-3 text-sm">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              <span>{ROLL_WE_RESTAURANT.address}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Phone className="h-4 w-4" />
+              <span>{ROLL_WE_RESTAURANT.phone}</span>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* تصنيفات المنيو */}
+      <div className="flex gap-2 overflow-x-auto pb-2 px-4">
+        {categories.map((category) => (
+          <button
+            key={category}
+            onClick={() => setSelectedCategory(category)}
+            className={`px-4 py-2 rounded-full whitespace-nowrap transition-all font-semibold ${
+              selectedCategory === category
+                ? "bg-orange-500 text-white shadow-lg"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
+
+      {/* قائمة الطعام */}
+      <div className="px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredMenu.map((item) => (
+          <Card key={item.id} className="hover:shadow-lg transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg">{item.name}</h3>
+                  {item.description && (
+                    <p className="text-xs text-muted-foreground mt-1">{item.description}</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-bold text-orange-600">{item.price} ج.م</span>
+                <Button
+                  size="sm"
+                  className="bg-orange-500 hover:bg-orange-600 gap-1"
+                  onClick={() => addToCart(item)}
+                >
+                  <Plus className="h-4 w-4" />
+                  إضافة
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* سلة المشتريات */}
+      {cart.length > 0 && (
+        <Card className="fixed bottom-0 left-0 right-0 rounded-t-2xl shadow-2xl border-0 max-w-full">
+          <CardHeader className="bg-orange-500 text-white rounded-t-2xl">
+            <CardTitle className="flex items-center justify-between">
+              <span>سلة المشتريات ({cart.length})</span>
+              <ShoppingCart className="h-5 w-5" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 max-h-[300px] overflow-y-auto bg-white">
+            <div className="space-y-3">
+              {cart.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between p-3 bg-gray-100 rounded-lg"
+                >
+                  <div className="flex-1">
+                    <p className="font-semibold">{item.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {item.price} ج.م × {item.quantity} = {item.price * item.quantity} ج.م
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      className="p-1 hover:bg-gray-300 rounded"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <span className="w-8 text-center font-bold">{item.quantity}</span>
+                    <button
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      className="p-1 hover:bg-gray-300 rounded"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => removeFromCart(item.id)}
+                      className="p-1 hover:bg-red-200 rounded ml-2"
+                    >
+                      <X className="h-4 w-4 text-red-600" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-gray-300">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-lg font-bold">الإجمالي:</span>
+                <span className="text-2xl font-bold text-orange-600">{totalPrice} ج.م</span>
+              </div>
+
+              <textarea
+                placeholder="أضف ملاحظات على الطلب (اختياري)..."
+                value={customerNotes}
+                onChange={(e) => setCustomerNotes(e.target.value)}
+                className="w-full p-2 border rounded-md text-sm mb-3 resize-none"
+                rows={2}
+              />
+
+              <Button
+                onClick={handleCheckout}
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg gap-2"
+              >
+                <MessageCircle className="h-5 w-5" />
+                إرسال الطلب عبر واتساب
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
