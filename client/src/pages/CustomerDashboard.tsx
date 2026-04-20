@@ -97,22 +97,13 @@ export default function CustomerDashboard() {
 
   const handleLogout = async () => {
     try {
-      // إغلاق أي نوافذ مفتوحة أولاً
       setIsDetailsOpen(false);
       setIsChatOpen(false);
-      
-      // استدعاء logout وانتظار اكتماله
-      await logout();
-      
-      // تأخير صغير لضمان اكتمال التنظيف
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // استبدال الصفحة بالكامل بدلاً من navigate لتجنب أخطاء React
-      window.location.replace("/auth");
+      logout().catch(err => console.warn('[Logout] Server error:', err));
+      window.location.href = "/auth";
     } catch (error) {
-      console.error('[Logout] Error during logout:', error);
-      // حتى في حالة الخطأ، أعد التوجيه إلى صفحة تسجيل الدخول
-      window.location.replace("/auth");
+      console.error('[Logout] Critical error:', error);
+      window.location.href = "/auth";
     }
   };
 
