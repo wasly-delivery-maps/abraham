@@ -51,14 +51,20 @@ export default function Home() {
           
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-8 text-gray-600 font-bold">
-            <a href="#features" className="hover:text-orange-600 transition-colors relative group">
+            <button 
+              onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+              className="hover:text-orange-600 transition-colors relative group cursor-pointer"
+            >
               المميزات
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-600 transition-all group-hover:w-full"></span>
-            </a>
-            <a href="#how-it-works" className="hover:text-orange-600 transition-colors relative group">
+            </button>
+            <button 
+              onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+              className="hover:text-orange-600 transition-colors relative group cursor-pointer"
+            >
               كيف نعمل
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-600 transition-all group-hover:w-full"></span>
-            </a>
+            </button>
             <Link href="/auth">
               <Button className="bg-orange-600 hover:bg-orange-700 text-white px-8 rounded-2xl font-bold shadow-lg shadow-orange-200 hover:scale-105 transition-all active:scale-95">ابدأ الآن</Button>
             </Link>
@@ -82,20 +88,24 @@ export default function Home() {
               exit={{ opacity: 0, y: -20 }}
               className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-orange-50 shadow-2xl p-6 space-y-4 z-40"
             >
-              <a 
-                href="#features" 
-                className="block text-lg font-bold text-gray-700 hover:text-orange-600 p-2"
-                onClick={() => setIsMenuOpen(false)}
+              <button 
+                className="block w-full text-right text-lg font-bold text-gray-700 hover:text-orange-600 p-2 cursor-pointer"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                }}
               >
                 المميزات
-              </a>
-              <a 
-                href="#how-it-works" 
-                className="block text-lg font-bold text-gray-700 hover:text-orange-600 p-2"
-                onClick={() => setIsMenuOpen(false)}
+              </button>
+              <button 
+                className="block w-full text-right text-lg font-bold text-gray-700 hover:text-orange-600 p-2 cursor-pointer"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+                }}
               >
                 كيف نعمل
-              </a>
+              </button>
               <Link href="/auth">
                 <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white py-6 rounded-2xl font-bold text-lg shadow-lg shadow-orange-200">
                   ابدأ الآن
@@ -237,7 +247,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20">
+      <section id="how-it-works" className="py-20">
         <div className="container mx-auto px-6">
           <div className="bg-gradient-to-r from-orange-600 to-orange-500 rounded-[3rem] p-12 lg:p-20 text-center text-white relative overflow-hidden shadow-2xl shadow-orange-200">
             <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
