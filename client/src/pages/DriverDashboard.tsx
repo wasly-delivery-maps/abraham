@@ -751,13 +751,7 @@ export default function DriverDashboard() {
             >
               <User className="h-5 w-5 text-white" />
             </Button>
-              <Button 
-                variant="ghost" 
-                className="h-12 w-12 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 p-0"
-                onClick={handleLogout}
-              >
-                <LogOut className="h-5 w-5 text-rose-500" />
-              </Button>
+
             </div>
           </div>
 

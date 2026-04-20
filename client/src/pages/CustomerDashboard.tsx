@@ -216,19 +216,7 @@ export default function CustomerDashboard() {
 	                </Button>
 	              </Link>
 	            </motion.div>
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={handleLogout} 
-                className="text-rose-500 hover:bg-rose-50 rounded-full h-10 w-10 transition-all"
-              >
-                <LogOut className="h-5 w-5" />
-              </Button>
-            </motion.div>
+
           </div>
         </div>
       </header>
