@@ -241,9 +241,9 @@ export default function DriverDashboard() {
           const now = Date.now();
           
           if (!lastLocationUpdateRef.current || 
-              now - lastLocationUpdateRef.current.time > 30000 ||
-              (Math.abs(latitude - lastLocationUpdateRef.current.lat) > 0.0001 ||
-               Math.abs(longitude - lastLocationUpdateRef.current.lng) > 0.0001)) {
+              now - lastLocationUpdateRef.current.time > 10000 ||
+              (Math.abs(latitude - lastLocationUpdateRef.current.lat) > 0.00005 ||
+               Math.abs(longitude - lastLocationUpdateRef.current.lng) > 0.00005)) {
             lastLocationUpdateRef.current = { lat: latitude, lng: longitude, time: now };
             setDriverLocation({ latitude, longitude });
             updateLocationMutation.mutate({ latitude, longitude });

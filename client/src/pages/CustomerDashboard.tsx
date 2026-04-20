@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { MapPin, Plus, LogOut, User, Truck, Clock, DollarSign, X, Phone, Calendar, ChevronRight, Package, Search, CheckCircle2, Loader2, TrendingUp, Award, Zap, Navigation, Info, MessageCircle, BarChart3 } from "lucide-react";
+import { MapPin, Plus, LogOut, User, Truck, Clock, DollarSign, X, Phone, Calendar, ChevronRight, Package, Search, CheckCircle2, Loader2, TrendingUp, Award, Zap, Navigation, Info, MessageCircle, BarChart3, Map as MapIcon } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { ChatBox } from "@/components/ChatBox";
@@ -13,6 +13,44 @@ import { RestaurantMenu } from "@/components/customer/RestaurantMenu";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix Leaflet default icon issue
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+    iconUrl: icon,
+    shadowUrl: iconShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
+
+const iconDriver = L.divIcon({
+  className: 'custom-div-icon',
+  html: "<div style='background-color:#10b981; color:white; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 0 10px rgba(16,185,129,0.5);'><div style='width:8px; height:8px; background:white; border-radius:50%;'></div></div>",
+  iconSize: [24, 24],
+  iconAnchor: [12, 12]
+});
+
+const iconDestination = L.divIcon({
+  className: 'custom-div-icon',
+  html: "<div style='background-color:#3b82f6; color:white; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 0 10px rgba(59,130,246,0.5);'><div style='width:8px; height:8px; background:white; border-radius:50%;'></div></div>",
+  iconSize: [24, 24],
+  iconAnchor: [12, 12]
+});
+
+function ChangeView({ center }: { center: [number, number] }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center);
+  }, [center, map]);
+  return null;
+}
 
 // Cancel Order Button Component
 function CancelOrderButton({ orderId, onSuccess }: { orderId: number; onSuccess: () => void }) {
@@ -601,6 +639,47 @@ export default function CustomerDashboard() {
                     <p className="text-lg font-black text-orange-600">ج.م {orderDetailsQuery.data.price}</p>
                   </div>
                 </div>
+
+                {/* Live Tracking Map */}
+                {orderDetailsQuery.data.status === 'in_transit' && orderDetailsQuery.data.assignedDriver?.lastLocation && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1">
+                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                        تتبع مباشر للمندوب
+                      </p>
+                    </div>
+                    <div className="h-48 w-full rounded-2xl overflow-hidden border border-slate-100 shadow-inner z-0">
+                      <MapContainer 
+                        center={[orderDetailsQuery.data.assignedDriver.lastLocation.latitude, orderDetailsQuery.data.assignedDriver.lastLocation.longitude]} 
+                        zoom={15} 
+                        style={{ height: '100%', width: '100%' }}
+                        zoomControl={false}
+                      >
+                        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                        <ChangeView center={[orderDetailsQuery.data.assignedDriver.lastLocation.latitude, orderDetailsQuery.data.assignedDriver.lastLocation.longitude]} />
+                        
+                        {/* Driver Marker */}
+                        <Marker 
+                          position={[orderDetailsQuery.data.assignedDriver.lastLocation.latitude, orderDetailsQuery.data.assignedDriver.lastLocation.longitude]}
+                          icon={iconDriver}
+                        >
+                          <Popup>المندوب هنا</Popup>
+                        </Marker>
+
+                        {/* Destination Marker */}
+                        {orderDetailsQuery.data.deliveryLocation?.latitude && (
+                          <Marker 
+                            position={[orderDetailsQuery.data.deliveryLocation.latitude, orderDetailsQuery.data.deliveryLocation.longitude]}
+                            icon={iconDestination}
+                          >
+                            <Popup>موقع التسليم</Popup>
+                          </Marker>
+                        )}
+                      </MapContainer>
+                    </div>
+                  </div>
+                )}
 
                 {/* Locations */}
                 <div className="space-y-4 relative">

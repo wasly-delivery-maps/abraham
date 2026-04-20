@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ShoppingCart, Plus, Minus, X, MessageCircle, MapPin, Phone, Loader2, ChevronRight, Star, Clock } from "lucide-react";
+import { ShoppingCart, Plus, Minus, X, MessageCircle, MapPin, Phone, Loader2, ChevronRight, Star, Clock, Coins, Gift } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -240,8 +240,8 @@ export function RestaurantMenu() {
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
   const [addressDescription, setAddressDescription] = useState("");
   const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-  
-  const createRestaurantOrderMutation = trpc.orders.createRestaurantOrder.useMutation();
+  const [usePoints, setUsePoints] = useState(false);
+  const [showGiftAlert, setShowGiftAlert] = useState(false);rs.createRestaurantOrder.useMutation();
 
   const requestLocation = () => {
     if (!navigator.geolocation) {
@@ -316,6 +316,21 @@ export function RestaurantMenu() {
   };
 
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const hasGift = totalPrice >= 600;
+  const freeDeliveryThreshold = 1000;
+  const hasFreeDelivery = totalPrice >= freeDeliveryThreshold;
+
+  useEffect(() => {
+    if (hasGift && !showGiftAlert) {
+      setShowGiftAlert(true);
+      toast.success("مبروك! لقد فتحت هدية سرية مجانية 🎁", {
+        description: "سيتم إضافة صنف جانبي مجاني لطلبك تلقائياً (عرض الـ 600 جنيه).",
+        duration: 5000,
+      });
+    } else if (!hasGift && showGiftAlert) {
+      setShowGiftAlert(false);
+    }
+  }, [hasGift]);
 
   const handleCheckout = async () => {
     if (!selectedRestaurant) return;
@@ -376,10 +391,9 @@ export function RestaurantMenu() {
 
       await createRestaurantOrderMutation.mutateAsync({
         restaurantId: selectedRestaurant.id,
-        items: cartItems,
-        totalPrice,
-        notes: customerNotes,
-        pickupLocation: {
+        items: cartIt        totalPrice,
+        notes: `${customerNotes}${hasGift ? "\n🎁 [هدية مجانية]: وجبة جانبية مجانية (عرض الـ 600 جنيه)" : ""}${hasFreeDelivery ? "\n🚚 [توصيل مجاني]: هذا الطلب مؤهل للتوصيل المجاني (عرض الـ 1000 جنيه)" : ""}`,
+        usePoints: usePoints,{
           address: selectedRestaurant.address,
           latitude: selectedRestaurant.location.latitude,
           longitude: selectedRestaurant.location.longitude,
@@ -624,7 +638,33 @@ export function RestaurantMenu() {
                   <div>
                     <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">الإجمالي</p>
                     <p className="text-2xl font-black text-orange-500">ج.م {totalPrice}</p>
-                  </div>
+                    <div className="flex flex-col gap-1 mt-1">
+                      {hasGift && (
+                        <motion.div 
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="flex items-center gap-1 text-emerald-400 text-[10px] font-black"
+                        >
+                          <Gift className="h-3 w-3" />
+                          <span>تم تفعيل الهدية المجانية! 🎁</span>
+                        </motion.div>
+                      )}
+                      {hasFreeDelivery ? (
+                        <motion.div 
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="flex items-center gap-1 text-sky-400 text-[10px] font-black"
+                        >
+                          <Truck className="h-3 w-3" />
+                          <span>توصيل مجاني مفعل! 🚚</span>
+                        </motion.div>
+                      ) : (
+                        <p className="text-[9px] text-slate-400 font-bold">
+                          أضف {freeDeliveryThreshold - totalPrice} ج.م للحصول على توصيل مجاني 🚚
+                        </p>
+                      )}
+                    </div>
+                </div>
                   <Button
                     onClick={handleCheckout}
                     disabled={isLoading}
