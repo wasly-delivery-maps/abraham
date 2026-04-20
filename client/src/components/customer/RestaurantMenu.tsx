@@ -545,7 +545,9 @@ export function RestaurantMenu() {
                 <CardContent className="p-4 flex justify-between items-center">
                   <div className="space-y-1">
                     <h3 className="font-black text-slate-800 group-hover:text-orange-600 transition-colors">{item.name}</h3>
-                    <p className="text-orange-600 font-black text-lg">ج.م {item.price}</p>
+                    <p className="text-orange-600 font-black text-lg">
+                      {item.price === 0 ? "سعر اليوم" : `ج.م ${item.price}`}
+                    </p>
                   </div>
                   <Button
                     size="icon"
@@ -570,7 +572,9 @@ export function RestaurantMenu() {
                   <div key={item.id} className="flex justify-between items-center py-3 border-b border-slate-800 last:border-0">
                     <div className="flex-1">
                       <p className="font-bold text-sm">{item.name}</p>
-                      <p className="text-orange-400 text-xs font-black">ج.م {item.price * item.quantity}</p>
+                      <p className="text-orange-400 text-xs font-black">
+                        {item.price === 0 ? "سعر اليوم" : `ج.م ${item.price * item.quantity}`}
+                      </p>
                     </div>
                     <div className="flex items-center gap-3 bg-slate-800 rounded-xl p-1">
                       <Button
