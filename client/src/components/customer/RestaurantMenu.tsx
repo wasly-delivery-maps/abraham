@@ -360,14 +360,6 @@ export function RestaurantMenu() {
           </div>
           <div className="flex-1 pb-2 text-white z-20">
             <h1 className="text-2xl font-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{selectedRestaurant.name}</h1>
-            <div className="flex items-center gap-3 mt-1 text-[11px] font-medium opacity-90">
-              <span className="flex items-center gap-1 bg-orange-500/80 px-2 py-0.5 rounded-full">
-                <MapPin className="h-3 w-3" /> {selectedRestaurant.address}
-              </span>
-              <span className="flex items-center gap-1 bg-green-500/80 px-2 py-0.5 rounded-full">
-                <Phone className="h-3 w-3" /> {selectedRestaurant.phone}
-              </span>
-            </div>
           </div>
         </div>
       </div>
