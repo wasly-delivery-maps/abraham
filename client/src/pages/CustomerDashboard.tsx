@@ -96,6 +96,9 @@ export default function CustomerDashboard() {
   }
 
   const handleLogout = async () => {
+    // تعطيل حماية زر الرجوع قبل الخروج لضمان عدم حدوث تضارب
+    window.removeEventListener("popstate", () => {});
+    
     setIsDetailsOpen(false);
     setIsChatOpen(false);
     await logout();

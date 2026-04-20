@@ -322,6 +322,9 @@ export default function DriverDashboard() {
   };
 
   const handleLogout = async () => {
+    // تعطيل حماية زر الرجوع قبل الخروج لضمان عدم حدوث تضارب
+    window.removeEventListener('popstate', () => {});
+    
     setShowMapModal(false);
     setIsChatOpen(false);
     if (isAlertActive()) {
