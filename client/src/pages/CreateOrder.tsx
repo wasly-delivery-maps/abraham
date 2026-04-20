@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { MapPin, ArrowRight, Loader2, ChevronLeft, Navigation, Info, DollarSign, Truck, CheckCircle2, X, Zap, Route } from "lucide-react";
+import { MapPin, ArrowRight, Loader2, ChevronLeft, Navigation, CheckCircle2, DollarSign } from "lucide-react";
 import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -30,9 +30,8 @@ export default function CreateOrder() {
 
   const createOrderMutation = trpc.orders.createOrder.useMutation();
 
-  // Haversine formula to calculate distance between two points
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371; // Earth's radius in km
+    const R = 6371;
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLon = ((lon2 - lon1) * Math.PI) / 180;
     const a =
@@ -54,7 +53,6 @@ export default function CreateOrder() {
         deliveryLocation.longitude
       );
       setCalculatedDistance(distance);
-      // Simple pricing logic: 25 EGP base + 5 EGP per km after 3km
       const price = distance <= 3 ? 25 : 25 + Math.ceil(distance - 3) * 5;
       setEstimatedPrice(price);
     }
@@ -110,7 +108,6 @@ export default function CreateOrder() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex flex-col relative overflow-hidden font-sans" dir="rtl">
-      {/* Header */}
       <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-slate-200/50 shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -152,41 +149,61 @@ export default function CreateOrder() {
         </div>
       </header>
 
-      <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
+      <main className="flex-1 container mx-auto px-4 py-8 max-w-2xl">
         <AnimatePresence mode="wait">
           {step === 'pickup' && (
-            <motion.div key="pickup" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <div className="space-y-2">
+            <motion.div key="pickup" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-8">
+              <div className="space-y-2 text-center">
                 <h2 className="text-3xl font-black text-slate-900">أين نستلم الطرد؟ 📍</h2>
                 <p className="text-slate-500 font-medium">حدد موقع الاستلام بدقة على الخريطة</p>
               </div>
-              <MapPicker onLocationSelect={setPickupLocation} initialLocation={pickupLocation || undefined} placeholder="ابحث عن موقع الاستلام..." />
-              <Button
-                disabled={!pickupLocation}
-                onClick={() => setStep('delivery')}
-                className="w-full py-8 text-xl font-black bg-orange-500 hover:bg-orange-600 text-white rounded-2xl shadow-lg transition-all"
-              >
-                تأكيد موقع الاستلام
-                <ArrowRight className="mr-2 h-6 w-6" />
-              </Button>
+              
+              <div className="bg-white p-6 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 space-y-6">
+                <MapPicker 
+                  onLocationSelect={setPickupLocation} 
+                  initialLocation={pickupLocation || undefined} 
+                  title="موقع الاستلام"
+                  placeholder="ابحث عن شارع، محل، أو منطقة..."
+                  buttonText="اضغط لتحديد موقع الاستلام"
+                />
+                
+                <Button
+                  disabled={!pickupLocation}
+                  onClick={() => setStep('delivery')}
+                  className="w-full py-8 text-xl font-black bg-orange-500 hover:bg-orange-600 text-white rounded-2xl shadow-lg shadow-orange-200 transition-all active:scale-[0.98]"
+                >
+                  تأكيد موقع الاستلام
+                  <ArrowRight className="mr-2 h-6 w-6" />
+                </Button>
+              </div>
             </motion.div>
           )}
 
           {step === 'delivery' && (
-            <motion.div key="delivery" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <div className="space-y-2">
+            <motion.div key="delivery" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-8">
+              <div className="space-y-2 text-center">
                 <h2 className="text-3xl font-black text-slate-900">أين وجهة التسليم؟ 🏁</h2>
                 <p className="text-slate-500 font-medium">حدد المكان الذي تريد إرسال الطرد إليه</p>
               </div>
-              <MapPicker onLocationSelect={setDeliveryLocation} initialLocation={deliveryLocation || undefined} placeholder="ابحث عن وجهة التسليم..." />
-              <Button
-                disabled={!deliveryLocation}
-                onClick={() => setStep('confirm')}
-                className="w-full py-8 text-xl font-black bg-orange-500 hover:bg-orange-600 text-white rounded-2xl shadow-lg transition-all"
-              >
-                تأكيد وجهة التسليم
-                <ArrowRight className="mr-2 h-6 w-6" />
-              </Button>
+
+              <div className="bg-white p-6 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 space-y-6">
+                <MapPicker 
+                  onLocationSelect={setDeliveryLocation} 
+                  initialLocation={deliveryLocation || undefined} 
+                  title="وجهة التسليم"
+                  placeholder="ابحث عن وجهة التسليم..."
+                  buttonText="اضغط لتحديد وجهة التسليم"
+                />
+                
+                <Button
+                  disabled={!deliveryLocation}
+                  onClick={() => setStep('confirm')}
+                  className="w-full py-8 text-xl font-black bg-orange-500 hover:bg-orange-600 text-white rounded-2xl shadow-lg shadow-orange-200 transition-all active:scale-[0.98]"
+                >
+                  تأكيد وجهة التسليم
+                  <ArrowRight className="mr-2 h-6 w-6" />
+                </Button>
+              </div>
             </motion.div>
           )}
 
@@ -197,7 +214,7 @@ export default function CreateOrder() {
                 <p className="text-slate-500 font-medium">راجع بيانات طلبك قبل الإرسال</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-4">
                 <Card className="border-none shadow-md bg-white rounded-3xl overflow-hidden">
                   <CardContent className="p-6 space-y-4">
                     <div className="flex items-center gap-3 text-orange-600">
