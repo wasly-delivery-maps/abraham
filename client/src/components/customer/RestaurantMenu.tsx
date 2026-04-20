@@ -35,29 +35,11 @@ interface Restaurant {
   };
 }
 
-// مطعم "رول وي" - البيانات
-const ROLL_WE_RESTAURANT: Restaurant = {
-  id: 1,
-  name: "رول وي - مطعم وكافيه",
-  phone: "01032809502",
-  whatsappPhone: "201032809502",
-  address: "العبور الجديدة، مصر",
-  description: "أشهى أنواع الكريب والرول والمكرونة والحواوشي في العبور الجديدة",
-  logoUrl: "https://ui-avatars.com/api/?name=RW&background=f97316&color=fff&size=128&bold=true",
-  coverUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format&fit=crop",
-  rating: "4.8",
-  deliveryTime: "30-45 دقيقة",
-  location: {
-    latitude: 30.1856,
-    longitude: 31.2567
-  }
-};
-
 // مطعم "كشري الخديوي" - البيانات
 const KHEDIVE_KOSHARY_RESTAURANT: Restaurant = {
   id: 2,
   name: "كشري الخديوي",
-  phone: "01032809502", // نفس رقم رول وي بناءً على طلب المستخدم
+  phone: "01032809502",
   whatsappPhone: "201032809502",
   address: "7F49+V89 كشري الخديوي، العبور، القليوبية",
   description: "أصل الكشري المصري والطواجن البيتي في قلب العبور",
@@ -70,32 +52,6 @@ const KHEDIVE_KOSHARY_RESTAURANT: Restaurant = {
     longitude: 31.4682469
   }
 };
-
-const ROLL_WE_MENU: MenuItem[] = [
-  { id: 1, name: "كريب موزاريلا 🧀", category: "كريب", price: 45 },
-  { id: 2, name: "كريب سجق 🌭", category: "كريب", price: 55 },
-  { id: 3, name: "كريب دجاج 🍗", category: "كريب", price: 50 },
-  { id: 4, name: "كريب جبن 🧀", category: "كريب", price: 40 },
-  { id: 5, name: "كريب شوكولاتة 🍫", category: "كريب", price: 35 },
-  { id: 6, name: "كريب فراولة 🍓", category: "كريب", price: 35 },
-  { id: 7, name: "كريب عسل 🍯", category: "كريب", price: 30 },
-  { id: 8, name: "كريب نوتيلا 🍫", category: "كريب", price: 40 },
-  { id: 9, name: "رول موزاريلا 🧀", category: "رول", price: 50 },
-  { id: 10, name: "رول دجاج 🍗", category: "رول", price: 55 },
-  { id: 11, name: "رول سجق 🌭", category: "رول", price: 60 },
-  { id: 12, name: "رول جبن 🧀", category: "رول", price: 45 },
-  { id: 13, name: "رول خضار 🥗", category: "رول", price: 40 },
-  { id: 14, name: "رول مختلط 🌯", category: "رول", price: 65 },
-  { id: 15, name: "مكرونة كريمة 🍜", category: "مكرونة", price: 45 },
-  { id: 16, name: "مكرونة طماطم 🍝", category: "مكرونة", price: 40 },
-  { id: 17, name: "مكرونة بشاميل 🥘", category: "مكرونة", price: 50 },
-  { id: 18, name: "مكرونة جبن 🧀", category: "مكرونة", price: 45 },
-  { id: 19, name: "مكرونة دجاج 🍗", category: "مكرونة", price: 55 },
-  { id: 20, name: "حواوشي دجاج 🍗", category: "حواوشي", price: 35 },
-  { id: 21, name: "حواوشي لحم 🥩", category: "حواوشي", price: 40 },
-  { id: 22, name: "حواوشي مختلط 🥙", category: "حواوشي", price: 45 },
-  { id: 23, name: "حواوشي جبن 🧀", category: "حواوشي", price: 30 },
-];
 
 const KHEDIVE_KOSHARY_MENU: MenuItem[] = [
   // العلب
@@ -164,9 +120,8 @@ const KHEDIVE_KOSHARY_MENU: MenuItem[] = [
   { id: 156, name: "موتزاريللا 🧀", category: "الإضافات", price: 25 },
 ];
 
-const RESTAURANTS = [ROLL_WE_RESTAURANT, KHEDIVE_KOSHARY_RESTAURANT];
+const RESTAURANTS = [KHEDIVE_KOSHARY_RESTAURANT];
 const MENUS: Record<number, MenuItem[]> = {
-  1: ROLL_WE_MENU,
   2: KHEDIVE_KOSHARY_MENU
 };
 
@@ -263,7 +218,6 @@ export function RestaurantMenu() {
       return;
     }
 
-    // التأكد من وجود موقع العميل، وإذا لم يوجد نستخدم موقع افتراضي مع تنبيه
     const finalLocation = userLocation || {
       latitude: 30.1856,
       longitude: 31.2567,
@@ -303,20 +257,17 @@ export function RestaurantMenu() {
         price: item.price,
       }));
 
-      // إرسال الطلب للخلفية مع تثبيت المواقع بدقة
       await createRestaurantOrderMutation.mutateAsync({
         restaurantId: selectedRestaurant.id,
         items: cartItems,
         totalPrice,
         notes: customerNotes,
-        // موقع الاستلام هو دائماً موقع المطعم الثابت
         pickupLocation: {
           address: selectedRestaurant.address,
           latitude: selectedRestaurant.location.latitude,
           longitude: selectedRestaurant.location.longitude,
           neighborhood: "موقع المطعم",
         },
-        // موقع التسليم هو موقع العميل المكتشف تلقائياً
         deliveryLocation: {
           address: addressDescription || "موقع العميل المكتشف",
           latitude: finalLocation.latitude,
@@ -399,28 +350,26 @@ export function RestaurantMenu() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
         </div>
 
-        {selectedRestaurant.id !== 2 && (
-          <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end gap-4">
-            <div className="h-20 w-20 rounded-2xl bg-white p-1.5 shadow-2xl flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-orange-400 z-20 transform -translate-y-2">
-               <img 
-                src={selectedRestaurant.logoUrl} 
-                alt="Logo" 
-                className="w-full h-full object-contain rounded-lg"
-              />
-            </div>
-            <div className="flex-1 pb-2 text-white z-20">
-              <h1 className="text-2xl font-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{selectedRestaurant.name}</h1>
-              <div className="flex items-center gap-3 mt-1 text-[11px] font-medium opacity-90">
-                <span className="flex items-center gap-1 bg-orange-500/80 px-2 py-0.5 rounded-full">
-                  <MapPin className="h-3 w-3" /> {selectedRestaurant.address}
-                </span>
-                <span className="flex items-center gap-1 bg-green-500/80 px-2 py-0.5 rounded-full">
-                  <Phone className="h-3 w-3" /> {selectedRestaurant.phone}
-                </span>
-              </div>
+        <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end gap-4">
+          <div className="h-20 w-20 rounded-2xl bg-white p-1.5 shadow-2xl flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-orange-400 z-20 transform -translate-y-2">
+             <img 
+              src={selectedRestaurant.logoUrl} 
+              alt="Logo" 
+              className="w-full h-full object-contain rounded-lg"
+            />
+          </div>
+          <div className="flex-1 pb-2 text-white z-20">
+            <h1 className="text-2xl font-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{selectedRestaurant.name}</h1>
+            <div className="flex items-center gap-3 mt-1 text-[11px] font-medium opacity-90">
+              <span className="flex items-center gap-1 bg-orange-500/80 px-2 py-0.5 rounded-full">
+                <MapPin className="h-3 w-3" /> {selectedRestaurant.address}
+              </span>
+              <span className="flex items-center gap-1 bg-green-500/80 px-2 py-0.5 rounded-full">
+                <Phone className="h-3 w-3" /> {selectedRestaurant.phone}
+              </span>
             </div>
           </div>
-        )}
+        </div>
       </div>
 
       <div className="px-2 mb-4">

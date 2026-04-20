@@ -16,53 +16,60 @@ export function useAuth(options?: UseAuthOptions) {
   const meQuery = trpc.auth.me.useQuery(undefined, {
     retry: false,
     refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  const logoutMutation = trpc.auth.logout.useMutation({
-    onSuccess: () => {
-      utils.auth.me.setData(undefined, null);
-    },
-  });
+  const logoutMutation = trpc.auth.logout.useMutation();
 
   const logout = useCallback(async () => {
+    console.log("[Auth] Starting logout process...");
+    
     try {
-      // محاولة استدعاء logout من الخادم
-      try {
-        await logoutMutation.mutateAsync();
-      } catch (error: unknown) {
-        // إذا حدث خطأ UNAUTHORIZED، تجاهله (المستخدم بالفعل غير مصرح)
-        if (
-          error instanceof TRPCClientError &&
-          error.data?.code === "UNAUTHORIZED"
-        ) {
-          // تجاهل الخطأ وتابع مع التنظيف المحلي
-          console.warn("[Auth] User already unauthorized, proceeding with cleanup");
-        } else {
-          // إذا كان هناك خطأ آخر، أعد رفعه
-          throw error;
-        }
-      }
-    } finally {
-      // تنظيف البيانات المحلية بغض النظر عن نجاح الخادم
+      // 1. محاولة إبلاغ الخادم بتسجيل الخروج
+      await logoutMutation.mutateAsync().catch(err => {
+        console.warn("[Auth] Server logout failed or already logged out:", err);
+      });
+
+      // 2. تنظيف البيانات المحلية في tRPC cache
       utils.auth.me.setData(undefined, null);
       await utils.auth.me.invalidate();
       
-      // مسح localStorage
+      // 3. مسح كافة البيانات المخزنة محلياً
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('manus-runtime-user-info');
-        // مسح أي بيانات أخرى متعلقة بالمستخدم
-        localStorage.removeItem('sidebar-width');
+        // مسح الـ LocalStorage بالكامل لضمان عدم بقاء أي توكن أو بيانات قديمة
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // مسح الكوكيز (محاولة إضافية)
+        document.cookie.split(";").forEach((c) => {
+          document.cookie = c
+            .replace(/^ +/, "")
+            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
       }
       
-      console.log("[Auth] Logout cleanup completed successfully");
+      console.log("[Auth] Local cleanup completed.");
+      
+      // 4. إعادة التوجيه باستخدام استبدال الصفحة بالكامل لقتل أي حالة React متبقية
+      if (typeof window !== 'undefined') {
+        window.location.replace("/auth");
+      }
+    } catch (error) {
+      console.error("[Auth] Critical error during logout:", error);
+      // في حالة الفشل الذريع، اجبر المتصفح على الذهاب لصفحة الدخول
+      if (typeof window !== 'undefined') {
+        window.location.href = "/auth";
+      }
     }
   }, [logoutMutation, utils]);
 
   const state = useMemo(() => {
-    localStorage.setItem(
-      "manus-runtime-user-info",
-      JSON.stringify(meQuery.data)
-    );
+    if (meQuery.data) {
+      localStorage.setItem(
+        "manus-runtime-user-info",
+        JSON.stringify(meQuery.data)
+      );
+    }
     return {
       user: meQuery.data ?? null,
       loading: meQuery.isLoading || logoutMutation.isPending,
@@ -76,26 +83,6 @@ export function useAuth(options?: UseAuthOptions) {
     logoutMutation.error,
     logoutMutation.isPending,
   ]);
-
-  // تم تعطيل إعادة التوجيه التلقائي هنا لتجنب مشكلة تسجيل الدخول المزدوج.
-  // يتم التعامل مع حماية المسارات من خلال مكون ProtectedRoute في App.tsx.
-  /*
-  useEffect(() => {
-    if (!redirectOnUnauthenticated) return;
-    if (meQuery.isLoading || logoutMutation.isPending) return;
-    if (state.user) return;
-    if (typeof window === "undefined") return;
-    if (window.location.pathname === redirectPath) return;
-
-    window.location.href = redirectPath
-  }, [
-    redirectOnUnauthenticated,
-    redirectPath,
-    logoutMutation.isPending,
-    meQuery.isLoading,
-    state.user,
-  ]);
-  */
 
   return {
     ...state,
