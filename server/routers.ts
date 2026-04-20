@@ -371,7 +371,16 @@ export const appRouter = router({
           neighborhood: "العبور الجديدة",
         };
 
-        const restaurantName = input.restaurantId === 2 ? "كشري الخديوي" : "رول وي";
+        let restaurantName = "رول وي";
+        if (input.restaurantId === 2) {
+          restaurantName = "كشري الخديوي";
+        } else if (input.restaurantId === 3) {
+          restaurantName = "مطعم الحوت";
+        } else if (input.pickupLocation?.address) {
+          // If address is provided in pickupLocation, use it as restaurant name if it contains specific keywords
+          // or just use the provided address
+          restaurantName = input.pickupLocation.address.split(',')[0].split('-')[0].trim();
+        }
 
         // Calculate distance
         const distance = calculateDistance(
@@ -399,7 +408,7 @@ export const appRouter = router({
           price: deliveryPrice, // This is the delivery fee for the driver
           distance,
           estimatedTime,
-          notes: `طلب من مطعم ${restaurantName}: ${input.notes || "بدون ملاحظات"}\nقيمة الطعام للمطعم: ج.م ${input.totalPrice}`,
+          notes: `المطعم: ${restaurantName}\nالعنوان: ${input.deliveryLocation.address}\nالملاحظات: ${input.notes || "بدون ملاحظات"}\nقيمة الطعام: ج.م ${input.totalPrice}`,
         });
 
         // Notify drivers about new order
