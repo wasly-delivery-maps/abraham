@@ -35,7 +35,9 @@ class ErrorBoundary extends Component<Props, State> {
 
             <div className="p-4 w-full rounded bg-muted overflow-auto mb-6">
               <pre className="text-sm text-muted-foreground whitespace-break-spaces">
-                {this.state.error?.stack}
+                {this.state.error?.message && this.state.error.message.length > 200 
+                  ? "حدث خطأ في معالجة البيانات، يرجى المحاولة مرة أخرى بصورة أصغر أو تحديث الصفحة." 
+                  : this.state.error?.message}
               </pre>
             </div>
 

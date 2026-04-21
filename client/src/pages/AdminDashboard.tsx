@@ -113,8 +113,8 @@ export default function AdminDashboard() {
             img.src = event.target?.result as string;
             img.onload = () => {
               const canvas = document.createElement('canvas');
-              const MAX_WIDTH = 800;
-              const MAX_HEIGHT = 600;
+              const MAX_WIDTH = 600;
+              const MAX_HEIGHT = 450;
               let width = img.width;
               let height = img.height;
 
@@ -135,8 +135,8 @@ export default function AdminDashboard() {
               const ctx = canvas.getContext('2d');
               ctx?.drawImage(img, 0, 0, width, height);
               
-              // Get compressed base64
-              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+              // Get compressed base64 with lower quality for better compatibility
+              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
               resolve(compressedBase64);
             };
             img.onerror = reject;
@@ -159,7 +159,11 @@ export default function AdminDashboard() {
       }
     } catch (error: any) {
       console.error("Upload image error:", error);
-      toast.error(error.message || "فشل رفع الصورة، يرجى التأكد من حجم الملف");
+      // Prevent showing long base64 strings in toast
+      const errorMsg = error.message && error.message.length > 100 
+        ? "فشل رفع الصورة بسبب حجمها الكبير، يرجى تجربة صورة أخرى" 
+        : (error.message || "فشل رفع الصورة، يرجى التأكد من حجم الملف");
+      toast.error(errorMsg);
     } finally {
       setIsUploading(false);
     }
