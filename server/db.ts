@@ -366,10 +366,11 @@ export async function createOffer(offer: any) {
 
   if (!db) return null;
   
-  // Ensure expiresAt is a Date object
+  // Ensure expiresAt is a Date object and remove any fields not in the schema
+  const { id, createdAt, updatedAt, ...cleanOffer } = offer;
   const values = {
-    ...offer,
-    expiresAt: offer.expiresAt instanceof Date ? offer.expiresAt : new Date(offer.expiresAt)
+    ...cleanOffer,
+    expiresAt: cleanOffer.expiresAt instanceof Date ? cleanOffer.expiresAt : new Date(cleanOffer.expiresAt)
   };
   
   await db.insert(offers).values(values);
