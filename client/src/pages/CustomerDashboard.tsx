@@ -4,7 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { MapPin, Plus, LogOut, User, Truck, Clock, DollarSign, X, Phone, Calendar, ChevronRight, Package, Search, CheckCircle2, Loader2, TrendingUp, Award, Zap, Navigation, Info, MessageCircle, BarChart3, Map as MapIcon, ChevronLeft } from "lucide-react";
+import { MapPin, Plus, LogOut, User, Truck, Clock, DollarSign, X, Phone, Calendar, ChevronRight, Package, Search, CheckCircle2, Loader2, TrendingUp, Award, Zap, Navigation, Info, MessageCircle, BarChart3, Map as MapIcon, ChevronLeft, ArrowLeft, Timer } from "lucide-react";
+import { CountdownTimer } from "@/components/customer/CountdownTimer";
 import { Link, useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { ChatBox } from "@/components/ChatBox";
@@ -258,36 +259,75 @@ export default function CustomerDashboard() {
             </motion.div>
           </motion.div>
 
-          {/* Offers Section (Flash Sales) */}
+          {/* Offers Section (Flash Sales) - Modern Redesign */}
           {activeOffers.length > 0 && (
-            <motion.div variants={itemVariants} className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-orange-500 fill-orange-500" />
-                  عروض اليوم 🔥
-                </h3>
-                <Badge variant="outline" className="border-orange-200 text-orange-600 font-bold">لفترة محدودة</Badge>
+            <motion.div variants={itemVariants} className="space-y-6">
+              <div className="flex items-center justify-between px-2">
+                <div className="flex flex-col">
+                  <h3 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+                    <Zap className="h-6 w-6 text-orange-500 fill-orange-500 animate-pulse" />
+                    عروض حصرية 🔥
+                  </h3>
+                  <p className="text-slate-500 text-xs font-bold mr-8">أفضل العروض المختارة لك اليوم</p>
+                </div>
+                <Badge variant="secondary" className="bg-orange-100 text-orange-600 border-none font-black px-4 py-1.5 rounded-full flex items-center gap-2">
+                  <Timer className="h-3.5 w-3.5" />
+                  لفترة محدودة
+                </Badge>
               </div>
-              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x">
+              
+              <div className="flex gap-6 overflow-x-auto pb-6 pt-2 px-2 scrollbar-hide snap-x">
                 {activeOffers.map((offer) => (
                   <motion.div 
                     key={offer.id} 
-                    className="min-w-[200px] md:min-w-[280px] snap-center"
-                    whileHover={{ y: -5 }}
+                    className="min-w-[280px] md:min-w-[340px] snap-center"
+                    whileHover={{ y: -8, scale: 1.02 }}
+                    transition={{ type: "spring", stiffness: 300 }}
                   >
-                    <Card className="overflow-hidden border-none shadow-xl rounded-[2rem] bg-white group">
-                      <div className="relative aspect-square overflow-hidden bg-slate-100">
-                        <img src={offer.imageUrl} alt={offer.title} className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-sm border-t border-slate-100">
-                          <h4 className="text-sm font-black text-slate-900 mb-0.5">{offer.title}</h4>
-                          <p className="text-[10px] font-bold text-slate-500 line-clamp-1">{offer.description}</p>
+                    <Card className="overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white group relative">
+                      {/* Image Container */}
+                      <div className="relative aspect-[4/3] overflow-hidden">
+                        <img 
+                          src={offer.imageUrl} 
+                          alt={offer.title} 
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                        />
+                        {/* Overlay Gradient */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        
+                        {/* Floating Badges */}
+                        <div className="absolute top-4 right-4 flex flex-col gap-2">
+                          <div className="bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-2xl flex items-center gap-2 shadow-xl border border-white/20">
+                            <CountdownTimer expiresAt={offer.expiresAt} />
+                          </div>
                         </div>
-                        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg">
-                          <Clock className="h-3 w-3 text-orange-600" />
-                          <span className="text-[10px] font-black text-slate-900">
-                            ينتهي: {new Date(offer.expiresAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
-                          </span>
+
+                        {/* Content Overlay */}
+                        <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                          <motion.div 
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            className="space-y-2"
+                          >
+                            <h4 className="text-xl font-black leading-tight drop-shadow-md">{offer.title}</h4>
+                            <p className="text-xs font-medium text-slate-200 line-clamp-2 leading-relaxed opacity-90">
+                              {offer.description}
+                            </p>
+                            
+                            <div className="pt-4 flex items-center justify-between">
+                              <Button 
+                                className="bg-orange-500 hover:bg-orange-600 text-white rounded-full px-6 py-2 h-auto text-xs font-black shadow-lg shadow-orange-500/30 transition-all group-hover:px-8"
+                                onClick={() => offer.link && window.open(offer.link, '_blank')}
+                              >
+                                اطلب الآن
+                                <ArrowLeft className="h-3 w-3 mr-2 transition-transform group-hover:-translate-x-1" />
+                              </Button>
+                              
+                              <div className="bg-white/20 backdrop-blur-md p-2 rounded-full">
+                                <Zap className="h-4 w-4 text-orange-400 fill-orange-400" />
+                              </div>
+                            </div>
+                          </motion.div>
                         </div>
                       </div>
                     </Card>
