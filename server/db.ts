@@ -368,9 +368,22 @@ export async function createOffer(offer: any) {
   
   // Ensure expiresAt is a Date object and remove any fields not in the schema
   const { id, createdAt, updatedAt, ...cleanOffer } = offer;
-  const values = {
-    ...cleanOffer,
-    expiresAt: cleanOffer.expiresAt instanceof Date ? cleanOffer.expiresAt : new Date(cleanOffer.expiresAt)
+  
+  // Convert expiresAt to a proper Date object for MySQL
+  let expiresAtDate: Date;
+  if (cleanOffer.expiresAt instanceof Date) {
+    expiresAtDate = cleanOffer.expiresAt;
+  } else {
+    expiresAtDate = new Date(cleanOffer.expiresAt);
+  }
+
+  const values: any = {
+    title: cleanOffer.title,
+    description: cleanOffer.description || null,
+    imageUrl: cleanOffer.imageUrl,
+    link: cleanOffer.link || null,
+    isActive: cleanOffer.isActive !== undefined ? cleanOffer.isActive : true,
+    expiresAt: expiresAtDate,
   };
   
   await db.insert(offers).values(values);
