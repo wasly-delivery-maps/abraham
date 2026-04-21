@@ -47,7 +47,10 @@ export default function AdminDashboard() {
       setNewOffer({ title: "", description: "", imageUrl: "", link: "", expiresInHours: "24" });
       offersQuery.refetch();
     },
-    onError: (err) => toast.error(err.message)
+    onError: (err) => {
+      console.error("Create offer error:", err);
+      toast.error(err.message || "فشل في إضافة العرض، يرجى المحاولة مرة أخرى");
+    }
   });
 
   const deleteOfferMutation = trpc.offers.delete.useMutation({
@@ -112,8 +115,9 @@ export default function AdminDashboard() {
         setIsUploading(false);
       };
       reader.readAsDataURL(file);
-    } catch (error) {
-      toast.error("فشل رفع الصورة");
+    } catch (error: any) {
+      console.error("Upload image error:", error);
+      toast.error(error.message || "فشل رفع الصورة، يرجى التأكد من حجم الملف");
       setIsUploading(false);
     }
   };
