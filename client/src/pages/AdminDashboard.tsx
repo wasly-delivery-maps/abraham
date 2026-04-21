@@ -104,14 +104,29 @@ export default function AdminDashboard() {
     try {
       setIsUploading(true);
       const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64 = (reader.result as string).split(",")[1];
-        const result = await uploadImageMutation.mutateAsync({
-          base64,
-          contentType: file.type
-        });
-        setNewOffer({ ...newOffer, imageUrl: result.url });
-        toast.success("تم رفع الصورة بنجاح");
+      reader.onload = async () => {
+        try {
+          const base64 = (reader.result as string).split(",")[1];
+          const result = await uploadImageMutation.mutateAsync({
+            base64,
+            contentType: file.type
+          });
+          
+          if (result && result.url) {
+            setNewOffer(prev => ({ ...prev, imageUrl: result.url }));
+            toast.success("تم رفع الصورة بنجاح");
+          } else {
+            throw new Error("لم يتم استلام رابط الصورة من السيرفر");
+          }
+        } catch (err: any) {
+          console.error("Upload process error:", err);
+          toast.error(err.message || "فشل في معالجة الصورة المرفوعة");
+        } finally {
+          setIsUploading(false);
+        }
+      };
+      reader.onerror = () => {
+        toast.error("فشل في قراءة ملف الصورة");
         setIsUploading(false);
       };
       reader.readAsDataURL(file);
