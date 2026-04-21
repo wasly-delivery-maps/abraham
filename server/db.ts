@@ -366,8 +366,14 @@ export async function createOffer(offer: any) {
 
   if (!db) return null;
   
-  await db.insert(offers).values(offer);
-  return offer;
+  // Ensure expiresAt is a Date object
+  const values = {
+    ...offer,
+    expiresAt: offer.expiresAt instanceof Date ? offer.expiresAt : new Date(offer.expiresAt)
+  };
+  
+  await db.insert(offers).values(values);
+  return values;
 }
 
 /**
