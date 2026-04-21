@@ -3,6 +3,8 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import { createServer } from "http";
 import net from "net";
+import fs from "fs";
+import path from "path";
 import { Server as SocketIOServer } from "socket.io";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerAuthRoutes } from "./oauth";
@@ -134,6 +136,13 @@ async function startServer() {
       createContext,
     })
   );
+
+  // Serve uploaded files statically
+  const uploadsPath = path.resolve(process.cwd(), "uploads");
+  if (!fs.existsSync(uploadsPath)) {
+    fs.mkdirSync(uploadsPath, { recursive: true });
+  }
+  app.use("/uploads", express.static(uploadsPath));
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);

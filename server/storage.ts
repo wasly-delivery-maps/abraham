@@ -1,6 +1,6 @@
-// Preconfigured storage helpers for Manus WebDev templates
-// Uses the Biz-provided storage proxy if available, otherwise falls back to Base64 data URLs
 import { ENV } from './_core/env';
+import fs from 'fs';
+import path from 'path';
 
 type StorageConfig = { baseUrl: string; apiKey: string };
 
@@ -64,6 +64,9 @@ function buildAuthHeaders(apiKey: string): HeadersInit {
   return { Authorization: `Bearer ${apiKey}` };
 }
 
+/**
+ * Saves a file either to remote storage (if configured) or to the local filesystem.
+ */
 export async function storagePut(
   relKey: string,
   data: Buffer | Uint8Array | string,
@@ -71,22 +74,43 @@ export async function storagePut(
 ): Promise<{ key: string; url: string }> {
   const config = getStorageConfig();
   
-  // Fallback to Base64 if storage proxy is not configured
+  // If remote storage is NOT configured, use local filesystem storage
   if (!config) {
-    console.log("[Storage] Storage proxy not configured, falling back to Base64 data URL");
-    let base64: string;
-    if (typeof data === "string") {
-      // If it's already a base64 string (from the client), use it directly
-      base64 = data;
-    } else {
-      base64 = Buffer.from(data as any).toString("base64");
-    }
+    console.log("[Storage] Remote storage not configured, using local filesystem storage");
     
-    // Ensure we don't have double data: prefix if it was already a data URL
-    const url = base64.startsWith('data:') ? base64 : `data:${contentType};base64,${base64}`;
-    return { key: relKey, url };
+    const uploadsDir = path.resolve(process.cwd(), "uploads");
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    const key = normalizeKey(relKey);
+    const filePath = path.join(uploadsDir, key);
+    const fileDir = path.dirname(filePath);
+    
+    if (!fs.existsSync(fileDir)) {
+      fs.mkdirSync(fileDir, { recursive: true });
+    }
+
+    let buffer: Buffer;
+    if (typeof data === "string") {
+      // Handle base64 string (strip prefix if present)
+      const base64Data = data.includes('base64,') ? data.split('base64,')[1] : data;
+      buffer = Buffer.from(base64Data, 'base64');
+    } else {
+      buffer = Buffer.from(data as any);
+    }
+
+    fs.writeFileSync(filePath, buffer);
+    
+    // Construct the public URL
+    // In production on Railway, we use the host from the request or environment
+    // For now, we return a relative path which Express will serve
+    const url = `/uploads/${key}`;
+    console.log(`[Storage] File saved locally: ${url}`);
+    return { key, url };
   }
 
+  // Remote storage logic (Forge API)
   const { baseUrl, apiKey } = config;
   const key = normalizeKey(relKey);
   const uploadUrl = buildUploadUrl(baseUrl, key);
@@ -100,46 +124,49 @@ export async function storagePut(
     });
 
     if (!response.ok) {
-      const message = await response.text().catch(() => response.statusText);
-      console.warn(`[Storage] Remote upload failed (${response.status}), falling back to Base64: ${message}`);
-      
-      // Fallback to Base64 on remote failure
-      let base64: string;
-      if (typeof data === "string") {
-        base64 = data;
-      } else {
-        base64 = Buffer.from(data as any).toString("base64");
-      }
-      const url = base64.startsWith('data:') ? base64 : `data:${contentType};base64,${base64}`;
-      return { key: relKey, url };
+      throw new Error(`Remote upload failed: ${response.statusText}`);
     }
     
     const url = (await response.json()).url;
     return { key, url };
   } catch (error) {
-    console.error("[Storage] Error during remote upload, falling back to Base64:", error);
-    let base64: string;
-    if (typeof data === "string") {
-      base64 = data;
-    } else {
-      base64 = Buffer.from(data as any).toString("base64");
-    }
-    const url = base64.startsWith('data:') ? base64 : `data:${contentType};base64,${base64}`;
-    return { key: relKey, url };
+    console.error("[Storage] Remote upload failed, falling back to local storage:", error);
+    // Recursive call but we'd need to force local. Let's just do local logic here.
+    return storagePutLocal(relKey, data);
   }
 }
 
+async function storagePutLocal(relKey: string, data: Buffer | Uint8Array | string): Promise<{ key: string; url: string }> {
+  const uploadsDir = path.resolve(process.cwd(), "uploads");
+  if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
+  const key = normalizeKey(relKey);
+  const filePath = path.join(uploadsDir, key);
+  const fileDir = path.dirname(filePath);
+  if (!fs.existsSync(fileDir)) fs.mkdirSync(fileDir, { recursive: true });
+
+  let buffer: Buffer;
+  if (typeof data === "string") {
+    const base64Data = data.includes('base64,') ? data.split('base64,')[1] : data;
+    buffer = Buffer.from(base64Data, 'base64');
+  } else {
+    buffer = Buffer.from(data as any);
+  }
+
+  fs.writeFileSync(filePath, buffer);
+  return { key, url: `/uploads/${key}` };
+}
+
 export async function storageGet(relKey: string): Promise<{ key: string; url: string; }> {
-  // If it's a data URL, return it directly
-  if (relKey.startsWith("data:")) {
-    return { key: "base64", url: relKey };
+  // If it's already a full URL or data URL, return it
+  if (relKey.startsWith("http") || relKey.startsWith("data:") || relKey.startsWith("/")) {
+    return { key: relKey, url: relKey };
   }
 
   const config = getStorageConfig();
   if (!config) {
-    // If it's not a data URL and no config, we can't do much but return the key as URL
-    // This might happen if a remote URL was stored but config was later removed
-    return { key: relKey, url: relKey };
+    // If no remote config, assume it's a local file
+    return { key: relKey, url: `/uploads/${normalizeKey(relKey)}` };
   }
 
   const { baseUrl, apiKey } = config;
@@ -150,7 +177,6 @@ export async function storageGet(relKey: string): Promise<{ key: string; url: st
       url: await buildDownloadUrl(baseUrl, key, apiKey),
     };
   } catch (error) {
-    console.error("[Storage] Error getting download URL:", error);
-    return { key, url: key };
+    return { key, url: `/uploads/${key}` };
   }
 }
