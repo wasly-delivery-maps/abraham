@@ -81,7 +81,9 @@ export async function storagePut(
     } else {
       base64 = Buffer.from(data as any).toString("base64");
     }
-    const url = `data:${contentType};base64,${base64}`;
+    
+    // Ensure we don't have double data: prefix if it was already a data URL
+    const url = base64.startsWith('data:') ? base64 : `data:${contentType};base64,${base64}`;
     return { key: relKey, url };
   }
 
@@ -89,36 +91,66 @@ export async function storagePut(
   const key = normalizeKey(relKey);
   const uploadUrl = buildUploadUrl(baseUrl, key);
   const formData = toFormData(data, contentType, key.split("/").pop() ?? key);
-  const response = await fetch(uploadUrl, {
-    method: "POST",
-    headers: buildAuthHeaders(apiKey),
-    body: formData,
-  });
+  
+  try {
+    const response = await fetch(uploadUrl, {
+      method: "POST",
+      headers: buildAuthHeaders(apiKey),
+      body: formData,
+    });
 
-  if (!response.ok) {
-    const message = await response.text().catch(() => response.statusText);
-    throw new Error(
-      `Storage upload failed (${response.status} ${response.statusText}): ${message}`
-    );
+    if (!response.ok) {
+      const message = await response.text().catch(() => response.statusText);
+      console.warn(`[Storage] Remote upload failed (${response.status}), falling back to Base64: ${message}`);
+      
+      // Fallback to Base64 on remote failure
+      let base64: string;
+      if (typeof data === "string") {
+        base64 = data;
+      } else {
+        base64 = Buffer.from(data as any).toString("base64");
+      }
+      const url = base64.startsWith('data:') ? base64 : `data:${contentType};base64,${base64}`;
+      return { key: relKey, url };
+    }
+    
+    const url = (await response.json()).url;
+    return { key, url };
+  } catch (error) {
+    console.error("[Storage] Error during remote upload, falling back to Base64:", error);
+    let base64: string;
+    if (typeof data === "string") {
+      base64 = data;
+    } else {
+      base64 = Buffer.from(data as any).toString("base64");
+    }
+    const url = base64.startsWith('data:') ? base64 : `data:${contentType};base64,${base64}`;
+    return { key: relKey, url };
   }
-  const url = (await response.json()).url;
-  return { key, url };
 }
 
 export async function storageGet(relKey: string): Promise<{ key: string; url: string; }> {
+  // If it's a data URL, return it directly
+  if (relKey.startsWith("data:")) {
+    return { key: "base64", url: relKey };
+  }
+
   const config = getStorageConfig();
   if (!config) {
-    // If it's a data URL, return it directly
-    if (relKey.startsWith("data:")) {
-      return { key: "base64", url: relKey };
-    }
-    throw new Error("Storage proxy not configured and key is not a data URL");
+    // If it's not a data URL and no config, we can't do much but return the key as URL
+    // This might happen if a remote URL was stored but config was later removed
+    return { key: relKey, url: relKey };
   }
 
   const { baseUrl, apiKey } = config;
   const key = normalizeKey(relKey);
-  return {
-    key,
-    url: await buildDownloadUrl(baseUrl, key, apiKey),
-  };
+  try {
+    return {
+      key,
+      url: await buildDownloadUrl(baseUrl, key, apiKey),
+    };
+  } catch (error) {
+    console.error("[Storage] Error getting download URL:", error);
+    return { key, url: key };
+  }
 }
