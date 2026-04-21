@@ -262,7 +262,7 @@ export const offers = mysqlTable("offers", {
   id: int("id").autoincrement().primaryKey(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
-  imageUrl: longtext("imageUrl").notNull(),
+  imageUrl: longtext("imageUrl").notNull(), // Using longtext to support base64 fallback when storage proxy is not configured
   link: varchar("link", { length: 500 }), // Optional link to a restaurant or menu item
   isActive: boolean("isActive").default(true).notNull(),
   expiresAt: timestamp("expiresAt").notNull(), // When the offer should disappear

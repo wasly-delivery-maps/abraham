@@ -68,6 +68,17 @@ async function fixDbEnum() {
       }
     }
 
+    console.log("Checking for 'imageUrl' column in 'offers' table...");
+    try {
+      await db.execute(sql`
+        ALTER TABLE \`offers\` 
+        MODIFY COLUMN \`imageUrl\` LONGTEXT NOT NULL
+      `);
+      console.log("Successfully updated 'imageUrl' column in 'offers' table to LONGTEXT.");
+    } catch (e) {
+      console.warn("Could not update 'imageUrl' column in 'offers' table:", e.message);
+    }
+
     console.log("All fixes applied successfully!");
     process.exit(0);
   } catch (error) {
