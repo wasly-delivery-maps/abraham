@@ -103,67 +103,21 @@ export default function AdminDashboard() {
     try {
       setIsUploading(true);
       
-      // Compress image before upload
-      const compressImage = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.readAsDataURL(file);
-          reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target?.result as string;
-            img.onload = () => {
-              const canvas = document.createElement('canvas');
-              const MAX_WIDTH = 600;
-              const MAX_HEIGHT = 450;
-              let width = img.width;
-              let height = img.height;
-
-              if (width > height) {
-                if (width > MAX_WIDTH) {
-                  height *= MAX_WIDTH / width;
-                  width = MAX_WIDTH;
-                }
-              } else {
-                if (height > MAX_HEIGHT) {
-                  width *= MAX_HEIGHT / height;
-                  height = MAX_HEIGHT;
-                }
-              }
-
-              canvas.width = width;
-              canvas.height = height;
-              const ctx = canvas.getContext('2d');
-              ctx?.drawImage(img, 0, 0, width, height);
-              
-              // Get compressed base64 with lower quality for better compatibility
-              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
-              resolve(compressedBase64);
-            };
-            img.onerror = reject;
-          };
-          reader.onerror = reject;
-        });
+      // Convert to Base64 to show preview and use as fallback
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async (event) => {
+        const base64Data = event.target?.result as string;
+        
+        // For now, we'll use the base64 directly as the imageUrl 
+        // since the DB supports longtext. This ensures it works 
+        // even if the storage proxy is not configured.
+        setNewOffer(prev => ({ ...prev, imageUrl: base64Data }));
+        toast.success("تم تجهيز الصورة بنجاح");
       };
-
-      const base64 = await compressImage(file);
-      const result = await uploadImageMutation.mutateAsync({
-        base64,
-        contentType: "image/jpeg"
-      });
-      
-      if (result && result.url) {
-        setNewOffer(prev => ({ ...prev, imageUrl: result.url }));
-        toast.success("تم رفع الصورة بنجاح");
-      } else {
-        throw new Error("لم يتم استلام رابط الصورة من السيرفر");
-      }
     } catch (error: any) {
-      console.error("Upload image error:", error);
-      // Prevent showing long base64 strings in toast
-      const errorMsg = error.message && error.message.length > 100 
-        ? "فشل رفع الصورة بسبب حجمها الكبير، يرجى تجربة صورة أخرى" 
-        : (error.message || "فشل رفع الصورة، يرجى التأكد من حجم الملف");
-      toast.error(errorMsg);
+      console.error("File processing error:", error);
+      toast.error("فشل في معالجة الصورة");
     } finally {
       setIsUploading(false);
     }
