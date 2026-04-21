@@ -92,7 +92,7 @@ export default function AdminDashboard() {
     navigate("/");
     toast.success("تم تسجيل الخروج بنجاح");
   };
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
