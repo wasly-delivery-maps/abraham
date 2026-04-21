@@ -254,3 +254,21 @@ export type InsertMenuItem = typeof menuItems.$inferInsert;
 
 export type RestaurantOrder = typeof restaurantOrders.$inferSelect;
 export type InsertRestaurantOrder = typeof restaurantOrders.$inferInsert;
+
+/**
+ * Offers table - Flash sales and daily offers
+ */
+export const offers = mysqlTable("offers", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  imageUrl: varchar("imageUrl", { length: 500 }).notNull(),
+  link: varchar("link", { length: 500 }), // Optional link to a restaurant or menu item
+  isActive: boolean("isActive").default(true).notNull(),
+  expiresAt: timestamp("expiresAt").notNull(), // When the offer should disappear
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Offer = typeof offers.$inferSelect;
+export type InsertOffer = typeof offers.$inferInsert;

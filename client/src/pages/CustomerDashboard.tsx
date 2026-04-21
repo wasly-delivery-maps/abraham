@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { MapPin, Plus, LogOut, User, Truck, Clock, DollarSign, X, Phone, Calendar, ChevronRight, Package, Search, CheckCircle2, Loader2, TrendingUp, Award, Zap, Navigation, Info, MessageCircle, BarChart3, Map as MapIcon } from "lucide-react";
+import { MapPin, Plus, LogOut, User, Truck, Clock, DollarSign, X, Phone, Calendar, ChevronRight, Package, Search, CheckCircle2, Loader2, TrendingUp, Award, Zap, Navigation, Info, MessageCircle, BarChart3, Map as MapIcon, ChevronLeft } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { ChatBox } from "@/components/ChatBox";
@@ -103,12 +103,17 @@ export default function CustomerDashboard() {
     refetchInterval: 5000,
   });
 
+  const offersQuery = trpc.offers.getActive.useQuery(undefined, {
+    refetchInterval: 60000, // Refresh every minute to check for expired offers
+  });
+
   const orderDetailsQuery = trpc.orders.getOrderDetails.useQuery(
     { orderId: selectedOrderId as number },
     { enabled: !!selectedOrderId && isDetailsOpen }
   );
 
   const orders = useMemo(() => ordersQuery.data || [], [ordersQuery.data]);
+  const activeOffers = useMemo(() => offersQuery.data || [], [offersQuery.data]);
 
   const handleShowDetails = (orderId: number) => {
     setSelectedOrderId(orderId);
@@ -134,9 +139,7 @@ export default function CustomerDashboard() {
   }
 
   const handleLogout = async () => {
-    // تعطيل حماية زر الرجوع قبل الخروج لضمان عدم حدوث تضارب
     window.removeEventListener("popstate", () => {});
-    
     setIsDetailsOpen(false);
     setIsChatOpen(false);
     await logout();
@@ -144,14 +147,12 @@ export default function CustomerDashboard() {
     toast.success("تم تسجيل الخروج بنجاح");
   };
 
-  // حماية زر الرجوع في الهاتف لمنع الخروج من الحساب
   useEffect(() => {
     const handleBackButton = (e: PopStateEvent) => {
       if (isDetailsOpen || isChatOpen) {
         e.preventDefault();
         setIsDetailsOpen(false);
         setIsChatOpen(false);
-        // إعادة إضافة الحالة للتاريخ لمنع الخروج من الصفحة
         window.history.pushState(null, "", window.location.pathname);
       }
     };
@@ -179,7 +180,6 @@ export default function CustomerDashboard() {
 
   const activeOrders = orders.filter((o) => !["delivered", "cancelled"].includes(o.status));
   const completedOrders = orders.filter((o) => ["delivered", "cancelled"].includes(o.status));
-  const totalSpent = orders.reduce((sum, o) => sum + (o.price || 0), 0);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -206,16 +206,10 @@ export default function CustomerDashboard() {
       {/* Header */}
       <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-slate-200/50 shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <motion.div 
-            className="flex items-center gap-4"
-            whileHover={{ scale: 1.05 }}
-          >
+          <motion.div className="flex items-center gap-4" whileHover={{ scale: 1.05 }}>
             <Link href="/">
               <div className="flex items-center gap-2 cursor-pointer">
-                <motion.div 
-                  className="bg-white p-1 rounded-full shadow-md border border-orange-100 overflow-hidden"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                >
+                <motion.div className="bg-white p-1 rounded-full shadow-md border border-orange-100 overflow-hidden" whileHover={{ scale: 1.1, rotate: 5 }}>
                   <img src="/logo.jpg" alt="وصلي" className="h-8 w-8 object-contain" />
                 </motion.div>
                 <span className="text-xl font-black bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">وصلي</span>
@@ -226,65 +220,35 @@ export default function CustomerDashboard() {
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex flex-col items-end">
               <span className="text-sm font-bold text-slate-900">{user.name}</span>
-              <motion.span 
-                className="text-[10px] font-bold text-orange-600 uppercase tracking-widest"
-                animate={{ opacity: [0.7, 1, 0.7] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
+              <motion.span className="text-[10px] font-bold text-orange-600 uppercase tracking-widest" animate={{ opacity: [0.7, 1, 0.7] }} transition={{ duration: 2, repeat: Infinity }}>
                 ⭐ عميل مميز
               </motion.span>
             </div>
-<motion.div
-	              whileHover={{ scale: 1.1 }}
-	              whileTap={{ scale: 0.95 }}
-	            >
-	              <Link href="/customer/stats">
-	                <Button variant="ghost" size="icon" className="rounded-full bg-gradient-to-br from-slate-100 to-slate-50 h-10 w-10 hover:from-orange-100 hover:to-orange-50 transition-all">
-	                  <BarChart3 className="h-5 w-5 text-slate-600" />
-	                </Button>
-	              </Link>
-	            </motion.div>
-	            <motion.div
-	              whileHover={{ scale: 1.1 }}
-	              whileTap={{ scale: 0.95 }}
-	            >
-	              <Link href="/customer/profile">
-	                <Button variant="ghost" size="icon" className="rounded-full bg-gradient-to-br from-slate-100 to-slate-50 h-10 w-10 hover:from-orange-100 hover:to-orange-50 transition-all">
-	                  <User className="h-5 w-5 text-slate-600" />
-	                </Button>
-	              </Link>
-	            </motion.div>
-
+            <Link href="/customer/stats">
+              <Button variant="ghost" size="icon" className="rounded-full bg-gradient-to-br from-slate-100 to-slate-50 h-10 w-10 hover:from-orange-100 hover:to-orange-50 transition-all">
+                <BarChart3 className="h-5 w-5 text-slate-600" />
+              </Button>
+            </Link>
+            <Link href="/customer/profile">
+              <Button variant="ghost" size="icon" className="rounded-full bg-gradient-to-br from-slate-100 to-slate-50 h-10 w-10 hover:from-orange-100 hover:to-orange-50 transition-all">
+                <User className="h-5 w-5 text-slate-600" />
+              </Button>
+            </Link>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-6xl">
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="space-y-8"
-        >
+        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-8">
           {/* Welcome & Action */}
-          <motion.div 
-            className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
-            variants={itemVariants}
-          >
+          <motion.div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6" variants={itemVariants}>
             <div className="space-y-2">
-              <motion.h2 
-                className="text-4xl font-black bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent"
-                animate={{ scale: [1, 1.02, 1] }}
-                transition={{ duration: 3, repeat: Infinity }}
-              >
+              <motion.h2 className="text-4xl font-black bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent" animate={{ scale: [1, 1.02, 1] }} transition={{ duration: 3, repeat: Infinity }}>
                 أهلاً بك، {user.name.split(' ')[0]} 👋
               </motion.h2>
               <p className="text-slate-500 font-medium text-lg">تتبع طلباتك وتحركاتك بكل سهولة وسرعة</p>
             </div>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link href="/customer/create-order">
                 <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-black px-8 py-6 rounded-xl shadow-lg shadow-orange-200 transition-all">
                   <Plus className="h-5 w-5 ml-2" />
@@ -294,7 +258,44 @@ export default function CustomerDashboard() {
             </motion.div>
           </motion.div>
 
-{/* Removed Stats Section - Moved to separate page */}
+          {/* Offers Section (Flash Sales) */}
+          {activeOffers.length > 0 && (
+            <motion.div variants={itemVariants} className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-orange-500 fill-orange-500" />
+                  عروض اليوم 🔥
+                </h3>
+                <Badge variant="outline" className="border-orange-200 text-orange-600 font-bold">لفترة محدودة</Badge>
+              </div>
+              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x">
+                {activeOffers.map((offer) => (
+                  <motion.div 
+                    key={offer.id} 
+                    className="min-w-[280px] md:min-w-[350px] snap-center"
+                    whileHover={{ y: -5 }}
+                  >
+                    <Card className="overflow-hidden border-none shadow-xl rounded-[2rem] bg-white group">
+                      <div className="relative aspect-[16/9] overflow-hidden">
+                        <img src={offer.imageUrl} alt={offer.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        <div className="absolute bottom-4 right-4 left-4 text-white">
+                          <h4 className="text-lg font-black mb-1">{offer.title}</h4>
+                          <p className="text-xs font-medium text-white/80 line-clamp-1">{offer.description}</p>
+                        </div>
+                        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg">
+                          <Clock className="h-3 w-3 text-orange-600" />
+                          <span className="text-[10px] font-black text-slate-900">
+                            ينتهي: {new Date(offer.expiresAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
 
           {/* Orders Tabs */}
           <motion.div variants={itemVariants}>
@@ -314,24 +315,12 @@ export default function CustomerDashboard() {
 
               <TabsContent value="active">
                 <AnimatePresence mode="popLayout">
-                  <motion.div 
-                    className="grid grid-cols-1 gap-6"
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                  >
+                  <motion.div className="grid grid-cols-1 gap-6" variants={containerVariants} initial="hidden" animate="visible">
                     {activeOrders.length > 0 ? (
                       activeOrders.map((order, idx) => {
                         const status = getStatusInfo(order.status);
                         return (
-                          <motion.div
-                            key={order.id}
-                            variants={itemVariants}
-                            whileHover={{ scale: 1.02, y: -5 }}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: idx * 0.1 }}
-                          >
+                          <motion.div key={order.id} variants={itemVariants} whileHover={{ scale: 1.02, y: -5 }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.1 }}>
                             <Card className={`hover:shadow-lg transition-all border-l-4 rounded-xl overflow-hidden ${
                               order.status === 'pending' ? 'border-amber-500 bg-gradient-to-br from-amber-50 to-white' :
                               order.status === 'assigned' ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-white' :
@@ -345,9 +334,7 @@ export default function CustomerDashboard() {
                                   <div className="flex-1 space-y-2">
                                     <div className="flex items-center justify-between md:justify-start gap-3">
                                       <span className="text-xs font-black text-slate-900">طلب #{order.id}</span>
-                                      <Badge className={`${status.color} border-none font-bold px-2 py-0.5 rounded-full text-[9px] shadow-sm`}>
-                                        {status.label}
-                                      </Badge>
+                                      <Badge className={`${status.color} border-none font-bold px-2 py-0.5 rounded-full text-[9px] shadow-sm`}>{status.label}</Badge>
                                     </div>
                                     <div className="space-y-1.5">
                                       <div className="flex items-start gap-2">
@@ -361,62 +348,28 @@ export default function CustomerDashboard() {
                                     </div>
                                   </div>
                                   <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-3 border-t md:border-t-0 pt-3 md:pt-0">
-                                    <div className="text-xl font-black text-slate-900">
-                                      ج.م {order.price}
-                                    </div>
+                                    <div className="text-xl font-black text-slate-900">ج.م {order.price}</div>
                                     <div className="flex items-center gap-2">
                                       {!["in_transit", "arrived", "delivered", "cancelled"].includes(order.status) && (
                                         <CancelOrderButton orderId={order.id} onSuccess={() => ordersQuery.refetch()} />
                                       )}
-                                      <Button 
-                                        variant="outline" 
-                                        size="sm" 
-                                        onClick={() => handleShowDetails(order.id)}
-                                        className="h-8 rounded-lg font-bold text-[10px] border-orange-200 text-orange-600 hover:bg-orange-50 transition-all"
-                                      >
-                                        التفاصيل
-                                      </Button>
+                                      <Button variant="outline" size="sm" onClick={() => handleShowDetails(order.id)} className="h-8 rounded-lg font-bold text-[10px] border-orange-200 text-orange-600 hover:bg-orange-50 transition-all">التفاصيل</Button>
                                     </div>
                                   </div>
                                 </div>
                                 {(order.driver || order.driverId) && (
-                                  <motion.div 
-                                    className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between bg-gradient-to-r from-orange-50 to-transparent p-3 rounded-lg"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ delay: 0.3 }}
-                                  >
+                                  <motion.div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between bg-gradient-to-r from-orange-50 to-transparent p-3 rounded-lg" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
                                     <div className="flex items-center gap-2">
-                                      <motion.div 
-                                        className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white font-bold"
-                                        whileHover={{ scale: 1.1 }}
-                                      >
-                                        {order.driver?.name?.charAt(0) || 'S'}
-                                      </motion.div>
+                                      <motion.div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white font-bold" whileHover={{ scale: 1.1 }}>{order.driver?.name?.charAt(0) || 'S'}</motion.div>
                                       <span className="text-xs font-bold text-slate-700">{order.driver?.name || "السائق"}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                      <motion.button 
-                                        onClick={() => {
-                                          setChatOrderId(order.id);
-                                          setIsChatOpen(true);
-                                        }}
-                                        className="relative text-blue-600 bg-white border border-blue-200 p-2 rounded-lg hover:bg-blue-50 transition-all"
-                                        whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.95 }}
-                                      >
+                                      <motion.button onClick={() => { setChatOrderId(order.id); setIsChatOpen(true); }} className="relative text-blue-600 bg-white border border-blue-200 p-2 rounded-lg hover:bg-blue-50 transition-all" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
                                         <MessageCircle className="h-4 w-4" />
-                                        {unreadCounts[order.id] > 0 && (
-                                          <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full border-2 border-white animate-pulse" />
-                                        )}
+                                        {unreadCounts[order.id] > 0 && <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full border-2 border-white animate-pulse" />}
                                       </motion.button>
                                       {(order.driver?.phone || order.driverPhone) && (
-                                        <motion.a 
-                                          href={`tel:${order.driver?.phone || order.driverPhone}`} 
-                                          className="text-orange-600 bg-white border border-orange-200 p-2 rounded-lg hover:bg-orange-50 transition-all"
-                                          whileHover={{ scale: 1.1 }}
-                                          whileTap={{ scale: 0.95 }}
-                                        >
+                                        <motion.a href={`tel:${order.driver?.phone || order.driverPhone}`} className="text-orange-600 bg-white border border-orange-200 p-2 rounded-lg hover:bg-orange-50 transition-all" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
                                           <Phone className="h-4 w-4" />
                                         </motion.a>
                                       )}
@@ -429,348 +382,183 @@ export default function CustomerDashboard() {
                         );
                       })
                     ) : (
-                      <motion.div 
-                        className="py-20 text-center bg-white rounded-2xl border-2 border-dashed border-slate-100"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                      >
-                        <motion.div
-                          animate={{ y: [0, -10, 0] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        >
-                          <Package className="h-12 w-12 text-slate-200 mx-auto mb-4" />
-                        </motion.div>
-                        <p className="text-slate-400 font-bold">لا توجد طلبات نشطة حالياً</p>
-                        <p className="text-slate-300 text-sm mt-2">ابدأ بإنشاء طلب جديد الآن</p>
+                      <motion.div className="py-20 text-center bg-white rounded-2xl border-2 border-dashed border-slate-200" variants={itemVariants}>
+                        <div className="bg-slate-50 h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Package className="h-8 w-8 text-slate-300" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-900">لا توجد طلبات نشطة</h3>
+                        <p className="text-slate-500 text-sm mt-1">ابدأ بطلب جديد الآن!</p>
                       </motion.div>
                     )}
                   </motion.div>
                 </AnimatePresence>
+              </TabsContent>
+
+              <TabsContent value="completed">
+                <div className="grid grid-cols-1 gap-4">
+                  {completedOrders.length > 0 ? (
+                    completedOrders.map((order) => {
+                      const status = getStatusInfo(order.status);
+                      return (
+                        <Card key={order.id} className="hover:shadow-md transition-all border-none bg-white rounded-xl overflow-hidden">
+                          <CardContent className="p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className={`h-10 w-10 rounded-full flex items-center justify-center ${order.status === 'delivered' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                                {order.status === 'delivered' ? <CheckCircle2 className="h-5 w-5" /> : <X className="h-5 w-5" />}
+                              </div>
+                              <div>
+                                <p className="text-sm font-black text-slate-900">طلب #{order.id}</p>
+                                <p className="text-[10px] font-medium text-slate-500">{new Date(order.createdAt).toLocaleDateString('ar-EG')}</p>
+                              </div>
+                            </div>
+                            <div className="text-left">
+                              <p className="text-sm font-black text-slate-900">ج.م {order.price}</p>
+                              <Badge className={`${status.color} border-none text-[9px] mt-1`}>{status.label}</Badge>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })
+                  ) : (
+                    <div className="py-20 text-center bg-white rounded-2xl border-2 border-dashed border-slate-200">
+                      <p className="text-slate-500 font-bold">لا يوجد سجل طلبات حتى الآن</p>
+                    </div>
+                  )}
+                </div>
               </TabsContent>
 
               <TabsContent value="restaurants">
                 <RestaurantMenu />
-              </TabsContent>
-
-              <TabsContent value="completed">
-                <AnimatePresence>
-                  <motion.div 
-                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                  >
-                    {completedOrders.length > 0 ? (
-                      completedOrders.map((order, idx) => {
-                        const status = getStatusInfo(order.status);
-                        return (
-                          <motion.div
-                            key={order.id}
-                            variants={itemVariants}
-                            whileHover={{ scale: 1.05, y: -5 }}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: idx * 0.1 }}
-                          >
-                            <Card className={`hover:shadow-lg transition-all border-l-4 rounded-2xl overflow-hidden ${
-                              order.status === 'delivered' ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-white' :
-                              order.status === 'cancelled' ? 'border-rose-500 bg-gradient-to-br from-rose-50 to-white' :
-                              'border-slate-300 bg-white'
-                            }`}>
-                              <CardContent className="p-6">
-                                <div className="flex justify-between items-start mb-4">
-                                  <div>
-                                    <p className="text-xs font-bold text-slate-500 mb-1">الطلب #{order.id}</p>
-                                    <motion.div
-                                      whileHover={{ scale: 1.1 }}
-                                    >
-                                      <Badge className={`${status.color} border-none font-bold px-3 py-1 rounded-full text-[10px] shadow-sm`}>
-                                        {status.label}
-                                      </Badge>
-                                    </motion.div>
-                                  </div>
-                                  <div className="text-2xl font-black text-slate-900">ج.م {order.price}</div>
-                                </div>
-                                <div className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-4">
-                                  <Calendar className="h-3.5 w-3.5" />
-                                  {new Date(order.createdAt).toLocaleDateString('ar-EG')}
-                                </div>
-                                <div className="space-y-3">
-                                  <motion.div
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                  >
-                                    <Button 
-                                      variant="outline" 
-                                      onClick={() => {
-                                        const repeatData = encodeURIComponent(JSON.stringify({
-                                          pickup: order.pickupLocation,
-                                          delivery: order.deliveryLocation,
-                                          notes: (order as any).notes || ""
-                                        }));
-                                        navigate(`/customer/create-order?repeat=${repeatData}`);
-                                      }}
-                                      className="w-full rounded-xl font-bold text-xs h-10 border-orange-200 text-orange-600 hover:bg-orange-50 transition-all"
-                                    >
-                                      إعادة الطلب
-                                    </Button>
-                                  </motion.div>
-
-                                  {(order.driver || order.driverId) && (
-                                    <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                      <div className="flex items-center gap-2">
-                                        <div className="h-7 w-7 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-[10px] font-black">
-                                          {order.driver?.name?.charAt(0) || 'S'}
-                                        </div>
-                                        <span className="text-[10px] font-bold text-slate-600">{order.driver?.name || "السائق"}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <motion.button 
-                                          onClick={() => {
-                                            setChatOrderId(order.id);
-                                            setIsChatOpen(true);
-                                          }}
-                                          className="relative text-blue-600 bg-white border border-blue-100 p-1.5 rounded-lg hover:bg-blue-50 transition-all"
-                                          whileHover={{ scale: 1.1 }}
-                                        >
-                                          <MessageCircle className="h-3.5 w-3.5" />
-                                          {unreadCounts[order.id] > 0 && (
-                                            <span className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-red-500 rounded-full border border-white animate-pulse" />
-                                          )}
-                                        </motion.button>
-                                        {(order.driver?.phone || order.driverPhone) && (
-                                          <motion.a 
-                                            href={`tel:${order.driver?.phone || order.driverPhone}`} 
-                                            className="text-orange-600 bg-white border border-orange-100 p-1.5 rounded-lg hover:bg-orange-50 transition-all"
-                                            whileHover={{ scale: 1.1 }}
-                                          >
-                                            <Phone className="h-3.5 w-3.5" />
-                                          </motion.a>
-                                        )}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </motion.div>
-                        );
-                      })
-                    ) : (
-                      <motion.div 
-                        className="col-span-full py-20 text-center bg-white rounded-2xl border-2 border-dashed border-slate-100"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                      >
-                        <motion.div
-                          animate={{ y: [0, -10, 0] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        >
-                          <Award className="h-12 w-12 text-slate-200 mx-auto mb-4" />
-                        </motion.div>
-                        <p className="text-slate-400 font-bold">سجل الطلبات فارغ</p>
-                        <p className="text-slate-300 text-sm mt-2">لم تقم بأي طلبات بعد</p>
-                      </motion.div>
-                    )}
-                  </motion.div>
-                </AnimatePresence>
               </TabsContent>
             </Tabs>
           </motion.div>
         </motion.div>
       </main>
 
-      {/* Order Details Modal */}
+      {/* Order Details Dialog */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl" dir="rtl">
-          <DialogHeader className="p-6 bg-gradient-to-r from-slate-900 to-slate-800 text-white">
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-xl font-black flex items-center gap-2">
-                <Package className="h-5 w-5 text-orange-500" />
-                تفاصيل الطلب #{selectedOrderId}
-              </DialogTitle>
+        <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-none rounded-[2.5rem] shadow-2xl bg-white" dir="rtl">
+          {orderDetailsQuery.isLoading ? (
+            <div className="p-20 flex flex-col items-center justify-center gap-4">
+              <Loader2 className="h-10 w-10 text-orange-600 animate-spin" />
+              <p className="text-slate-500 font-bold">جاري تحميل التفاصيل...</p>
             </div>
-            <DialogDescription className="text-slate-400 font-medium">
-              معلومات كاملة عن حالة وموقع طلبك
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
-            {orderDetailsQuery.isLoading ? (
-              <div className="py-20 flex flex-col items-center justify-center gap-4">
-                <Loader2 className="h-10 w-10 text-orange-500 animate-spin" />
-                <p className="text-slate-500 font-bold">جاري تحميل البيانات...</p>
+          ) : orderDetailsQuery.data ? (
+            <div className="flex flex-col h-full max-h-[90vh]">
+              <div className="p-6 bg-gradient-to-br from-slate-900 to-slate-800 text-white relative">
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <Badge className="bg-orange-500 text-white border-none mb-2 font-black">طلب #{orderDetailsQuery.data.id}</Badge>
+                    <h2 className="text-2xl font-black">تفاصيل الرحلة</h2>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => setIsDetailsOpen(false)} className="text-white/50 hover:text-white hover:bg-white/10 rounded-full">
+                    <X className="h-6 w-6" />
+                  </Button>
+                </div>
+                <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10">
+                  <div className="p-3 bg-orange-500 rounded-xl shadow-lg shadow-orange-500/20">
+                    <DollarSign className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-white/60 text-[10px] font-black uppercase tracking-widest">التكلفة الإجمالية</p>
+                    <p className="text-2xl font-black">ج.م {orderDetailsQuery.data.price}</p>
+                  </div>
+                </div>
               </div>
-            ) : orderDetailsQuery.data ? (
-              <>
-                {/* Status Section */}
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl ${getStatusInfo(orderDetailsQuery.data.status).color.split(' ')[0]}`}>
-                      {(() => {
-                        const Icon = getStatusInfo(orderDetailsQuery.data.status).icon;
-                        return <Icon className="h-5 w-5" />;
-                      })()}
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">الحالة الحالية</p>
-                      <p className="text-sm font-black text-slate-900">{getStatusInfo(orderDetailsQuery.data.status).label}</p>
-                    </div>
-                  </div>
-                  <div className="text-left">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">التكلفة</p>
-                    <p className="text-lg font-black text-orange-600">ج.م {orderDetailsQuery.data.price}</p>
-                  </div>
-                </div>
 
-                {/* Live Tracking Map */}
-                {orderDetailsQuery.data.status === 'in_transit' && orderDetailsQuery.data.assignedDriver?.lastLocation && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1">
-                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
-                        تتبع مباشر للمندوب
-                      </p>
-                    </div>
-                    <div className="h-48 w-full rounded-2xl overflow-hidden border border-slate-100 shadow-inner z-0">
-                      <MapContainer 
-                        center={[orderDetailsQuery.data.assignedDriver.lastLocation.latitude, orderDetailsQuery.data.assignedDriver.lastLocation.longitude]} 
-                        zoom={15} 
-                        style={{ height: '100%', width: '100%' }}
-                        zoomControl={false}
-                      >
-                        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                        <ChangeView center={[orderDetailsQuery.data.assignedDriver.lastLocation.latitude, orderDetailsQuery.data.assignedDriver.lastLocation.longitude]} />
-                        
-                        {/* Driver Marker */}
-                        <Marker 
-                          position={[orderDetailsQuery.data.assignedDriver.lastLocation.latitude, orderDetailsQuery.data.assignedDriver.lastLocation.longitude]}
-                          icon={iconDriver}
-                        >
-                          <Popup>المندوب هنا</Popup>
-                        </Marker>
-
-                        {/* Destination Marker */}
-                        {orderDetailsQuery.data.deliveryLocation?.latitude && (
-                          <Marker 
-                            position={[orderDetailsQuery.data.deliveryLocation.latitude, orderDetailsQuery.data.deliveryLocation.longitude]}
-                            icon={iconDestination}
-                          >
-                            <Popup>موقع التسليم</Popup>
-                          </Marker>
-                        )}
-                      </MapContainer>
-                    </div>
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-slate-900">
+                    <Navigation className="h-5 w-5 text-orange-600" />
+                    <h3 className="font-black">مسار التوصيل</h3>
                   </div>
-                )}
-
-                {/* Locations */}
-                <div className="space-y-4 relative">
-                  <div className="absolute right-[19px] top-8 bottom-8 w-0.5 bg-dashed border-r-2 border-slate-100 border-dashed" />
-                  
-                  <div className="flex items-start gap-4 relative z-10">
-                    <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 border-4 border-white shadow-sm">
-                      <div className="h-2 w-2 rounded-full bg-orange-600 animate-pulse" />
+                  <div className="relative pr-4 border-r-2 border-dashed border-slate-200 space-y-8 mr-2">
+                    <div className="relative">
+                      <div className="absolute -right-[25px] top-0 h-4 w-4 rounded-full bg-orange-600 border-4 border-white shadow-sm" />
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">نقطة الاستلام</p>
+                      <p className="text-sm font-bold text-slate-700 leading-relaxed">{orderDetailsQuery.data.pickupLocation?.address}</p>
                     </div>
-                    <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">موقع الاستلام</p>
-                      <p className="text-sm font-bold text-slate-700">{orderDetailsQuery.data.pickupLocation?.address}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4 relative z-10">
-                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 border-4 border-white shadow-sm">
-                      <MapPin className="h-4 w-4 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">وجهة التسليم</p>
-                      <p className="text-sm font-bold text-slate-700">{orderDetailsQuery.data.deliveryLocation?.address}</p>
+                    <div className="relative">
+                      <div className="absolute -right-[25px] top-0 h-4 w-4 rounded-full bg-blue-600 border-4 border-white shadow-sm" />
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">وجهة التسليم</p>
+                      <p className="text-sm font-bold text-slate-700 leading-relaxed">{orderDetailsQuery.data.deliveryLocation?.address}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Driver Info if assigned */}
-                {orderDetailsQuery.data.assignedDriver && (
-                  <div className="bg-orange-50/50 p-4 rounded-2xl border border-orange-100">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white text-xl font-black shadow-md">
-                          {orderDetailsQuery.data.assignedDriver.name.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest">السائق المكلف</p>
-                          <p className="text-base font-black text-slate-900">{orderDetailsQuery.data.assignedDriver.name}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <motion.button 
-                          onClick={() => {
-                            setChatOrderId(orderDetailsQuery.data!.id);
-                            setIsChatOpen(true);
-                            setIsDetailsOpen(false);
-                          }}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          className="h-12 w-12 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm border border-blue-100 hover:bg-blue-50 transition-all"
-                        >
-                          <MessageCircle className="h-6 w-6" />
-                        </motion.button>
-                        <motion.a 
-                          href={`tel:${orderDetailsQuery.data.assignedDriver.phone}`}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          className="h-12 w-12 bg-white rounded-xl flex items-center justify-center text-orange-600 shadow-sm border border-orange-100 hover:bg-orange-50 transition-all"
-                        >
-                          <Phone className="h-6 w-6" />
-                        </motion.a>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Notes */}
                 {orderDetailsQuery.data.notes && (
                   <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">ملاحظات الطلب</p>
-                    <p className="text-sm font-medium text-slate-600 italic">"{orderDetailsQuery.data.notes}"</p>
+                    <div className="flex items-center gap-2 mb-2 text-slate-900">
+                      <Info className="h-4 w-4 text-slate-400" />
+                      <span className="text-xs font-black">ملاحظات إضافية</span>
+                    </div>
+                    <p className="text-sm font-medium text-slate-600 leading-relaxed">{orderDetailsQuery.data.notes}</p>
                   </div>
                 )}
-              </>
-            ) : (
-              <div className="py-20 text-center">
-                <Info className="h-12 w-12 text-slate-200 mx-auto mb-4" />
-                <p className="text-slate-400 font-bold">لم يتم العثور على تفاصيل</p>
-              </div>
-            )}
-          </div>
 
-          <DialogFooter className="p-6 bg-slate-50 border-t border-slate-100">
-            <Button 
-              onClick={() => setIsDetailsOpen(false)}
-              className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black h-12 rounded-xl transition-all"
-            >
-              إغلاق النافذة
-            </Button>
-          </DialogFooter>
+                {orderDetailsQuery.data.status !== 'pending' && (
+                  <div className="h-[250px] w-full rounded-2xl overflow-hidden border-2 border-slate-100 shadow-inner relative">
+                    <MapContainer 
+                      center={[
+                        parseFloat(orderDetailsQuery.data.pickupLocation?.latitude?.toString() || "30.2350"),
+                        parseFloat(orderDetailsQuery.data.pickupLocation?.longitude?.toString() || "31.4650")
+                      ]} 
+                      zoom={13} 
+                      style={{ height: '100%', width: '100%' }}
+                      zoomControl={false}
+                    >
+                      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                      <Marker 
+                        position={[
+                          parseFloat(orderDetailsQuery.data.pickupLocation?.latitude?.toString() || "30.2350"),
+                          parseFloat(orderDetailsQuery.data.pickupLocation?.longitude?.toString() || "31.4650")
+                        ]}
+                      >
+                        <Popup>موقع الاستلام</Popup>
+                      </Marker>
+                      <Marker 
+                        position={[
+                          parseFloat(orderDetailsQuery.data.deliveryLocation?.latitude?.toString() || "30.2350"),
+                          parseFloat(orderDetailsQuery.data.deliveryLocation?.longitude?.toString() || "31.4650")
+                        ]}
+                        icon={iconDestination}
+                      >
+                        <Popup>وجهة التسليم</Popup>
+                      </Marker>
+                      {orderDetailsQuery.data.driver?.latitude && orderDetailsQuery.data.driver?.longitude && (
+                        <Marker 
+                          position={[
+                            parseFloat(orderDetailsQuery.data.driver.latitude.toString()),
+                            parseFloat(orderDetailsQuery.data.driver.longitude.toString())
+                          ]}
+                          icon={iconDriver}
+                        >
+                          <Popup>موقع السائق الحالي</Popup>
+                        </Marker>
+                      )}
+                    </MapContainer>
+                    <div className="absolute bottom-3 right-3 z-[1000] bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm border border-white/50 flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-[10px] font-black text-slate-900">تتبع مباشر</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-6 bg-slate-50 border-t border-slate-100">
+                <Button onClick={() => setIsDetailsOpen(false)} className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black shadow-lg shadow-slate-200 transition-all">إغلاق التفاصيل</Button>
+              </div>
+            </div>
+          ) : null}
         </DialogContent>
       </Dialog>
 
-      {/* Chat Box */}
-      {isChatOpen && chatOrderId && (
-        <ChatBox
-          orderId={chatOrderId}
-          userId={user.id}
-          userRole="customer"
-          userName={user.name}
-          otherUserName={
-            orders.find(o => o.id === chatOrderId)?.driver?.name || 
-            orderDetailsQuery.data?.assignedDriver?.name || 
-            "السائق"
-          }
-          isOpen={isChatOpen}
-          onClose={() => setIsChatOpen(false)}
-        />
-      )}
+      {/* Chat Dialog */}
+      <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
+        <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-none rounded-[2.5rem] shadow-2xl bg-white h-[80vh]" dir="rtl">
+          {chatOrderId && <ChatBox orderId={chatOrderId} onClose={() => setIsChatOpen(false)} />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

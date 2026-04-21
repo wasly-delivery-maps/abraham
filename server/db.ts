@@ -10,6 +10,7 @@ import {
   Order,
   pushSubscriptions,
   InsertPushSubscription,
+  offers,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -20,6 +21,7 @@ interface InMemoryDB {
   driversAvailability: Map<number, any>;
   notifications: Map<number, any>;
   orderHistory: Map<number, any>;
+  offers: Map<number, any>;
   nextUserId: number;
   nextOrderId: number;
 }
@@ -30,6 +32,7 @@ const inMemoryDB: InMemoryDB = {
   driversAvailability: new Map(),
   notifications: new Map(),
   orderHistory: new Map(),
+  offers: new Map(),
   nextUserId: 1,
   nextOrderId: 1,
 };
@@ -321,6 +324,50 @@ export async function updateDriverLocation(
     console.error("[Database] Failed to update driver location:", error);
     throw error;
   }
+}
+
+/**
+ * Get active offers (not expired and isActive is true)
+ */
+export async function getActiveOffers() {
+  const db = await getDb();
+  const now = new Date();
+
+  if (_useInMemory) {
+    return Array.from(inMemoryDB.offers.values()).filter(
+      (o) => o.isActive && new Date(o.expiresAt) > now
+    );
+  }
+
+  if (!db) return [];
+
+  return await db
+    .select()
+    .from(offers)
+    .where(and(eq(offers.isActive, true), sql`${offers.expiresAt} > ${now}`));
+}
+
+/**
+ * Create a new offer
+ */
+export async function createOffer(offer: any) {
+  const db = await getDb();
+  
+  if (_useInMemory) {
+    const newOffer = {
+      id: inMemoryDB.offers.size + 1,
+      ...offer,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    inMemoryDB.offers.set(newOffer.id, newOffer);
+    return newOffer;
+  }
+
+  if (!db) return null;
+  
+  await db.insert(offers).values(offer);
+  return offer;
 }
 
 /**

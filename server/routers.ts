@@ -189,6 +189,34 @@ export const appRouter = router({
   /**
    * User management routes
    */
+  offers: router({
+    // Get active offers for customers
+    getActive: publicProcedure.query(async () => {
+      return await db.getActiveOffers();
+    }),
+
+    // Create a new offer (Admin only)
+    create: protectedProcedure
+      .input(
+        z.object({
+          title: z.string(),
+          description: z.string().optional(),
+          imageUrl: z.string(),
+          link: z.string().optional(),
+          expiresAt: z.string(), // ISO string
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+        }
+        return await db.createOffer({
+          ...input,
+          expiresAt: new Date(input.expiresAt),
+        });
+      }),
+  }),
+
   users: router({
     // Get current user
     getCurrentUser: protectedProcedure.query(async ({ ctx }) => {
