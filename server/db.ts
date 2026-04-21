@@ -331,7 +331,8 @@ export async function updateDriverLocation(
  */
 export async function getActiveOffers() {
   const db = await getDb();
-  const now = new Date();
+  // Add a small buffer (1 second) to account for timing issues between offer creation and query execution
+  const now = new Date(Date.now() - 1000);
 
   if (_useInMemory) {
     return Array.from(inMemoryDB.offers.values()).filter(

@@ -321,7 +321,7 @@ export default function AdminDashboard() {
                         <Card key={offer.id} className="border-none shadow-md rounded-2xl overflow-hidden group">
                           <div className="relative h-40">
                             <img src={offer.imageUrl} className="w-full h-full object-cover" alt="" />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <div className="absolute inset-0 bg-black/40 opacity-0 md:group-hover:opacity-100 md:opacity-0 opacity-100 transition-opacity flex items-center justify-center">
                               <Button 
                                 variant="destructive" 
                                 size="icon" 
