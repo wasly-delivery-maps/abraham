@@ -215,6 +215,16 @@ export const appRouter = router({
           expiresAt: new Date(input.expiresAt),
         });
       }),
+
+    // Delete an offer (Admin only)
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+        }
+        return await db.deleteOffer(input.id);
+      }),
   }),
 
   users: router({

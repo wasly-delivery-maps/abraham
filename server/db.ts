@@ -371,6 +371,22 @@ export async function createOffer(offer: any) {
 }
 
 /**
+ * Delete an offer
+ */
+export async function deleteOffer(id: number) {
+  const db = await getDb();
+
+  if (_useInMemory) {
+    return inMemoryDB.offers.delete(id);
+  }
+
+  if (!db) return false;
+
+  await db.delete(offers).where(eq(offers.id, id));
+  return true;
+}
+
+/**
  * Update user profile
  */
 export async function updateUserProfile(
