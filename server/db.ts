@@ -378,6 +378,12 @@ export async function createOffer(offer: any) {
     expiresAtDate = new Date(cleanOffer.expiresAt);
   }
 
+  // Ensure the date is valid, fallback to 24h from now if invalid
+  if (isNaN(expiresAtDate.getTime())) {
+    expiresAtDate = new Date();
+    expiresAtDate.setHours(expiresAtDate.getHours() + 24);
+  }
+
   const values: any = {
     title: cleanOffer.title,
     description: cleanOffer.description || null,
@@ -386,11 +392,6 @@ export async function createOffer(offer: any) {
     isActive: cleanOffer.isActive !== undefined ? cleanOffer.isActive : true,
     expiresAt: expiresAtDate,
   };
-
-  // Add createdAt and updatedAt explicitly to avoid MySQL default value issues
-  const now = new Date();
-  values.createdAt = now;
-  values.updatedAt = now;
   
   try {
     const [result] = await db.insert(offers).values(values);

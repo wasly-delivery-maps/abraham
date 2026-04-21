@@ -68,36 +68,36 @@ async function fixDbEnum() {
       }
     }
 
-    console.log("Checking for 'imageUrl' column in 'offers' table...");
+    console.log("Ensuring 'offers' table matches schema...");
     try {
-      // First, try to modify existing column to LONGTEXT
+      // Create table if it doesn't exist with correct schema
       await db.execute(sql`
-        ALTER TABLE \`offers\` 
-        MODIFY COLUMN \`imageUrl\` LONGTEXT NOT NULL
+        CREATE TABLE IF NOT EXISTS \`offers\` (
+          \`id\` int NOT NULL AUTO_INCREMENT,
+          \`title\` varchar(255) NOT NULL,
+          \`description\` text,
+          \`imageUrl\` LONGTEXT NOT NULL,
+          \`link\` varchar(500),
+          \`isActive\` tinyint(1) DEFAULT '1' NOT NULL,
+          \`expiresAt\` timestamp NOT NULL,
+          \`createdAt\` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
+          \`updatedAt\` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+          PRIMARY KEY (\`id\`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
       `);
-      console.log("Successfully updated 'imageUrl' column in 'offers' table to LONGTEXT.");
-    } catch (e) {
-      console.warn("Could not modify 'imageUrl' column, it might not exist yet. Attempting to create table if missing...", e.message);
+      
+      // If table exists, ensure columns match schema
       try {
-        // If table doesn't exist, create it with LONGTEXT
-        await db.execute(sql`
-          CREATE TABLE IF NOT EXISTS \`offers\` (
-            \`id\` int NOT NULL AUTO_INCREMENT,
-            \`title\` varchar(255) NOT NULL,
-            \`description\` text,
-            \`imageUrl\` LONGTEXT NOT NULL,
-            \`link\` varchar(255),
-            \`isActive\` tinyint(1) DEFAULT '1' NOT NULL,
-            \`expiresAt\` datetime NOT NULL,
-            \`createdAt\` datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
-            \`updatedAt\` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
-            PRIMARY KEY (\`id\`)
-          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-        `);
-        console.log("Successfully ensured 'offers' table exists with LONGTEXT 'imageUrl'.");
-      } catch (createError) {
-        console.error("Failed to create 'offers' table:", createError.message);
+        await db.execute(sql`ALTER TABLE \`offers\` MODIFY COLUMN \`imageUrl\` LONGTEXT NOT NULL`);
+        await db.execute(sql`ALTER TABLE \`offers\` MODIFY COLUMN \`expiresAt\` timestamp NOT NULL`);
+        await db.execute(sql`ALTER TABLE \`offers\` MODIFY COLUMN \`createdAt\` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL`);
+        await db.execute(sql`ALTER TABLE \`offers\` MODIFY COLUMN \`updatedAt\` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL`);
+        console.log("Successfully synchronized 'offers' table with schema.");
+      } catch (modifyError) {
+        console.warn("Could not modify some columns in 'offers', they might already be correct:", modifyError.message);
       }
+    } catch (e) {
+      console.error("Failed to ensure 'offers' table schema:", e.message);
     }
 
     console.log("All fixes applied successfully!");
