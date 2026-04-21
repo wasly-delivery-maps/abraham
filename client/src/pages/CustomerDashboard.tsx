@@ -284,50 +284,46 @@ export default function CustomerDashboard() {
                     whileHover={{ y: -8, scale: 1.02 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
-                    <Card className="overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white group relative">
-                      {/* Image Container */}
-                      <div className="relative aspect-[4/3] overflow-hidden">
+                    <Card className="overflow-hidden border border-slate-100 shadow-xl rounded-[2rem] bg-white group flex flex-col h-full">
+                      {/* Image Container - Full Visibility */}
+                      <div className="relative aspect-video overflow-hidden bg-slate-50">
                         <img 
                           src={offer.imageUrl} 
                           alt={offer.title} 
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
                         />
-                        {/* Overlay Gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                        
-                        {/* Floating Badges */}
-                        <div className="absolute top-4 right-4 flex flex-col gap-2">
-                          <div className="bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-2xl flex items-center gap-2 shadow-xl border border-white/20">
+                        {/* Floating Timer Badge */}
+                        <div className="absolute top-3 right-3">
+                          <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-2 shadow-md border border-orange-100">
                             <CountdownTimer expiresAt={offer.expiresAt} />
                           </div>
                         </div>
+                      </div>
 
-                        {/* Content Overlay */}
-                        <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                          <motion.div 
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            className="space-y-2"
+                      {/* Content Section - Clear & Readable */}
+                      <div className="p-5 flex flex-col flex-grow space-y-3">
+                        <div className="space-y-1">
+                          <h4 className="text-lg font-black text-slate-900 leading-tight">{offer.title}</h4>
+                          <p className="text-xs font-bold text-slate-500 leading-relaxed line-clamp-2">
+                            {offer.description}
+                          </p>
+                        </div>
+                        
+                        <div className="pt-2 mt-auto flex items-center justify-between gap-3">
+                          <Button 
+                            className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl px-4 py-5 h-auto text-sm font-black shadow-lg shadow-orange-200 transition-all active:scale-95"
+                            onClick={() => {
+                              const message = encodeURIComponent(`مرحباً مطعم الحوت، أود طلب العرض: ${offer.title}\n\n${offer.description}`);
+                              window.open(`https://wa.me/201557564373?text=${message}`, '_blank');
+                            }}
                           >
-                            <h4 className="text-xl font-black leading-tight drop-shadow-md">{offer.title}</h4>
-                            <p className="text-xs font-medium text-slate-200 line-clamp-2 leading-relaxed opacity-90">
-                              {offer.description}
-                            </p>
-                            
-                            <div className="pt-4 flex items-center justify-between">
-                              <Button 
-                                className="bg-orange-500 hover:bg-orange-600 text-white rounded-full px-6 py-2 h-auto text-xs font-black shadow-lg shadow-orange-500/30 transition-all group-hover:px-8"
-                                onClick={() => offer.link && window.open(offer.link, '_blank')}
-                              >
-                                اطلب الآن
-                                <ArrowLeft className="h-3 w-3 mr-2 transition-transform group-hover:-translate-x-1" />
-                              </Button>
-                              
-                              <div className="bg-white/20 backdrop-blur-md p-2 rounded-full">
-                                <Zap className="h-4 w-4 text-orange-400 fill-orange-400" />
-                              </div>
-                            </div>
-                          </motion.div>
+                            اطلب عبر واتساب
+                            <MessageCircle className="h-4 w-4 mr-2" />
+                          </Button>
+                          
+                          <div className="bg-orange-50 p-2.5 rounded-xl border border-orange-100">
+                            <Zap className="h-5 w-5 text-orange-500 fill-orange-500" />
+                          </div>
                         </div>
                       </div>
                     </Card>
