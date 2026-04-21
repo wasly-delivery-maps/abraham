@@ -272,7 +272,7 @@ export default function CustomerDashboard() {
                 {activeOffers.map((offer) => (
                   <motion.div 
                     key={offer.id} 
-                    className="min-w-[240px] md:min-w-[300px] snap-center"
+                    className="min-w-[200px] md:min-w-[280px] snap-center"
                     whileHover={{ y: -5 }}
                   >
                     <Card className="overflow-hidden border-none shadow-xl rounded-[2rem] bg-white group">
