@@ -76,7 +76,8 @@ export async function storagePut(
     console.log("[Storage] Storage proxy not configured, falling back to Base64 data URL");
     let base64: string;
     if (typeof data === "string") {
-      base64 = Buffer.from(data).toString("base64");
+      // If it's already a base64 string (from the client), use it directly
+      base64 = data;
     } else {
       base64 = Buffer.from(data as any).toString("base64");
     }

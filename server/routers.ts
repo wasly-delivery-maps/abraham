@@ -241,10 +241,10 @@ export const appRouter = router({
         console.log(`[OfferUpload] Starting upload for user ${ctx.user.id}, content type: ${input.contentType}, base64 length: ${input.base64.length}`);
         try {
           const { storagePut } = await import("./storage");
-          const buffer = Buffer.from(input.base64, "base64");
+          // We pass the base64 string directly to storagePut to avoid double encoding
           const fileName = `offers/${Date.now()}.${input.contentType.split("/")[1]}`;
           console.log(`[OfferUpload] Calling storagePut for ${fileName}`);
-          const { url } = await storagePut(fileName, buffer, input.contentType);
+          const { url } = await storagePut(fileName, input.base64, input.contentType);
           console.log(`[OfferUpload] Upload successful, URL: ${url.substring(0, 50)}...`);
           return { success: true, url };
         } catch (error: any) {
