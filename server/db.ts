@@ -385,6 +385,11 @@ export async function createOffer(offer: any) {
     isActive: cleanOffer.isActive !== undefined ? cleanOffer.isActive : true,
     expiresAt: expiresAtDate,
   };
+
+  // Add createdAt and updatedAt explicitly to avoid MySQL default value issues
+  const now = new Date();
+  values.createdAt = now;
+  values.updatedAt = now;
   
   try {
     const [result] = await db.insert(offers).values(values);
