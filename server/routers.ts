@@ -210,8 +210,29 @@ export const appRouter = router({
         if (ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
         }
+
+        let finalImageUrl = input.imageUrl;
+
+        // If the imageUrl is a Base64 string, automatically convert it to a local file
+        if (input.imageUrl.startsWith("data:image/")) {
+          try {
+            const { storagePut } = await import("./storage");
+            const contentType = input.imageUrl.split(";")[0].split(":")[1];
+            const extension = contentType.split("/")[1] || "png";
+            const fileName = `offers/auto-${Date.now()}.${extension}`;
+            
+            console.log(`[AutoUpload] Converting Base64 to local file: ${fileName}`);
+            const { url } = await storagePut(fileName, input.imageUrl, contentType);
+            finalImageUrl = url;
+            console.log(`[AutoUpload] Success: ${finalImageUrl}`);
+          } catch (error) {
+            console.error("[AutoUpload] Failed to convert Base64, using original string:", error);
+          }
+        }
+
         return await db.createOffer({
           ...input,
+          imageUrl: finalImageUrl,
           expiresAt: new Date(input.expiresAt),
         });
       }),
