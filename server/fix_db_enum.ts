@@ -12,8 +12,6 @@ async function fixDbEnum() {
 
   try {
     console.log("Updating 'orders' table status enum...");
-    // Direct SQL to alter the enum column in MySQL
-    // We use a more robust approach to ensure the column is updated
     try {
       await db.execute(sql`
         ALTER TABLE \`orders\` 
@@ -29,38 +27,39 @@ async function fixDbEnum() {
         ) DEFAULT 'pending' NOT NULL
       `);
       console.log("Successfully updated 'orders' table status enum.");
-    } catch (e) {
-      console.warn("Could not update orders status enum, it might already be updated or table is locked:", e.message);
+    } catch (e: any) {
+      console.warn("Could not update orders status enum:", e.message);
     }
 
     console.log("Updating 'notifications' table type enum...");
-    // Also update notifications type if needed to support new order states
-    await db.execute(sql`
-      ALTER TABLE \`notifications\` 
-      MODIFY COLUMN \`type\` ENUM(
-        'order_assigned',
-        'order_accepted',
-        'order_picked_up',
-        'order_in_transit',
-        'order_arrived',
-        'order_delivered',
-        'order_cancelled',
-        'new_order_available',
-        'system'
-      ) DEFAULT 'system' NOT NULL
-    `);
-    console.log("Successfully updated 'notifications' table.");
+    try {
+      await db.execute(sql`
+        ALTER TABLE \`notifications\` 
+        MODIFY COLUMN \`type\` ENUM(
+          'order_assigned',
+          'order_accepted',
+          'order_picked_up',
+          'order_in_transit',
+          'order_arrived',
+          'order_delivered',
+          'order_cancelled',
+          'new_order_available',
+          'system'
+        ) DEFAULT 'system' NOT NULL
+      `);
+      console.log("Successfully updated 'notifications' table.");
+    } catch (e: any) {
+      console.warn("Could not update notifications type enum:", e.message);
+    }
 
     console.log("Checking for 'avatarUrl' column in 'users' table...");
     try {
       await db.execute(sql`
         ALTER TABLE \`users\` 
-        ADD COLUMN IF NOT EXISTS \`avatarUrl\` TEXT
+        ADD COLUMN IF NOT EXISTS \`avatarUrl\` LONGTEXT
       `);
       console.log("Successfully added 'avatarUrl' column to 'users' table.");
-    } catch (e) {
-      // MySQL doesn't support ADD COLUMN IF NOT EXISTS directly in some versions, 
-      // so we handle the error if it already exists
+    } catch (e: any) {
       if (e.message.includes("Duplicate column name")) {
         console.log("'avatarUrl' column already exists.");
       } else {
@@ -71,6 +70,7 @@ async function fixDbEnum() {
     console.log("Ensuring 'offers' table matches schema...");
     try {
       // Create table if it doesn't exist with correct schema
+      // Using DATETIME for compatibility and ensuring defaults for all timestamps
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS \`offers\` (
           \`id\` int NOT NULL AUTO_INCREMENT,
@@ -79,24 +79,24 @@ async function fixDbEnum() {
           \`imageUrl\` LONGTEXT NOT NULL,
           \`link\` varchar(500),
           \`isActive\` tinyint(1) DEFAULT '1' NOT NULL,
-          \`expiresAt\` timestamp NOT NULL,
-          \`createdAt\` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
-          \`updatedAt\` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+          \`expiresAt\` DATETIME NOT NULL,
+          \`createdAt\` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+          \`updatedAt\` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
           PRIMARY KEY (\`id\`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
       `);
       
-      // If table exists, ensure columns match schema
+      // If table exists, ensure columns match schema and have defaults
       try {
         await db.execute(sql`ALTER TABLE \`offers\` MODIFY COLUMN \`imageUrl\` LONGTEXT NOT NULL`);
-        await db.execute(sql`ALTER TABLE \`offers\` MODIFY COLUMN \`expiresAt\` timestamp NOT NULL`);
-        await db.execute(sql`ALTER TABLE \`offers\` MODIFY COLUMN \`createdAt\` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL`);
-        await db.execute(sql`ALTER TABLE \`offers\` MODIFY COLUMN \`updatedAt\` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL`);
+        await db.execute(sql`ALTER TABLE \`offers\` MODIFY COLUMN \`expiresAt\` DATETIME NOT NULL`);
+        await db.execute(sql`ALTER TABLE \`offers\` MODIFY COLUMN \`createdAt\` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL`);
+        await db.execute(sql`ALTER TABLE \`offers\` MODIFY COLUMN \`updatedAt\` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL`);
         console.log("Successfully synchronized 'offers' table with schema.");
-      } catch (modifyError) {
-        console.warn("Could not modify some columns in 'offers', they might already be correct:", modifyError.message);
+      } catch (modifyError: any) {
+        console.warn("Could not modify some columns in 'offers':", modifyError.message);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to ensure 'offers' table schema:", e.message);
     }
 
