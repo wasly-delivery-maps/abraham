@@ -386,8 +386,13 @@ export async function createOffer(offer: any) {
     expiresAt: expiresAtDate,
   };
   
-  await db.insert(offers).values(values);
-  return values;
+  try {
+    const [result] = await db.insert(offers).values(values);
+    return { id: (result as any).insertId, ...values };
+  } catch (error) {
+    console.error("[Database] Failed to create offer:", error);
+    throw error;
+  }
 }
 
 /**
