@@ -2,11 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
-import { Users, Truck, ShoppingBag, TrendingUp, LogOut, BarChart3, User, Home, Download, Settings, ShieldCheck, ChevronLeft, Package, Clock, Zap, Star, Loader2, Plus, Trash2, Image as ImageIcon, Link as LinkIcon } from "lucide-react";
+import { Users, Truck, ShoppingBag, TrendingUp, LogOut, BarChart3, User, Home, Download, Settings, ShieldCheck, ChevronLeft, Package, Clock, Zap, Star, Loader2, Plus, Trash2, Image as ImageIcon, Link as LinkIcon, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { UsersManagement } from "@/components/admin/UsersManagement";
 import { OrdersManagement } from "@/components/admin/OrdersManagement";
@@ -22,6 +22,8 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Offers State
   const [newOffer, setNewOffer] = useState({
@@ -37,6 +39,8 @@ export default function AdminDashboard() {
   const ordersQuery = trpc.admin.getAllOrders.useQuery();
   const offersQuery = trpc.offers.getActive.useQuery();
   
+  const uploadImageMutation = trpc.offers.uploadImage.useMutation();
+
   const createOfferMutation = trpc.offers.create.useMutation({
     onSuccess: () => {
       toast.success("تم إضافة العرض بنجاح");
@@ -86,10 +90,38 @@ export default function AdminDashboard() {
     toast.success("تم تسجيل الخروج بنجاح");
   };
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      return toast.error("يرجى اختيار ملف صورة");
+    }
+
+    try {
+      setIsUploading(true);
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = (reader.result as string).split(",")[1];
+        const result = await uploadImageMutation.mutateAsync({
+          base64,
+          contentType: file.type
+        });
+        setNewOffer({ ...newOffer, imageUrl: result.url });
+        toast.success("تم رفع الصورة بنجاح");
+        setIsUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      toast.error("فشل رفع الصورة");
+      setIsUploading(false);
+    }
+  };
+
   const handleCreateOffer = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newOffer.title || !newOffer.imageUrl) {
-      return toast.error("يرجى إدخال العنوان ورابط الصورة");
+      return toast.error("يرجى إدخال العنوان ورفع صورة");
     }
 
     const expiresAt = new Date();
@@ -152,23 +184,25 @@ export default function AdminDashboard() {
       </div>
 
       {/* Management Tabs Section */}
-      <div className="container mx-auto px-6 pb-12 relative z-20">
+      <div className="container mx-auto px-4 md:px-6 pb-12 relative z-20">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="mt-12">
           <Tabs defaultValue="orders" className="w-full">
-            <TabsList className="bg-white/50 backdrop-blur-sm p-1.5 rounded-[2rem] mb-8 w-full sm:w-auto shadow-sm border border-slate-200 overflow-x-auto flex-nowrap">
-              <TabsTrigger value="orders" className="rounded-2xl px-8 py-3 font-black data-[state=active]:bg-orange-500 data-[state=active]:text-white transition-all">
-                <Package className="h-4 w-4 ml-2" /> الطلبات
-              </TabsTrigger>
-              <TabsTrigger value="users" className="rounded-2xl px-8 py-3 font-black data-[state=active]:bg-blue-500 data-[state=active]:text-white transition-all">
-                <Users className="h-4 w-4 ml-2" /> المستخدمين
-              </TabsTrigger>
-              <TabsTrigger value="offers" className="rounded-2xl px-8 py-3 font-black data-[state=active]:bg-amber-500 data-[state=active]:text-white transition-all">
-                <Zap className="h-4 w-4 ml-2" /> العروض
-              </TabsTrigger>
-              <TabsTrigger value="commissions" className="rounded-2xl px-8 py-3 font-black data-[state=active]:bg-emerald-500 data-[state=active]:text-white transition-all">
-                <TrendingUp className="h-4 w-4 ml-2" /> العمولات
-              </TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
+              <TabsList className="bg-white/50 backdrop-blur-sm p-1.5 rounded-[2rem] mb-4 flex w-max md:w-auto shadow-sm border border-slate-200">
+                <TabsTrigger value="orders" className="rounded-2xl px-6 md:px-8 py-3 font-black data-[state=active]:bg-orange-500 data-[state=active]:text-white transition-all whitespace-nowrap">
+                  <Package className="h-4 w-4 ml-2" /> الطلبات
+                </TabsTrigger>
+                <TabsTrigger value="users" className="rounded-2xl px-6 md:px-8 py-3 font-black data-[state=active]:bg-blue-500 data-[state=active]:text-white transition-all whitespace-nowrap">
+                  <Users className="h-4 w-4 ml-2" /> المستخدمين
+                </TabsTrigger>
+                <TabsTrigger value="offers" className="rounded-2xl px-6 md:px-8 py-3 font-black data-[state=active]:bg-amber-500 data-[state=active]:text-white transition-all whitespace-nowrap">
+                  <Zap className="h-4 w-4 ml-2" /> العروض
+                </TabsTrigger>
+                <TabsTrigger value="commissions" className="rounded-2xl px-6 md:px-8 py-3 font-black data-[state=active]:bg-emerald-500 data-[state=active]:text-white transition-all whitespace-nowrap">
+                  <TrendingUp className="h-4 w-4 ml-2" /> العمولات
+                </TabsTrigger>
+              </TabsList>
+            </div>
             
             <AnimatePresence mode="wait">
               <TabsContent value="orders">
@@ -211,15 +245,31 @@ export default function AdminDashboard() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs font-black text-slate-400 uppercase mr-1">رابط الصورة</label>
-                          <div className="relative">
-                            <ImageIcon className="absolute right-3 top-3.5 h-5 w-5 text-slate-300" />
-                            <Input 
-                              placeholder="https://..." 
-                              value={newOffer.imageUrl}
-                              onChange={(e) => setNewOffer({...newOffer, imageUrl: e.target.value})}
-                              className="rounded-xl border-slate-100 h-12 pr-10 font-bold"
-                            />
+                          <label className="text-xs font-black text-slate-400 uppercase mr-1">صورة العرض</label>
+                          <input 
+                            type="file" 
+                            ref={fileInputRef} 
+                            className="hidden" 
+                            accept="image/*" 
+                            onChange={handleFileChange} 
+                          />
+                          <div 
+                            onClick={() => fileInputRef.current?.click()}
+                            className={`border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${newOffer.imageUrl ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 hover:border-amber-300 hover:bg-amber-50'}`}
+                          >
+                            {isUploading ? (
+                              <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+                            ) : newOffer.imageUrl ? (
+                              <>
+                                <img src={newOffer.imageUrl} className="h-20 w-full object-cover rounded-lg mb-2" alt="Preview" />
+                                <span className="text-[10px] font-black text-emerald-600 uppercase">تم اختيار الصورة ✓</span>
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="h-8 w-8 text-slate-300" />
+                                <span className="text-xs font-bold text-slate-500">اضغط لرفع صورة</span>
+                              </>
+                            )}
                           </div>
                         </div>
                         <div className="space-y-2">
@@ -234,7 +284,7 @@ export default function AdminDashboard() {
                         <Button 
                           type="submit" 
                           className="w-full h-14 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black shadow-lg shadow-amber-100 transition-all"
-                          disabled={createOfferMutation.isLoading}
+                          disabled={createOfferMutation.isLoading || isUploading}
                         >
                           {createOfferMutation.isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "نشر العرض الآن"}
                         </Button>

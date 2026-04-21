@@ -225,6 +225,32 @@ export const appRouter = router({
         }
         return await db.deleteOffer(input.id);
       }),
+
+    // Upload offer image (Admin only)
+    uploadImage: protectedProcedure
+      .input(
+        z.object({
+          base64: z.string(),
+          contentType: z.string(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+        }
+        try {
+          const { storagePut } = await import("./storage");
+          const buffer = Buffer.from(input.base64, "base64");
+          const fileName = `offers/${Date.now()}.${input.contentType.split("/")[1]}`;
+          const { url } = await storagePut(fileName, buffer, input.contentType);
+          return { success: true, url };
+        } catch (error: any) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: `فشل رفع الصورة: ${error.message || "خطأ غير معروف"}`,
+          });
+        }
+      }),
   }),
 
   users: router({
