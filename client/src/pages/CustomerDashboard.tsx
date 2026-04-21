@@ -276,12 +276,12 @@ export default function CustomerDashboard() {
                     whileHover={{ y: -5 }}
                   >
                     <Card className="overflow-hidden border-none shadow-xl rounded-[2rem] bg-white group">
-                      <div className="relative aspect-[4/3] overflow-hidden">
-                        <img src={offer.imageUrl} alt={offer.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                        <div className="absolute bottom-4 right-4 left-4 text-white">
-                          <h4 className="text-lg font-black mb-1">{offer.title}</h4>
-                          <p className="text-xs font-medium text-white/80 line-clamp-1">{offer.description}</p>
+                      <div className="relative aspect-square overflow-hidden bg-slate-100">
+                        <img src={offer.imageUrl} alt={offer.title} className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-sm border-t border-slate-100">
+                          <h4 className="text-sm font-black text-slate-900 mb-0.5">{offer.title}</h4>
+                          <p className="text-[10px] font-bold text-slate-500 line-clamp-1">{offer.description}</p>
                         </div>
                         <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg">
                           <Clock className="h-3 w-3 text-orange-600" />
