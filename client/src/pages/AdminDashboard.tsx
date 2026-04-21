@@ -92,8 +92,7 @@ export default function AdminDashboard() {
     navigate("/");
     toast.success("تم تسجيل الخروج بنجاح");
   };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -103,36 +102,65 @@ export default function AdminDashboard() {
 
     try {
       setIsUploading(true);
-      const reader = new FileReader();
-      reader.onload = async () => {
-        try {
-          const base64 = (reader.result as string).split(",")[1];
-          const result = await uploadImageMutation.mutateAsync({
-            base64,
-            contentType: file.type
-          });
-          
-          if (result && result.url) {
-            setNewOffer(prev => ({ ...prev, imageUrl: result.url }));
-            toast.success("تم رفع الصورة بنجاح");
-          } else {
-            throw new Error("لم يتم استلام رابط الصورة من السيرفر");
-          }
-        } catch (err: any) {
-          console.error("Upload process error:", err);
-          toast.error(err.message || "فشل في معالجة الصورة المرفوعة");
-        } finally {
-          setIsUploading(false);
-        }
+      
+      // Compress image before upload
+      const compressImage = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const MAX_WIDTH = 800;
+              const MAX_HEIGHT = 600;
+              let width = img.width;
+              let height = img.height;
+
+              if (width > height) {
+                if (width > MAX_WIDTH) {
+                  height *= MAX_WIDTH / width;
+                  width = MAX_WIDTH;
+                }
+              } else {
+                if (height > MAX_HEIGHT) {
+                  width *= MAX_HEIGHT / height;
+                  height = MAX_HEIGHT;
+                }
+              }
+
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx?.drawImage(img, 0, 0, width, height);
+              
+              // Get compressed base64
+              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+              resolve(compressedBase64);
+            };
+            img.onerror = reject;
+          };
+          reader.onerror = reject;
+        });
       };
-      reader.onerror = () => {
-        toast.error("فشل في قراءة ملف الصورة");
-        setIsUploading(false);
-      };
-      reader.readAsDataURL(file);
+
+      const base64 = await compressImage(file);
+      const result = await uploadImageMutation.mutateAsync({
+        base64,
+        contentType: "image/jpeg"
+      });
+      
+      if (result && result.url) {
+        setNewOffer(prev => ({ ...prev, imageUrl: result.url }));
+        toast.success("تم رفع الصورة بنجاح");
+      } else {
+        throw new Error("لم يتم استلام رابط الصورة من السيرفر");
+      }
     } catch (error: any) {
       console.error("Upload image error:", error);
       toast.error(error.message || "فشل رفع الصورة، يرجى التأكد من حجم الملف");
+    } finally {
       setIsUploading(false);
     }
   };
