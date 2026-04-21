@@ -178,6 +178,7 @@ export default function AdminDashboard() {
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + parseInt(newOffer.expiresInHours));
 
+    console.log("[CreateOffer] Sending mutation with image URL:", newOffer.imageUrl.substring(0, 50) + "...");
     createOfferMutation.mutate({
       title: newOffer.title,
       description: newOffer.description,

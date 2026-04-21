@@ -238,13 +238,17 @@ export const appRouter = router({
         if (ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
         }
+        console.log(`[OfferUpload] Starting upload for user ${ctx.user.id}, content type: ${input.contentType}, base64 length: ${input.base64.length}`);
         try {
           const { storagePut } = await import("./storage");
           const buffer = Buffer.from(input.base64, "base64");
           const fileName = `offers/${Date.now()}.${input.contentType.split("/")[1]}`;
+          console.log(`[OfferUpload] Calling storagePut for ${fileName}`);
           const { url } = await storagePut(fileName, buffer, input.contentType);
+          console.log(`[OfferUpload] Upload successful, URL: ${url.substring(0, 50)}...`);
           return { success: true, url };
         } catch (error: any) {
+          console.error(`[OfferUpload] CRITICAL ERROR:`, error);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: `فشل رفع الصورة: ${error.message || "خطأ غير معروف"}`,
