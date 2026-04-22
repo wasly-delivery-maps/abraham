@@ -244,16 +244,16 @@ export default function CustomerDashboard() {
         <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-8">
           {/* Welcome & Action */}
           <motion.div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6" variants={itemVariants}>
-            <div className="space-y-2">
-              <motion.h2 className="text-4xl font-black bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent" animate={{ scale: [1, 1.02, 1] }} transition={{ duration: 3, repeat: Infinity }}>
+            <div className="space-y-3">
+              <motion.h2 className="text-5xl font-black bg-gradient-to-r from-slate-900 via-orange-600 to-slate-700 bg-clip-text text-transparent" animate={{ scale: [1, 1.02, 1] }} transition={{ duration: 3, repeat: Infinity }}>
                 أهلاً بك، {user.name.split(' ')[0]} 👋
               </motion.h2>
-              <p className="text-slate-500 font-medium text-lg">تتبع طلباتك وتحركاتك بكل سهولة وسرعة</p>
+              <p className="text-slate-600 font-semibold text-lg">تتبع طلباتك وتحركاتك بكل سهولة وسرعة</p>
             </div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}>
               <Link href="/customer/create-order">
-                <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-black px-8 py-6 rounded-xl shadow-lg shadow-orange-200 transition-all">
-                  <Plus className="h-5 w-5 ml-2" />
+                <Button className="bg-gradient-to-r from-orange-500 via-orange-550 to-orange-600 hover:from-orange-600 hover:via-orange-600 hover:to-orange-700 text-white font-black px-8 py-6 rounded-2xl shadow-2xl shadow-orange-300/50 transition-all flex items-center gap-2 text-lg">
+                  <Plus className="h-6 w-6" />
                   طلب مندوب توصيل
                 </Button>
               </Link>
@@ -265,16 +265,20 @@ export default function CustomerDashboard() {
             <motion.div variants={itemVariants} className="space-y-6">
               <div className="flex items-center justify-between px-2">
                 <div className="flex flex-col">
-                  <h3 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-                    <Zap className="h-6 w-6 text-orange-500 fill-orange-500 animate-pulse" />
+                  <h3 className="text-3xl font-black text-slate-900 flex items-center gap-2">
+                    <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ duration: 1, repeat: Infinity }}>
+                      <Zap className="h-7 w-7 text-orange-500 fill-orange-500" />
+                    </motion.div>
                     عروض حصرية 🔥
                   </h3>
-                  <p className="text-slate-500 text-xs font-bold mr-8">أفضل العروض المختارة لك اليوم</p>
+                  <p className="text-slate-600 text-sm font-semibold mr-8">أفضل العروض المختارة لك اليوم</p>
                 </div>
-                <Badge variant="secondary" className="bg-orange-100 text-orange-600 border-none font-black px-4 py-1.5 rounded-full flex items-center gap-2">
-                  <Timer className="h-3.5 w-3.5" />
-                  لفترة محدودة
-                </Badge>
+                <motion.div whileHover={{ scale: 1.05 }} animate={{ y: [0, -3, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+                  <Badge variant="secondary" className="bg-gradient-to-r from-orange-100 to-orange-50 text-orange-600 border-2 border-orange-200 font-black px-4 py-2 rounded-full flex items-center gap-2">
+                    <Timer className="h-4 w-4" />
+                    لفترة محدودة
+                  </Badge>
+                </motion.div>
               </div>
               
               <div className="flex gap-6 overflow-x-auto pb-6 pt-2 px-2 scrollbar-hide snap-x">
@@ -282,48 +286,51 @@ export default function CustomerDashboard() {
                   <motion.div 
                     key={offer.id} 
                     className="min-w-[280px] md:min-w-[340px] snap-center"
-                    whileHover={{ y: -8, scale: 1.02 }}
-                    transition={{ type: "spring", stiffness: 300 }}
+                    whileHover={{ y: -12, scale: 1.03 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   >
-                    <Card className="overflow-hidden border border-slate-100 shadow-xl rounded-[2rem] bg-white group flex flex-col h-full">
-                      {/* Image Container - Fully Responsive & No Cropping */}
-                      <div className="relative w-full overflow-hidden bg-slate-50">
+                    <Card className="overflow-hidden border-2 border-orange-100 shadow-2xl rounded-[2rem] bg-white group flex flex-col h-full hover:border-orange-300 transition-all">
+                      {/* Image Container - Balanced Aspect Ratio */}
+                      <div className="relative w-full overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50 aspect-[4/3]">
                         <img 
                           src={offer.imageUrl} 
                           alt={offer.title} 
-                          className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105" 
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                           style={{ display: 'block' }}
                         />
                         {/* Floating Timer Badge */}
-                        <div className="absolute top-3 right-3 z-10">
-                          <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-2 shadow-md border border-orange-100">
+                        <div className="absolute top-4 right-4 z-10">
+                          <motion.div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-full flex items-center gap-2 shadow-lg border border-orange-400 backdrop-blur-sm" whileHover={{ scale: 1.05 }}>
                             <CountdownTimer expiresAt={offer.expiresAt} />
-                          </div>
+                          </motion.div>
                         </div>
+                        {/* Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       </div>
 
                       {/* Content Section - Clear & Readable */}
-                      <div className="px-5 pt-2 pb-5 flex flex-col flex-grow space-y-3">
-                        <div className="space-y-1">
-                          <h4 className="text-lg font-black text-slate-900 leading-tight">{offer.title}</h4>
-                          <p className="text-xs font-bold text-slate-500 leading-relaxed line-clamp-2">
+                      <div className="px-6 pt-4 pb-6 flex flex-col flex-grow space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <h4 className="text-lg font-black text-slate-900 leading-tight flex-1">{offer.title}</h4>
+                            <motion.div className="bg-orange-100 p-2 rounded-lg" whileHover={{ scale: 1.1, rotate: 10 }}>
+                              <Zap className="h-5 w-5 text-orange-600 fill-orange-600" />
+                            </motion.div>
+                          </div>
+                          <p className="text-sm font-medium text-slate-600 leading-relaxed line-clamp-2">
                             {offer.description}
                           </p>
                         </div>
                         
-                        <div className="pt-2 mt-auto flex items-center justify-between gap-3">
+                        <motion.div className="pt-2 mt-auto" whileHover={{ scale: 1.02 }}>
                           <Button 
-                            className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl px-4 py-5 h-auto text-sm font-black shadow-lg shadow-orange-200 transition-all active:scale-95"
+                            className="w-full bg-gradient-to-r from-orange-500 via-orange-550 to-orange-600 hover:from-orange-600 hover:via-orange-600 hover:to-orange-700 text-white rounded-xl px-4 py-6 h-auto text-base font-black shadow-xl shadow-orange-300/50 transition-all active:scale-95 flex items-center justify-center gap-2"
                             onClick={() => setActiveTab("restaurants")}
                           >
+                            <Plus className="h-5 w-5" />
                             اطلب الآن من المطعم
-                            <Plus className="h-4 w-4 mr-2" />
                           </Button>
-                          
-                          <div className="bg-orange-50 p-2.5 rounded-xl border border-orange-100">
-                            <Zap className="h-5 w-5 text-orange-500 fill-orange-500" />
-                          </div>
-                        </div>
+                        </motion.div>
                       </div>
                     </Card>
                   </motion.div>
@@ -335,15 +342,15 @@ export default function CustomerDashboard() {
           {/* Orders Tabs */}
           <motion.div variants={itemVariants}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="bg-slate-100/50 p-1 rounded-2xl mb-8 w-full sm:w-auto">
-                <TabsTrigger value="active" className="rounded-xl px-8 py-3 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-orange-600 transition-all">
+              <TabsList className="bg-gradient-to-r from-slate-100 to-slate-50 p-1.5 rounded-2xl mb-8 w-full sm:w-auto border border-slate-200 shadow-sm">
+                <TabsTrigger value="active" className="rounded-xl px-8 py-3 font-black data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-orange-600 data-[state=active]:border-2 data-[state=active]:border-orange-200 transition-all">
                   الطلبات النشطة
-                  <Badge className="mr-2 bg-orange-100 text-orange-600 border-none">{activeOrders.length}</Badge>
+                  <Badge className="mr-2 bg-gradient-to-r from-orange-100 to-orange-50 text-orange-600 border-2 border-orange-200 font-black">{activeOrders.length}</Badge>
                 </TabsTrigger>
-                <TabsTrigger value="completed" className="rounded-xl px-8 py-3 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-emerald-600 transition-all">
+                <TabsTrigger value="completed" className="rounded-xl px-8 py-3 font-black data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-emerald-600 data-[state=active]:border-2 data-[state=active]:border-emerald-200 transition-all">
                   السجل
                 </TabsTrigger>
-                <TabsTrigger value="restaurants" className="rounded-xl px-8 py-3 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-red-600 transition-all">
+                <TabsTrigger value="restaurants" className="rounded-xl px-8 py-3 font-black data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-red-600 data-[state=active]:border-2 data-[state=active]:border-red-200 transition-all">
                   المطاعم
                 </TabsTrigger>
               </TabsList>
@@ -355,57 +362,62 @@ export default function CustomerDashboard() {
                       activeOrders.map((order, idx) => {
                         const status = getStatusInfo(order.status);
                         return (
-                          <motion.div key={order.id} variants={itemVariants} whileHover={{ scale: 1.02, y: -5 }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.1 }}>
-                            <Card className={`hover:shadow-lg transition-all border-l-4 rounded-xl overflow-hidden ${
-                              order.status === 'pending' ? 'border-amber-500 bg-gradient-to-br from-amber-50 to-white' :
-                              order.status === 'assigned' ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-white' :
-                              order.status === 'accepted' ? 'border-indigo-500 bg-gradient-to-br from-indigo-50 to-white' :
-                              order.status === 'in_transit' ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-white' :
-                              order.status === 'arrived' ? 'border-orange-500 bg-gradient-to-br from-orange-50 to-white' :
-                              'border-slate-300 bg-white'
+                          <motion.div key={order.id} variants={itemVariants} whileHover={{ scale: 1.03, y: -8 }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.1 }}>
+                            <Card className={`hover:shadow-2xl transition-all border-2 rounded-2xl overflow-hidden ${
+                              order.status === 'pending' ? 'border-amber-300 bg-gradient-to-br from-amber-50 via-white to-amber-50' :
+                              order.status === 'assigned' ? 'border-blue-300 bg-gradient-to-br from-blue-50 via-white to-blue-50' :
+                              order.status === 'accepted' ? 'border-indigo-300 bg-gradient-to-br from-indigo-50 via-white to-indigo-50' :
+                              order.status === 'in_transit' ? 'border-purple-300 bg-gradient-to-br from-purple-50 via-white to-purple-50' :
+                              order.status === 'arrived' ? 'border-orange-300 bg-gradient-to-br from-orange-50 via-white to-orange-50' :
+                              'border-slate-200 bg-white'
                             }`}>
-                              <CardContent className="p-4">
-                                <div className="flex flex-col md:flex-row justify-between gap-4">
-                                  <div className="flex-1 space-y-2">
+                              <CardContent className="p-6">
+                                <div className="flex flex-col md:flex-row justify-between gap-6">
+                                  <div className="flex-1 space-y-3">
                                     <div className="flex items-center justify-between md:justify-start gap-3">
-                                      <span className="text-xs font-black text-slate-900">طلب #{order.id}</span>
-                                      <Badge className={`${status.color} border-none font-bold px-2 py-0.5 rounded-full text-[9px] shadow-sm`}>{status.label}</Badge>
+                                      <span className="text-sm font-black text-slate-900 bg-slate-100 px-3 py-1 rounded-lg">طلب #{order.id}</span>
+                                      <Badge className={`${status.color} border-2 font-bold px-3 py-1 rounded-full text-xs shadow-md`}>{status.label}</Badge>
                                     </div>
-                                    <div className="space-y-1.5">
-                                      <div className="flex items-start gap-2">
-                                        <div className="h-1.5 w-1.5 rounded-full bg-orange-600 mt-1 flex-shrink-0" />
-                                        <p className="text-[11px] font-medium text-slate-600 line-clamp-1">{order.pickupLocation?.address}</p>
+                                    <div className="space-y-2.5">
+                                      <div className="flex items-start gap-3 bg-white/50 p-2.5 rounded-lg">
+                                        <div className="h-2 w-2 rounded-full bg-orange-600 mt-1.5 flex-shrink-0" />
+                                        <p className="text-sm font-medium text-slate-700 line-clamp-2">{order.pickupLocation?.address}</p>
                                       </div>
-                                      <div className="flex items-start gap-2">
-                                        <MapPin className="h-3 w-3 text-blue-600 flex-shrink-0 mt-0.5" />
-                                        <p className="text-[11px] font-medium text-slate-600 line-clamp-1">{order.deliveryLocation?.address}</p>
+                                      <div className="flex items-start gap-3 bg-white/50 p-2.5 rounded-lg">
+                                        <MapPin className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                                        <p className="text-sm font-medium text-slate-700 line-clamp-2">{order.deliveryLocation?.address}</p>
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-3 border-t md:border-t-0 pt-3 md:pt-0">
-                                    <div className="text-xl font-black text-slate-900">ج.م {order.price}</div>
-                                    <div className="flex items-center gap-2">
+                                  <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-4 border-t md:border-t-0 pt-4 md:pt-0 md:border-r md:pr-4">
+                                    <div className="text-2xl font-black text-slate-900 bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">ج.م {order.price}</div>
+                                    <div className="flex items-center gap-2 flex-wrap justify-end">
                                       {!["in_transit", "arrived", "delivered", "cancelled"].includes(order.status) && (
                                         <CancelOrderButton orderId={order.id} onSuccess={() => ordersQuery.refetch()} />
                                       )}
-                                      <Button variant="outline" size="sm" onClick={() => handleShowDetails(order.id)} className="h-8 rounded-lg font-bold text-[10px] border-orange-200 text-orange-600 hover:bg-orange-50 transition-all">التفاصيل</Button>
+                                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                        <Button variant="outline" size="sm" onClick={() => handleShowDetails(order.id)} className="h-9 rounded-lg font-bold text-xs border-2 border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300 transition-all">التفاصيل</Button>
+                                      </motion.div>
                                     </div>
                                   </div>
                                 </div>
                                 {(order.driver || order.driverId) && (
-                                  <motion.div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between bg-gradient-to-r from-orange-50 to-transparent p-3 rounded-lg" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-                                    <div className="flex items-center gap-2">
-                                      <motion.div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white font-bold" whileHover={{ scale: 1.1 }}>{order.driver?.name?.charAt(0) || 'S'}</motion.div>
-                                      <span className="text-xs font-bold text-slate-700">{order.driver?.name || "السائق"}</span>
+                                  <motion.div className="mt-5 pt-5 border-t-2 border-slate-200 flex items-center justify-between bg-gradient-to-r from-orange-50 via-white to-transparent p-4 rounded-xl" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+                                    <div className="flex items-center gap-3">
+                                      <motion.div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold shadow-md" whileHover={{ scale: 1.15, rotate: 5 }}>{order.driver?.name?.charAt(0) || 'S'}</motion.div>
+                                      <div>
+                                        <span className="text-sm font-black text-slate-900 block">{order.driver?.name || "السائق"}</span>
+                                        <span className="text-xs font-medium text-slate-500">سائق التوصيل</span>
+                                      </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                      <motion.button onClick={() => { setChatOrderId(order.id); setIsChatOpen(true); }} className="relative text-blue-600 bg-white border border-blue-200 p-2 rounded-lg hover:bg-blue-50 transition-all" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                                        <MessageCircle className="h-4 w-4" />
-                                        {unreadCounts[order.id] > 0 && <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full border-2 border-white animate-pulse" />}
+                                      <motion.button onClick={() => { setChatOrderId(order.id); setIsChatOpen(true); }} className="relative text-blue-600 bg-white border-2 border-blue-200 p-2.5 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-all shadow-sm" whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}>
+                                        <MessageCircle className="h-5 w-5" />
+                                        {unreadCounts[order.id] > 0 && <span className="absolute -top-2 -right-2 h-4 w-4 bg-red-500 rounded-full border-2 border-white animate-pulse text-white text-[10px] flex items-center justify-center font-bold">{unreadCounts[order.id]}</span>}
                                       </motion.button>
                                       {(order.driver?.phone || order.driverPhone) && (
-                                        <motion.a href={`tel:${order.driver?.phone || order.driverPhone}`} className="text-orange-600 bg-white border border-orange-200 p-2 rounded-lg hover:bg-orange-50 transition-all" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                                          <Phone className="h-4 w-4" />
+                                        <motion.a href={`tel:${order.driver?.phone || order.driverPhone}`} className="text-orange-600 bg-white border-2 border-orange-200 p-2.5 rounded-lg hover:bg-orange-50 hover:border-orange-300 transition-all shadow-sm" whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}>
+                                          <Phone className="h-5 w-5" />
                                         </motion.a>
                                       )}
                                     </div>
