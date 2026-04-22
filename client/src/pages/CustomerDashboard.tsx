@@ -177,52 +177,64 @@ export default function CustomerDashboard() {
         {/* Horizontal Offers Section */}
         {activeOffers.length > 0 && (
           <div className="mb-10">
-            <div className="flex items-center justify-between mb-5 px-1">
-              <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-orange-500 fill-orange-500" />
+            <div className="flex items-center justify-between mb-6 px-1">
+              <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                <Sparkles className="h-6 w-6 text-orange-500 fill-orange-500" />
                 عروض حصرية لك
               </h3>
-              <Badge variant="secondary" className="bg-orange-50 text-orange-600 border-none font-bold text-[10px] px-3 py-1 rounded-full animate-pulse">
+              <Badge variant="secondary" className="bg-orange-50 text-orange-600 border-none font-bold text-xs px-4 py-1.5 rounded-full animate-pulse">
                 لفترة محدودة
               </Badge>
             </div>
             
-            <div className="flex gap-5 overflow-x-auto pb-6 scrollbar-hide snap-x">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {activeOffers.map((offer) => (
-                <motion.div key={offer.id} className="min-w-[340px] snap-center">
-                  <Card className="overflow-hidden border-none shadow-xl shadow-slate-200/50 rounded-[2rem] bg-white flex h-48 group cursor-pointer relative">
-                    <div className="w-[40%] relative overflow-hidden">
+                <motion.div 
+                  key={offer.id} 
+                  whileHover={{ y: -4 }}
+                  className="group cursor-pointer"
+                >
+                  <Card className="overflow-hidden border-none shadow-lg hover:shadow-2xl transition-all duration-300 rounded-2xl bg-white flex flex-col h-full">
+                    {/* Image Container */}
+                    <div className="relative overflow-hidden bg-slate-100 h-40 sm:h-48">
                       <img 
                         src={offer.imageUrl} 
                         alt={offer.title} 
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22300%22/%3E%3C/svg%3E';
+                        }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                      <div className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-md text-orange-600 px-2 py-0.5 rounded-lg text-[9px] font-black shadow-lg flex items-center gap-1">
-                        <Timer className="h-2.5 w-2.5" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                      {/* Timer Badge */}
+                      <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md text-orange-600 px-3 py-1.5 rounded-lg text-xs font-black shadow-lg flex items-center gap-1.5">
+                        <Timer className="h-3.5 w-3.5" />
                         <CountdownTimer expiresAt={offer.expiresAt} />
                       </div>
                     </div>
-                    <div className="w-[60%] p-4 flex flex-col justify-between bg-white">
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-1.5">
-                          <div className="h-1.5 w-1.5 rounded-full bg-orange-500" />
-                          <h4 className="text-sm font-black text-slate-900 line-clamp-1 leading-tight">{offer.title}</h4>
-                        </div>
-                        <p className="text-[10px] font-bold text-slate-400 line-clamp-2 leading-relaxed">
+                    
+                    {/* Content Container */}
+                    <div className="p-4 flex flex-col justify-between flex-1">
+                      <div className="space-y-2 mb-4">
+                        <h4 className="text-base font-black text-slate-900 line-clamp-2 leading-tight">
+                          {offer.title}
+                        </h4>
+                        <p className="text-sm font-medium text-slate-500 line-clamp-2 leading-relaxed">
                           {offer.description}
                         </p>
                       </div>
+                      
+                      {/* Action Buttons */}
                       <div className="flex items-center gap-2 pt-2">
                         <Button 
                           size="sm" 
-                          className="flex-1 bg-orange-500 text-white hover:bg-orange-600 border-none shadow-md shadow-orange-100 h-8 text-[10px] font-black rounded-xl transition-all active:scale-95"
+                          className="flex-1 bg-orange-500 text-white hover:bg-orange-600 border-none shadow-md shadow-orange-100 h-10 font-bold rounded-xl transition-all active:scale-95"
                           onClick={() => setActiveTab("restaurants")}
                         >
                           اطلب الآن
                         </Button>
-                        <div className="bg-slate-50 p-2 rounded-xl border border-slate-100 text-slate-400 hover:text-orange-500 transition-colors">
-                          <Info className="h-3.5 w-3.5" />
+                        <div className="bg-slate-100 p-2.5 rounded-xl border border-slate-200 text-slate-400 hover:text-orange-500 hover:bg-orange-50 transition-all">
+                          <Info className="h-4 w-4" />
                         </div>
                       </div>
                     </div>
