@@ -122,15 +122,12 @@ export default function CustomerDashboard() {
     <div className="min-h-screen bg-[#F8F9FB] text-slate-900 font-sans pb-10" dir="rtl">
       {/* Modern Header */}
       <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-slate-100">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-orange-500 p-1 rounded-xl shadow-lg shadow-orange-200 overflow-hidden">
-              <img src="/logo.jpg" alt="وصلي" className="h-8 w-8 object-cover" />
-            </div>
-            <span className="text-xl font-black tracking-tight text-slate-900">وصلي</span>
-          </div>
-
-          <div className="flex items-center gap-2">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-be	          <div className="flex items-center gap-3">
+	            <div className="overflow-hidden">
+	              <img src="/logo.jpg" alt="وصلي" className="h-10 w-10 object-contain" />
+	            </div>
+	            <span className="text-xl font-black tracking-tight text-slate-900">وصلي</span>
+	          </div>div className="flex items-center gap-2">
             <Link href="/customer/stats">
               <Button variant="ghost" size="icon" className="rounded-xl hover:bg-slate-100">
                 <BarChart3 className="h-5 w-5 text-slate-600" />
