@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Plus, User, Truck, Clock, X, Phone, ChevronRight, Package, MessageCircle, BarChart3, Zap, Timer, ChevronLeft } from "lucide-react";
+import { MapPin, Plus, User, Truck, Clock, X, Phone, ChevronRight, Package, MessageCircle, BarChart3, Zap, Timer, ChevronLeft, Info } from "lucide-react";
 import { CountdownTimer } from "@/components/customer/CountdownTimer";
+import { RestaurantMenu } from "@/components/customer/RestaurantMenu";
 import { Link, useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { useChatContext } from "@/contexts/ChatContext";
@@ -51,7 +52,6 @@ export default function CustomerDashboard() {
   const [, navigate] = useLocation();
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("active");
   const { unreadCounts } = useChatContext();
 
@@ -98,7 +98,7 @@ export default function CustomerDashboard() {
   const completedOrders = orders.filter((o) => ["delivered", "cancelled"].includes(o.status));
 
   return (
-    <div className="min-h-screen bg-[#F8F9FB] text-slate-900 font-sans pb-24" dir="rtl">
+    <div className="min-h-screen bg-[#F8F9FB] text-slate-900 font-sans pb-10" dir="rtl">
       {/* Modern Header */}
       <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-slate-100">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -168,26 +168,31 @@ export default function CustomerDashboard() {
             
             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x">
               {activeOffers.map((offer) => (
-                <motion.div key={offer.id} className="min-w-[300px] snap-center">
-                  <Card className="overflow-hidden border-none shadow-md rounded-2xl bg-white flex h-32">
-                    <div className="w-1/3 relative">
+                <motion.div key={offer.id} className="min-w-[320px] snap-center">
+                  <Card className="overflow-hidden border-none shadow-md rounded-2xl bg-white flex h-40">
+                    <div className="w-2/5 relative">
                       <img src={offer.imageUrl} alt={offer.title} className="w-full h-full object-cover" />
-                      <div className="absolute top-2 right-2 bg-black/50 backdrop-blur-sm text-white px-2 py-0.5 rounded-md text-[9px] font-bold">
+                      <div className="absolute top-2 right-2 bg-orange-600/90 backdrop-blur-sm text-white px-2 py-1 rounded-lg text-[10px] font-bold shadow-lg">
                         <CountdownTimer expiresAt={offer.expiresAt} />
                       </div>
                     </div>
-                    <div className="w-2/3 p-3 flex flex-col justify-between">
-                      <div>
-                        <h4 className="text-sm font-black text-slate-900 line-clamp-1 mb-1">{offer.title}</h4>
-                        <p className="text-[10px] font-medium text-slate-500 line-clamp-2 leading-relaxed">{offer.description}</p>
+                    <div className="w-3/5 p-4 flex flex-col justify-between">
+                      <div className="space-y-1">
+                        <h4 className="text-base font-black text-slate-900 line-clamp-1">{offer.title}</h4>
+                        <p className="text-xs font-medium text-slate-500 line-clamp-3 leading-relaxed">{offer.description}</p>
                       </div>
-                      <Button 
-                        size="sm" 
-                        className="w-full bg-orange-50 text-orange-600 hover:bg-orange-100 border-none shadow-none h-7 text-[10px] font-black rounded-lg"
-                        onClick={() => setActiveTab("restaurants")}
-                      >
-                        اطلب الآن
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          size="sm" 
+                          className="flex-1 bg-orange-500 text-white hover:bg-orange-600 border-none shadow-md h-8 text-xs font-black rounded-xl"
+                          onClick={() => setActiveTab("restaurants")}
+                        >
+                          اطلب الآن
+                        </Button>
+                        <div className="bg-slate-50 p-2 rounded-xl border border-slate-100">
+                          <Info className="h-4 w-4 text-slate-400" />
+                        </div>
+                      </div>
                     </div>
                   </Card>
                 </motion.div>
@@ -274,33 +279,41 @@ export default function CustomerDashboard() {
           </TabsContent>
 
           <TabsContent value="completed">
-            {/* Similar structure for completed orders but simplified */}
-            <div className="text-center py-12 text-slate-400 font-bold">سجل الطلبات فارغ</div>
+            <div className="space-y-4">
+              {completedOrders.length > 0 ? (
+                completedOrders.map((order) => {
+                  const status = getStatusInfo(order.status);
+                  return (
+                    <Card key={order.id} className="border-none shadow-sm rounded-2xl bg-white opacity-80">
+                      <CardContent className="p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`${status.bgColor} p-2 rounded-xl`}>
+                            <Package className={`h-4 w-4 ${status.color}`} />
+                          </div>
+                          <div>
+                            <span className="text-xs font-black text-slate-900 block">طلب #{order.id}</span>
+                            <span className="text-[10px] font-bold text-slate-400">{new Date(order.createdAt).toLocaleDateString('ar-EG')}</span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-black text-slate-900">ج.م {order.price}</div>
+                          <span className={`text-[10px] font-bold ${status.color}`}>{status.label}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              ) : (
+                <div className="text-center py-12 text-slate-400 font-bold">سجل الطلبات فارغ</div>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="restaurants">
-            <div className="text-center py-12 text-slate-400 font-bold">قريباً: اطلب من مطاعمك المفضلة</div>
+            <RestaurantMenu />
           </TabsContent>
         </Tabs>
       </main>
-
-      {/* Modern Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-slate-100 px-6 py-3 flex justify-between items-center z-50">
-        <div className="flex flex-col items-center gap-1 text-orange-600">
-          <div className="bg-orange-50 p-2 rounded-xl">
-            <Package className="h-6 w-6" />
-          </div>
-          <span className="text-[10px] font-black">الرئيسية</span>
-        </div>
-        <div className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 transition-colors">
-          <MessageCircle className="h-6 w-6" />
-          <span className="text-[10px] font-bold">المحادثات</span>
-        </div>
-        <div className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 transition-colors">
-          <User className="h-6 w-6" />
-          <span className="text-[10px] font-bold">حسابي</span>
-        </div>
-      </nav>
     </div>
   );
 }
