@@ -418,7 +418,7 @@ export default function CustomerDashboard() {
             </div>
           </div>
 
-          <div className="p-8 space-y-8">
+          <div className="p-6 space-y-6">
             {orderDetailsQuery.isLoading ? (
               <div className="flex flex-col items-center justify-center py-12 gap-4">
                 <Loader2 className="h-10 w-10 text-orange-500 animate-spin" />
@@ -426,63 +426,67 @@ export default function CustomerDashboard() {
               </div>
             ) : orderDetailsQuery.data ? (
               <>
-                <div className="space-y-6 relative">
-                  <div className="absolute right-[7px] top-3 bottom-3 w-0.5 bg-slate-100" />
-                  <div className="flex items-start gap-5 relative z-10">
-                    <div className="h-4 w-4 rounded-full border-4 border-white bg-slate-300 shadow-md mt-1" />
-                    <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">نقطة الاستلام</p>
-                      <p className="text-sm font-black text-slate-700 leading-relaxed">{orderDetailsQuery.data.pickupLocation?.address}</p>
+                {/* Driver Info Section - Priority Visibility */}
+                {orderDetailsQuery.data.driver ? (
+                  <div className="flex items-center justify-between p-4 bg-orange-50 border border-orange-100 rounded-[1.5rem] shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 rounded-2xl bg-orange-500 flex items-center justify-center text-white font-black text-lg shadow-md">
+                        {orderDetailsQuery.data.driver.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-slate-900">{orderDetailsQuery.data.driver.name}</p>
+                        <p className="text-[10px] font-black text-orange-600">كابتن وصلي</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <a href={`tel:${orderDetailsQuery.data.driver.phone}`} className="bg-white p-2.5 rounded-xl text-orange-500 shadow-sm border border-orange-100 hover:bg-orange-500 hover:text-white transition-all active:scale-90">
+                        <Phone className="h-5 w-5" />
+                      </a>
+                      <div 
+                        onClick={() => { setIsDetailsOpen(false); handleOpenChat(selectedOrderId!); }}
+                        className="bg-white p-2.5 rounded-xl text-blue-500 shadow-sm border border-blue-100 hover:bg-blue-500 hover:text-white transition-all active:scale-90 cursor-pointer"
+                      >
+                        <MessageCircle className="h-5 w-5" />
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-start gap-5 relative z-10">
-                    <div className="h-4 w-4 rounded-full border-4 border-white bg-orange-500 shadow-md mt-1" />
+                ) : (
+                  <div className="p-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-center">
+                    <p className="text-xs font-bold text-slate-400">جاري البحث عن كابتن لتوصيل طلبك...</p>
+                  </div>
+                )}
+
+                <div className="space-y-5 relative px-2">
+                  <div className="absolute right-[15px] top-3 bottom-3 w-0.5 bg-slate-100" />
+                  <div className="flex items-start gap-4 relative z-10">
+                    <div className="h-4 w-4 rounded-full border-4 border-white bg-slate-300 shadow-sm mt-1" />
                     <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">وجهة التوصيل</p>
-                      <p className="text-sm font-black text-slate-700 leading-relaxed">{orderDetailsQuery.data.deliveryLocation?.address}</p>
+                      <p className="text-[9px] font-black text-slate-400 uppercase mb-0.5">نقطة الاستلام</p>
+                      <p className="text-xs font-black text-slate-700 leading-snug">{orderDetailsQuery.data.pickupLocation?.address}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-4 relative z-10">
+                    <div className="h-4 w-4 rounded-full border-4 border-white bg-orange-500 shadow-sm mt-1" />
+                    <div>
+                      <p className="text-[9px] font-black text-slate-400 uppercase mb-0.5">وجهة التوصيل</p>
+                      <p className="text-xs font-black text-slate-700 leading-snug">{orderDetailsQuery.data.deliveryLocation?.address}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-slate-50 p-6 rounded-[2rem] space-y-4 border border-slate-100">
+                <div className="bg-slate-50 p-5 rounded-[1.5rem] space-y-3 border border-slate-100">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-black text-slate-400">تكلفة التوصيل</span>
-                    <span className="text-2xl font-black text-orange-600">ج.م {orderDetailsQuery.data.price}</span>
+                    <span className="text-xs font-black text-slate-400">تكلفة التوصيل</span>
+                    <span className="text-xl font-black text-orange-600">ج.م {orderDetailsQuery.data.price}</span>
                   </div>
                   {orderDetailsQuery.data.description && (
-                    <div className="pt-4 border-t border-slate-200">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">ملاحظات العميل</p>
-                      <p className="text-sm font-bold text-slate-600 bg-white p-3 rounded-xl border border-slate-100 italic">
+                    <div className="pt-3 border-t border-slate-200">
+                      <p className="text-xs font-bold text-slate-500 italic">
                         "{orderDetailsQuery.data.description}"
                       </p>
                     </div>
                   )}
                 </div>
-
-                {orderDetailsQuery.data.driver && (
-                  <div className="flex items-center justify-between p-5 bg-orange-50/50 border-2 border-orange-100 rounded-[2rem]">
-                    <div className="flex items-center gap-4">
-                      <div className="h-14 w-14 rounded-[1.25rem] bg-orange-500 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-orange-200">
-                        {orderDetailsQuery.data.driver.name.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="text-base font-black text-slate-900">{orderDetailsQuery.data.driver.name}</p>
-                        <p className="text-xs font-black text-orange-600">كابتن وصلي</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <a href={`tel:${orderDetailsQuery.data.driver.phone}`} className="bg-white p-3.5 rounded-2xl text-orange-500 shadow-sm border border-orange-100 hover:bg-orange-500 hover:text-white transition-all active:scale-90">
-                        <Phone className="h-6 w-6" />
-                      </a>
-                      <div 
-                        onClick={() => { setIsDetailsOpen(false); handleOpenChat(selectedOrderId!); }}
-                        className="bg-white p-3.5 rounded-2xl text-blue-500 shadow-sm border border-blue-100 hover:bg-blue-500 hover:text-white transition-all active:scale-90 cursor-pointer"
-                      >
-                        <MessageCircle className="h-6 w-6" />
-                      </div>
-                    </div>
-                  </div>
-                )}
               </>
             ) : (
               <div className="text-center py-10">
