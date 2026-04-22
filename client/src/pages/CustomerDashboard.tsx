@@ -206,18 +206,16 @@ export default function CustomerDashboard() {
                       />
                     </div>
                     
-                    {/* Timer Badge - Moved Outside the Image for better visibility */}
-                    <div className="px-5 pt-3">
-                      <div className="bg-orange-50 text-orange-600 px-3 py-1.5 rounded-xl text-[10px] font-black flex items-center gap-1.5 w-fit border border-orange-100">
-                        <Timer className="h-3 w-3" />
-                        <span className="ml-1">ينتهي خلال:</span>
-                        <CountdownTimer expiresAt={offer.expiresAt} />
-                      </div>
-                    </div>
-                    
                     {/* Content Container */}
                     <div className="p-5 flex flex-col justify-between flex-1">
-                      <div className="space-y-1.5 mb-4">
+                      <div className="space-y-2 mb-4">
+                        {/* Timer Badge - Professional Placement Between Image and Title */}
+                        <div className="bg-orange-50 text-orange-600 px-3 py-1.5 rounded-xl text-[10px] font-black flex items-center gap-1.5 w-fit border border-orange-100 mb-2">
+                          <Timer className="h-3 w-3" />
+                          <span>ينتهي خلال:</span>
+                          <CountdownTimer expiresAt={offer.expiresAt} />
+                        </div>
+                        
                         <h4 className="text-sm font-black text-slate-900 line-clamp-1">
                           {offer.title}
                         </h4>
