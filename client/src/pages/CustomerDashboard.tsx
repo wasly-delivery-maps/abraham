@@ -287,11 +287,11 @@ export default function CustomerDashboard() {
                   >
                     <Card className="overflow-hidden border border-slate-100 shadow-xl rounded-[2rem] bg-white group flex flex-col h-full">
                       {/* Image Container - Full Visibility */}
-                      <div className="relative aspect-video overflow-hidden bg-slate-50">
+                      <div className="relative aspect-video overflow-hidden bg-white flex items-center justify-center">
                         <img 
                           src={offer.imageUrl} 
                           alt={offer.title} 
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                          className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" 
                         />
                         {/* Floating Timer Badge */}
                         <div className="absolute top-3 right-3">
