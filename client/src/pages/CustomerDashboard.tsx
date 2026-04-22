@@ -383,7 +383,7 @@ export default function CustomerDashboard() {
 
       {/* Order Details Dialog */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl" dir="rtl">
+        <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white" dir="rtl">
           <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-8 text-white relative">
             <div className="flex justify-between items-start mb-6">
               <div>
@@ -405,7 +405,7 @@ export default function CustomerDashboard() {
             </div>
           </div>
 
-          <div className="p-8 space-y-8 bg-white">
+          <div className="p-8 space-y-8">
             {orderDetailsQuery.isLoading ? (
               <div className="flex flex-col items-center justify-center py-12 gap-4">
                 <Loader2 className="h-10 w-10 text-orange-500 animate-spin" />
