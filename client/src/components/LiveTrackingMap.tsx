@@ -107,7 +107,21 @@ export function LiveTrackingMap({
   }, [isConnected, orderId, driverId, trackDriver, stopTracking]);
 
   const liveDriverLocation = driverLocations.get(driverId);
-  const driverLocation = liveDriverLocation || initialDriverLocation;
+  
+  // Fetch driver location from database as a fallback if live location is not available
+  const driverQuery = trpc.users.getUser.useQuery(
+    { id: driverId },
+    { 
+      enabled: !!driverId && !liveDriverLocation,
+      refetchInterval: 10000 // Poll every 10 seconds if socket fails
+    }
+  );
+
+  const dbDriverLocation = driverQuery.data?.latitude && driverQuery.data?.longitude 
+    ? { latitude: driverQuery.data.latitude, longitude: driverQuery.data.longitude }
+    : null;
+
+  const driverLocation = liveDriverLocation || dbDriverLocation || initialDriverLocation;
 
   const bounds = useMemo(() => {
     const points: [number, number][] = [
