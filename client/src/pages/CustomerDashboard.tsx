@@ -388,10 +388,10 @@ export default function CustomerDashboard() {
         </Tabs>
       </main>
 
-      {/* Order Details Dialog */}
+      {/* Order Details Dialog - Full width on Mobile */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white [&>button]:hidden" dir="rtl">
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-8 text-white relative">
+        <DialogContent className="max-w-md w-[95vw] sm:w-full rounded-[2rem] sm:rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white [&>button]:hidden" dir="rtl">
+          <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-6 sm:p-8 text-white relative">
             <div className="flex justify-between items-start mb-6">
               <div>
                 <DialogTitle className="text-2xl font-black mb-2">تفاصيل الطلب #{selectedOrderId}</DialogTitle>
