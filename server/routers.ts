@@ -407,6 +407,23 @@ export const appRouter = router({
         isActive: d.isActive,
       }));
     }),
+    
+    // Get specific user by ID
+    getUser: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const user = await db.getUserById(input.id);
+        if (!user) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+        }
+        return {
+          id: user.id,
+          name: user.name,
+          phone: user.phone,
+          latitude: user.latitude ? parseFloat(user.latitude.toString()) : null,
+          longitude: user.longitude ? parseFloat(user.longitude.toString()) : null,
+        };
+      }),
   }),
 
   /**

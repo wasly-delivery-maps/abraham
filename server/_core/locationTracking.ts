@@ -73,13 +73,23 @@ export function setupLocationTracking(io: SocketIOServer) {
 
         // Update database
         const db = await getDb();
+        let finalOrderId = orderId;
+        
         if (db) {
+          // If orderId is not provided, try to find the active order for this driver
+          if (!finalOrderId) {
+            const availability = await db.getDriverAvailability(driverId);
+            if (availability && availability.currentOrderId) {
+              finalOrderId = availability.currentOrderId;
+            }
+          }
+
           await db
             .update(driversAvailability)
             .set({
               latitude: latitude.toString(),
               longitude: longitude.toString(),
-              currentOrderId: orderId || null,
+              currentOrderId: finalOrderId || null,
               updatedAt: new Date(),
             })
             .where(eq(driversAvailability.driverId, driverId));
@@ -91,19 +101,20 @@ export function setupLocationTracking(io: SocketIOServer) {
           latitude,
           longitude,
           isAvailable: true,
-          currentOrderId: orderId,
+          currentOrderId: finalOrderId,
           updatedAt: new Date(),
         };
 
         // Broadcast to all clients tracking this driver
-        if (orderId) {
-          io.to(`order:${orderId}`).emit("driver:location-updated", locationData);
+        if (finalOrderId) {
+          io.to(`order:${finalOrderId}`).emit("driver:location-updated", locationData);
         }
 
-        // Also broadcast to admin dashboard
+        // Also broadcast to specific driver room and admin dashboard
+        io.to(`driver:${driverId}`).emit("driver:location-updated", locationData);
         io.to("admin:dashboard").emit("driver:location-updated", locationData);
 
-        console.log(`[Location] Driver ${driverId} location updated: ${latitude}, ${longitude}`);
+        console.log(`[Location] Driver ${driverId} location updated: ${latitude}, ${longitude} for order ${finalOrderId}`);
       } catch (error) {
         console.error("[Location] Error updating location:", error);
         socket.emit("error", { message: "Failed to update location" });
