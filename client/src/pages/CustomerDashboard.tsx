@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { MapPin, Plus, User, Truck, Clock, X, Phone, ChevronRight, Package, MessageCircle, BarChart3, Zap, Timer, ChevronLeft, Info, Loader2, Sparkles } from "lucide-react";
+import { MapPin, Plus, User, Truck, Clock, X, Phone, ChevronRight, Package, MessageCircle, BarChart3, Zap, Timer, ChevronLeft, Info, Loader2, Sparkles, Map } from "lucide-react";
 import { CountdownTimer } from "@/components/customer/CountdownTimer";
 import { RestaurantMenu } from "@/components/customer/RestaurantMenu";
 import { Link, useLocation } from "wouter";
@@ -449,16 +449,22 @@ export default function CustomerDashboard() {
                     </div>
                     <div className="flex gap-2">
                       {orderDetailsQuery.data.driver?.phone && (
-                        <a href={`tel:${orderDetailsQuery.data.driver.phone}`} className="bg-white p-2.5 rounded-xl text-orange-500 shadow-sm border border-orange-100 hover:bg-orange-500 hover:text-white transition-all active:scale-90">
+                        <a href={`tel:${orderDetailsQuery.data.driver.phone}`} className="bg-white p-2.5 rounded-xl text-orange-500 shadow-sm border border-orange-100 hover:bg-orange-500 hover:text-white transition-all active:scale-90" title="اتصال">
                           <Phone className="h-5 w-5" />
                         </a>
                       )}
                       <div 
                         onClick={() => { setIsDetailsOpen(false); handleOpenChat(selectedOrderId!); }}
                         className="bg-white p-2.5 rounded-xl text-blue-500 shadow-sm border border-blue-100 hover:bg-blue-500 hover:text-white transition-all active:scale-90 cursor-pointer"
+                        title="دردشة"
                       >
                         <MessageCircle className="h-5 w-5" />
                       </div>
+                      <Link href={`/customer/track/${selectedOrderId}`}>
+                        <div className="bg-white p-2.5 rounded-xl text-emerald-500 shadow-sm border border-emerald-100 hover:bg-emerald-500 hover:text-white transition-all active:scale-90 cursor-pointer" title="تتبع المندوب">
+                          <Map className="h-5 w-5" />
+                        </div>
+                      </Link>
                     </div>
                   </div>
                 ) : (
