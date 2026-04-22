@@ -180,38 +180,38 @@ export default function CustomerDashboard() {
               {activeOffers.map((offer) => (
                 <motion.div key={offer.id} className="min-w-[340px] snap-center">
                   <Card className="overflow-hidden border-none shadow-xl shadow-slate-200/50 rounded-[2rem] bg-white flex h-48 group cursor-pointer relative">
-                    <div className="w-[42%] relative overflow-hidden">
+                    <div className="w-[40%] relative overflow-hidden">
                       <img 
                         src={offer.imageUrl} 
                         alt={offer.title} 
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                      <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md text-orange-600 px-2.5 py-1 rounded-xl text-[10px] font-black shadow-lg flex items-center gap-1">
-                        <Timer className="h-3 w-3" />
+                      <div className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-md text-orange-600 px-2 py-0.5 rounded-lg text-[9px] font-black shadow-lg flex items-center gap-1">
+                        <Timer className="h-2.5 w-2.5" />
                         <CountdownTimer expiresAt={offer.expiresAt} />
                       </div>
                     </div>
-                    <div className="w-[58%] p-5 flex flex-col justify-between bg-white">
-                      <div className="space-y-2">
+                    <div className="w-[60%] p-4 flex flex-col justify-between bg-white">
+                      <div className="space-y-1.5">
                         <div className="flex items-center gap-1.5">
                           <div className="h-1.5 w-1.5 rounded-full bg-orange-500" />
-                          <h4 className="text-base font-black text-slate-900 line-clamp-1 leading-tight">{offer.title}</h4>
+                          <h4 className="text-sm font-black text-slate-900 line-clamp-1 leading-tight">{offer.title}</h4>
                         </div>
-                        <p className="text-xs font-bold text-slate-400 line-clamp-3 leading-relaxed">
+                        <p className="text-[10px] font-bold text-slate-400 line-clamp-2 leading-relaxed">
                           {offer.description}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 pt-2">
                         <Button 
                           size="sm" 
-                          className="flex-1 bg-orange-500 text-white hover:bg-orange-600 border-none shadow-lg shadow-orange-100 h-10 text-xs font-black rounded-2xl transition-all active:scale-95"
+                          className="flex-1 bg-orange-500 text-white hover:bg-orange-600 border-none shadow-md shadow-orange-100 h-8 text-[10px] font-black rounded-xl transition-all active:scale-95"
                           onClick={() => setActiveTab("restaurants")}
                         >
-                          استفد بالعرض
+                          اطلب الآن
                         </Button>
-                        <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-100 text-slate-400 hover:text-orange-500 transition-colors">
-                          <Info className="h-4 w-4" />
+                        <div className="bg-slate-50 p-2 rounded-xl border border-slate-100 text-slate-400 hover:text-orange-500 transition-colors">
+                          <Info className="h-3.5 w-3.5" />
                         </div>
                       </div>
                     </div>
