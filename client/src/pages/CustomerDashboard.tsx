@@ -390,7 +390,7 @@ export default function CustomerDashboard() {
 
       {/* Order Details Dialog - Full width on Mobile */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-md w-[95vw] sm:w-full rounded-[2rem] sm:rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white [&>button]:hidden" dir="rtl">
+        <DialogContent className="max-w-md w-[95vw] sm:w-full rounded-[2rem] sm:rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white z-[9999]" dir="rtl">
           <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-6 sm:p-8 text-white relative">
             <div className="flex justify-between items-start mb-6">
               <div>
@@ -404,14 +404,13 @@ export default function CustomerDashboard() {
                 )}
               </div>
               {/* Custom Close Button - Professional Positioning */}
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <button 
                 onClick={() => setIsDetailsOpen(false)} 
-                className="text-white hover:bg-white/20 rounded-2xl h-10 w-10 shrink-0"
+                className="text-white hover:bg-white/20 rounded-2xl h-10 w-10 shrink-0 flex items-center justify-center transition-colors z-[10000]"
+                aria-label="Close"
               >
                 <X className="h-6 w-6" />
-              </Button>
+              </button>
             </div>
             <div className="absolute -left-6 -bottom-6 opacity-10">
               <Package className="h-32 w-32" />
