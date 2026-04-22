@@ -98,6 +98,7 @@ export default function CustomerDashboard() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatOrderId, setChatOrderId] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState("active");
   const { unreadCounts } = useChatContext();
 
   const ordersQuery = trpc.orders.getCustomerOrders.useQuery(undefined, {
@@ -312,13 +313,7 @@ export default function CustomerDashboard() {
                         <div className="pt-2 mt-auto flex items-center justify-between gap-3">
                           <Button 
                             className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl px-4 py-5 h-auto text-sm font-black shadow-lg shadow-orange-200 transition-all active:scale-95"
-                            onClick={() => {
-                              // البحث عن زر تبويب المطاعم والضغط عليه للتوجه لقسم المطاعم
-                              const restaurantsTab = document.querySelector('[value="restaurants"]') as HTMLButtonElement;
-                              if (restaurantsTab) {
-                                restaurantsTab.click();
-                              }
-                            }}
+                            onClick={() => setActiveTab("restaurants")}
                           >
                             اطلب الآن من المطعم
                             <Plus className="h-4 w-4 mr-2" />
@@ -338,7 +333,7 @@ export default function CustomerDashboard() {
 
           {/* Orders Tabs */}
           <motion.div variants={itemVariants}>
-            <Tabs defaultValue="active" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="bg-slate-100/50 p-1 rounded-2xl mb-8 w-full sm:w-auto">
                 <TabsTrigger value="active" className="rounded-xl px-8 py-3 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-orange-600 transition-all">
                   الطلبات النشطة
