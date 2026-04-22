@@ -255,6 +255,8 @@ export default function CustomerDashboard() {
               activeOrders.map((order) => {
                 const status = getStatusInfo(order.status);
                 const unreadCount = unreadCounts[order.id] || 0;
+                const orderNotes = order.notes || order.description;
+
                 return (
                   <motion.div key={order.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                     <Card className="border-none shadow-sm hover:shadow-md transition-all rounded-[2rem] bg-white overflow-hidden group">
@@ -282,11 +284,14 @@ export default function CustomerDashboard() {
                           </div>
                         </div>
 
-                        {/* Order Description (Notes) for Customer List */}
-                        {order.description && (
-                          <div className="mb-4 bg-slate-50/50 p-3 rounded-xl border border-slate-100/50">
-                            <p className="text-[10px] font-bold text-slate-400 mb-1">ملاحظات الطلب:</p>
-                            <p className="text-[11px] font-bold text-slate-600 italic line-clamp-1">"{order.description}"</p>
+                        {/* Order Notes for Customer List */}
+                        {orderNotes && (
+                          <div className="mb-4 bg-orange-50/50 p-3 rounded-xl border border-orange-100/50">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Info className="h-3 w-3 text-orange-500" />
+                              <p className="text-[10px] font-bold text-orange-600">ملاحظات الطلب:</p>
+                            </div>
+                            <p className="text-[11px] font-bold text-slate-600 italic line-clamp-2 leading-relaxed">"{orderNotes}"</p>
                           </div>
                         )}
 
@@ -485,11 +490,11 @@ export default function CustomerDashboard() {
                     <span className="text-xs font-black text-slate-400">تكلفة التوصيل</span>
                     <span className="text-xl font-black text-orange-600">ج.م {orderDetailsQuery.data.price}</span>
                   </div>
-                  {orderDetailsQuery.data.description && (
+                  {(orderDetailsQuery.data.notes || orderDetailsQuery.data.description) && (
                     <div className="pt-3 border-t border-slate-200">
                       <p className="text-[10px] font-black text-slate-400 uppercase mb-1">ملاحظات العميل:</p>
                       <p className="text-xs font-bold text-slate-600 italic bg-white p-3 rounded-xl border border-slate-100">
-                        "{orderDetailsQuery.data.description}"
+                        "{orderDetailsQuery.data.notes || orderDetailsQuery.data.description}"
                       </p>
                     </div>
                   )}
