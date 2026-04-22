@@ -286,15 +286,16 @@ export default function CustomerDashboard() {
                     transition={{ type: "spring", stiffness: 300 }}
                   >
                     <Card className="overflow-hidden border border-slate-100 shadow-xl rounded-[2rem] bg-white group flex flex-col h-full">
-                      {/* Image Container - Full Visibility */}
-                      <div className="relative aspect-video overflow-hidden bg-white flex items-center justify-center">
+                      {/* Image Container - Fully Responsive & No Cropping */}
+                      <div className="relative w-full overflow-hidden bg-slate-50">
                         <img 
                           src={offer.imageUrl} 
                           alt={offer.title} 
-                          className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" 
+                          className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105" 
+                          style={{ display: 'block' }}
                         />
                         {/* Floating Timer Badge */}
-                        <div className="absolute top-3 right-3">
+                        <div className="absolute top-3 right-3 z-10">
                           <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-2 shadow-md border border-orange-100">
                             <CountdownTimer expiresAt={offer.expiresAt} />
                           </div>
