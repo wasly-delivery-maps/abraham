@@ -163,7 +163,7 @@ export default function CustomerDashboard() {
           </motion.div>
         </Link>
 
-        {/* Horizontal Offers Section - Redesigned */}
+        {/* Horizontal Offers Section */}
         {activeOffers.length > 0 && (
           <div className="mb-10">
             <div className="flex items-center justify-between mb-5 px-1">
@@ -180,7 +180,6 @@ export default function CustomerDashboard() {
               {activeOffers.map((offer) => (
                 <motion.div key={offer.id} className="min-w-[340px] snap-center">
                   <Card className="overflow-hidden border-none shadow-xl shadow-slate-200/50 rounded-[2rem] bg-white flex h-48 group cursor-pointer relative">
-                    {/* Image Section */}
                     <div className="w-[42%] relative overflow-hidden">
                       <img 
                         src={offer.imageUrl} 
@@ -193,8 +192,6 @@ export default function CustomerDashboard() {
                         <CountdownTimer expiresAt={offer.expiresAt} />
                       </div>
                     </div>
-
-                    {/* Content Section */}
                     <div className="w-[58%] p-5 flex flex-col justify-between bg-white">
                       <div className="space-y-2">
                         <div className="flex items-center gap-1.5">
@@ -205,7 +202,6 @@ export default function CustomerDashboard() {
                           {offer.description}
                         </p>
                       </div>
-
                       <div className="flex items-center gap-2 pt-2">
                         <Button 
                           size="sm" 
@@ -242,6 +238,8 @@ export default function CustomerDashboard() {
               activeOrders.map((order) => {
                 const status = getStatusInfo(order.status);
                 const StatusIcon = status.icon;
+                const unreadCount = unreadCounts[order.id] || 0;
+                
                 return (
                   <motion.div key={order.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                     <Card className="border-none shadow-sm rounded-[2rem] overflow-hidden bg-white">
@@ -278,7 +276,24 @@ export default function CustomerDashboard() {
                                 <div className="h-9 w-9 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-600 font-black text-sm shadow-inner">
                                   {order.driver.name.charAt(0)}
                                 </div>
-                                <span className="text-xs font-black text-slate-700">{order.driver.name}</span>
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-black text-slate-700">{order.driver.name}</span>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <a href={`tel:${order.driver.phone}`} className="text-orange-600 bg-orange-50 p-1.5 rounded-lg hover:bg-orange-100 transition-colors">
+                                      <Phone className="h-3.5 w-3.5" />
+                                    </a>
+                                    <Link href={`/chat/${order.id}`}>
+                                      <div className="relative text-blue-600 bg-blue-50 p-1.5 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer">
+                                        <MessageCircle className="h-3.5 w-3.5" />
+                                        {unreadCount > 0 && (
+                                          <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[8px] font-bold h-3.5 w-3.5 rounded-full flex items-center justify-center border border-white">
+                                            {unreadCount}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </Link>
+                                  </div>
+                                </div>
                               </div>
                             ) : (
                               <div className="flex items-center gap-2 text-slate-400">
@@ -354,7 +369,7 @@ export default function CustomerDashboard() {
         </Tabs>
       </main>
 
-      {/* Order Details Dialog - Redesigned */}
+      {/* Order Details Dialog */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl" dir="rtl">
           <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-8 text-white relative">
@@ -430,9 +445,16 @@ export default function CustomerDashboard() {
                         <p className="text-xs font-black text-orange-600">كابتن وصلي</p>
                       </div>
                     </div>
-                    <a href={`tel:${orderDetailsQuery.data.driver.phone}`} className="bg-white p-3.5 rounded-2xl text-orange-500 shadow-sm border border-orange-100 hover:bg-orange-500 hover:text-white transition-all active:scale-90">
-                      <Phone className="h-6 w-6" />
-                    </a>
+                    <div className="flex gap-2">
+                      <a href={`tel:${orderDetailsQuery.data.driver.phone}`} className="bg-white p-3.5 rounded-2xl text-orange-500 shadow-sm border border-orange-100 hover:bg-orange-500 hover:text-white transition-all active:scale-90">
+                        <Phone className="h-6 w-6" />
+                      </a>
+                      <Link href={`/chat/${selectedOrderId}`}>
+                        <div className="bg-white p-3.5 rounded-2xl text-blue-500 shadow-sm border border-blue-100 hover:bg-blue-500 hover:text-white transition-all active:scale-90 cursor-pointer">
+                          <MessageCircle className="h-6 w-6" />
+                        </div>
+                      </Link>
+                    </div>
                   </div>
                 )}
               </>
