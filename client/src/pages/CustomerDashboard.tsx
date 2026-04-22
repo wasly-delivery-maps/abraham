@@ -204,12 +204,13 @@ export default function CustomerDashboard() {
                           (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 250%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22250%22/%3E%3C/svg%3E';
                         }}
                       />
-                      {/* Premium Subtle Overlay for readability */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-50 pointer-events-none" />
-                      
-                      {/* Timer Badge - Floating Design */}
-                      <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md text-orange-600 px-3 py-1.5 rounded-xl text-[10px] font-black shadow-lg flex items-center gap-1.5 border border-white/20">
+                    </div>
+                    
+                    {/* Timer Badge - Moved Outside the Image for better visibility */}
+                    <div className="px-5 pt-3">
+                      <div className="bg-orange-50 text-orange-600 px-3 py-1.5 rounded-xl text-[10px] font-black flex items-center gap-1.5 w-fit border border-orange-100">
                         <Timer className="h-3 w-3" />
+                        <span className="ml-1">ينتهي خلال:</span>
                         <CountdownTimer expiresAt={offer.expiresAt} />
                       </div>
                     </div>
