@@ -519,14 +519,24 @@ export default function DriverDashboard() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">أرباحك</p>
-                  <p className="text-xl font-black text-orange-600">ج.م {order.price || 0}</p>
+              <div className="grid grid-cols-1 gap-4">
+                <div className="bg-orange-600 p-6 rounded-[2rem] shadow-lg shadow-orange-100 text-white text-center">
+                  <p className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-80">إجمالي التحصيل من العميل</p>
+                  <p className="text-3xl font-black">ج.م {(order.price || 0) + (order.itemPrice || 0)}</p>
+                  <div className="flex justify-center gap-4 mt-2 pt-2 border-t border-white/20 text-[10px] font-bold">
+                    <span>التوصيل: {order.price || 0}</span>
+                    <span>الأكل: {order.itemPrice || 0}</span>
+                  </div>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">العميل</p>
-                  <p className="text-sm font-black text-slate-900 truncate">{customerName}</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">أرباحك</p>
+                    <p className="text-lg font-black text-orange-600">ج.م {order.price || 0}</p>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">العميل</p>
+                    <p className="text-sm font-black text-slate-900 truncate">{customerName}</p>
+                  </div>
                 </div>
               </div>
 
