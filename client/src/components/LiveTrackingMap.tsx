@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useLocationTracking } from "@/hooks/useLocationTracking";
+import { trpc } from "@/lib/trpc";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
