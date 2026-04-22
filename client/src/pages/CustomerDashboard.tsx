@@ -290,7 +290,7 @@ export default function CustomerDashboard() {
                         <img 
                           src={offer.imageUrl} 
                           alt={offer.title} 
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                          className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" 
                         />
                         {/* Floating Timer Badge */}
                         <div className="absolute top-3 right-3">
