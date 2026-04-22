@@ -303,7 +303,7 @@ export default function CustomerDashboard() {
                       </div>
 
                       {/* Content Section - Clear & Readable */}
-                      <div className="p-5 flex flex-col flex-grow space-y-3">
+                      <div className="px-5 pt-2 pb-5 flex flex-col flex-grow space-y-3">
                         <div className="space-y-1">
                           <h4 className="text-lg font-black text-slate-900 leading-tight">{offer.title}</h4>
                           <p className="text-xs font-bold text-slate-500 leading-relaxed line-clamp-2">
