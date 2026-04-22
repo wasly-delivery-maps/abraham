@@ -210,43 +210,27 @@ const AL_HOUT_MENU: MenuItem[] = [
   { id: 302, name: "شوربة جمبري حمراء 🥣", category: "الشوربة", price: 140 },
   { id: 303, name: "شوربة صيامي 🥣", category: "الشوربة", price: 120 },
   { id: 304, name: "ملوخية بالجمبري 🥘", category: "الشوربة", price: 100 },
-  { id: 305, name: "ملوخية سادة 🥘", category: "الشوربة", price: 60 },
-  // الأرز
-  { id: 306, name: "أرز صيادية 🍚", category: "الأرز", price: 30 },
-  { id: 307, name: "أرز أبيض 🍚", category: "الأرز", price: 25 },
-  { id: 308, name: "أرز حبة وحبة 🍚", category: "الأرز", price: 25 },
-  { id: 309, name: "أرز خلطة 🍚", category: "الأرز", price: 40 },
-  // السلطات والمقبلات
-  { id: 310, name: "سلطة خضراء 🥗", category: "السلطات والمقبلات", price: 15 },
-  { id: 311, name: "سلطة طحينة 🥣", category: "السلطات والمقبلات", price: 15 },
-  { id: 312, name: "سلطة بابا غنوج 🍆", category: "السلطات والمقبلات", price: 20 },
-  { id: 313, name: "مخلل مشكل 🥒", category: "السلطات والمقبلات", price: 10 },
-  { id: 314, name: "باذنجان مخلل 🍆", category: "السلطات والمقبلات", price: 20 },
 ];
 
+const RESTAURANTS = [ROLL_WE_RESTAURANT, KHEDIVE_KOSHARY_RESTAURANT, AL_HOUT_RESTAURANT];
 const MENUS: Record<number, MenuItem[]> = {
   1: ROLL_WE_MENU,
   2: KHEDIVE_KOSHARY_MENU,
   3: AL_HOUT_MENU,
 };
 
-const RESTAURANTS: Restaurant[] = [
-  AL_HOUT_RESTAURANT,
-  KHEDIVE_KOSHARY_RESTAURANT,
-  ROLL_WE_RESTAURANT,
-];
-
 export function RestaurantMenu() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [isCartExpanded, setIsCartExpanded] = useState(false);
   const [customerNotes, setCustomerNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
   const [addressDescription, setAddressDescription] = useState("");
   const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [usePoints, setUsePoints] = useState(false);
   const [showGiftAlert, setShowGiftAlert] = useState(false);
+  const [usePoints, setUsePoints] = useState(false);
 
   const createRestaurantOrderMutation = trpc.orders.createRestaurantOrder.useMutation();
 
@@ -315,13 +299,12 @@ export function RestaurantMenu() {
 
     setIsLoading(true);
     
-    // وظيفة للحصول على الموقع الحالي بدقة في لحظة الطلب
     const getCurrentPositionPromise = () => {
       return new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 0 // إجبار المتصفح على جلب موقع جديد وليس مخزناً
+          maximumAge: 0 
         });
       });
     };
@@ -340,7 +323,6 @@ export function RestaurantMenu() {
         address: "موقعي الحالي المكتشف",
       };
       
-      // تحديث الحالة المحلية أيضاً
       setUserLocation(finalLocation);
       setLocationStatus("success");
       toast.dismiss(toastId);
@@ -386,6 +368,7 @@ export function RestaurantMenu() {
       setCart([]);
       setCustomerNotes("");
       setAddressDescription("");
+      setIsCartExpanded(false);
     } catch (error: any) {
       console.error("Checkout error:", error);
       if (error.code || error.message?.includes("denied") || error.message?.includes("location")) {
@@ -450,7 +433,7 @@ export function RestaurantMenu() {
   const filteredMenu = currentMenu.filter((item) => item.category === selectedCategory);
 
   return (
-    <div className="space-y-6 pb-96" dir="rtl">
+    <div className="space-y-6 pb-32" dir="rtl">
       <Button 
         variant="ghost" 
         onClick={() => setSelectedRestaurant(null)}
@@ -560,18 +543,53 @@ export function RestaurantMenu() {
       </div>
 
       {cart.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-transparent">
-          <Card className="max-w-2xl mx-auto border-none shadow-2xl bg-slate-900 text-white rounded-3xl overflow-hidden relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 left-4 h-8 w-8 rounded-full bg-slate-800 text-white hover:bg-slate-700 z-50"
-              onClick={() => setCart([])}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-            <CardContent className="p-0">
-              <div className="p-4 pt-12 max-h-60 overflow-y-auto border-b border-slate-800">
+        <div className="fixed bottom-0 left-0 right-0 z-40 p-4 pointer-events-none">
+          <Card className={`max-w-2xl mx-auto border-none shadow-2xl bg-slate-900 text-white rounded-3xl overflow-hidden relative transition-all duration-300 pointer-events-auto ${isCartExpanded ? 'h-auto' : 'h-20'}`}>
+            {!isCartExpanded ? (
+              <div 
+                className="h-20 flex items-center justify-between px-6 cursor-pointer hover:bg-slate-800 transition-colors"
+                onClick={() => setIsCartExpanded(true)}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <div className="bg-orange-500 text-white text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center absolute -top-2 -right-2 border-2 border-slate-900">
+                      {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                    </div>
+                    <ShoppingCart className="h-6 w-6 text-orange-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-400">سلتك الحالية</p>
+                    <p className="text-lg font-black text-white">ج.م {totalPrice}</p>
+                  </div>
+                </div>
+                <Button className="bg-orange-500 hover:bg-orange-600 text-white font-black rounded-xl px-6">
+                  عرض السلة
+                </Button>
+              </div>
+            ) : (
+              <CardContent className="p-0">
+                <div className="flex items-center justify-between p-4 border-b border-slate-800">
+                  <h3 className="font-black text-lg">سلة الطلبات</h3>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full bg-slate-800 text-white hover:bg-slate-700"
+                      onClick={() => setCart([])}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full bg-slate-800 text-white hover:bg-slate-700"
+                      onClick={() => setIsCartExpanded(false)}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="p-4 max-h-60 overflow-y-auto border-b border-slate-800">
                 {cart.map((item) => (
                   <div key={item.id} className="flex justify-between items-center py-3 border-b border-slate-800 last:border-0">
                     <div className="flex-1">
@@ -676,6 +694,7 @@ export function RestaurantMenu() {
                 </div>
               </div>
             </CardContent>
+            )}
           </Card>
         </div>
       )}
