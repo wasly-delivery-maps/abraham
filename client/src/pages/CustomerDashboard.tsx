@@ -187,16 +187,15 @@ export default function CustomerDashboard() {
               </Badge>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide snap-x">
               {activeOffers.map((offer) => (
                 <motion.div 
                   key={offer.id} 
-                  whileHover={{ y: -4 }}
-                  className="group cursor-pointer"
+                  className="min-w-[280px] sm:min-w-[320px] snap-center group cursor-pointer"
                 >
-                  <Card className="overflow-hidden border-none shadow-lg hover:shadow-2xl transition-all duration-300 rounded-2xl bg-white flex flex-col h-full">
+                  <Card className="overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-300 rounded-[2rem] bg-white flex flex-col h-full">
                     {/* Image Container */}
-                    <div className="relative overflow-hidden bg-slate-100 flex items-center justify-center" style={{ aspectRatio: '16/10' }}>
+                    <div className="relative overflow-hidden bg-slate-50 flex items-center justify-center h-40">
                       <img 
                         src={offer.imageUrl} 
                         alt={offer.title} 
@@ -205,38 +204,32 @@ export default function CustomerDashboard() {
                           (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22300%22/%3E%3C/svg%3E';
                         }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                       {/* Timer Badge */}
-                      <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md text-orange-600 px-3 py-1.5 rounded-lg text-xs font-black shadow-lg flex items-center gap-1.5">
-                        <Timer className="h-3.5 w-3.5" />
+                      <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md text-orange-600 px-3 py-1.5 rounded-xl text-[10px] font-black shadow-lg flex items-center gap-1.5">
+                        <Timer className="h-3 w-3" />
                         <CountdownTimer expiresAt={offer.expiresAt} />
                       </div>
                     </div>
                     
                     {/* Content Container */}
-                    <div className="p-4 flex flex-col justify-between flex-1">
-                      <div className="space-y-2 mb-4">
-                        <h4 className="text-base font-black text-slate-900 line-clamp-2 leading-tight">
+                    <div className="p-5 flex flex-col justify-between flex-1">
+                      <div className="space-y-1.5 mb-4">
+                        <h4 className="text-sm font-black text-slate-900 line-clamp-1">
                           {offer.title}
                         </h4>
-                        <p className="text-sm font-medium text-slate-500 line-clamp-2 leading-relaxed">
+                        <p className="text-[11px] font-bold text-slate-400 line-clamp-2 leading-relaxed">
                           {offer.description}
                         </p>
                       </div>
                       
-                      {/* Action Buttons */}
-                      <div className="flex items-center gap-2 pt-2">
-                        <Button 
-                          size="sm" 
-                          className="flex-1 bg-orange-500 text-white hover:bg-orange-600 border-none shadow-md shadow-orange-100 h-10 font-bold rounded-xl transition-all active:scale-95"
-                          onClick={() => setActiveTab("restaurants")}
-                        >
-                          اطلب الآن
-                        </Button>
-                        <div className="bg-slate-100 p-2.5 rounded-xl border border-slate-200 text-slate-400 hover:text-orange-500 hover:bg-orange-50 transition-all">
-                          <Info className="h-4 w-4" />
-                        </div>
-                      </div>
+                      <Button 
+                        size="sm" 
+                        className="w-full bg-orange-500 text-white hover:bg-orange-600 border-none shadow-md shadow-orange-100 h-9 text-xs font-black rounded-xl transition-all active:scale-95"
+                        onClick={() => setActiveTab("restaurants")}
+                      >
+                        اطلب الآن
+                      </Button>
                     </div>
                   </Card>
                 </motion.div>
@@ -395,7 +388,7 @@ export default function CustomerDashboard() {
 
       {/* Order Details Dialog */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white" dir="rtl">
+        <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white [&>button]:hidden" dir="rtl">
           <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-8 text-white relative">
             <div className="flex justify-between items-start mb-6">
               <div>
@@ -408,7 +401,13 @@ export default function CustomerDashboard() {
                   </div>
                 )}
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setIsDetailsOpen(false)} className="text-white hover:bg-white/20 rounded-2xl h-10 w-10">
+              {/* Custom Close Button - Professional Positioning */}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setIsDetailsOpen(false)} 
+                className="text-white hover:bg-white/20 rounded-2xl h-10 w-10 shrink-0"
+              >
                 <X className="h-6 w-6" />
               </Button>
             </div>
