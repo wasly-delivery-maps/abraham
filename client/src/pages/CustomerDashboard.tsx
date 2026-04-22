@@ -289,48 +289,47 @@ export default function CustomerDashboard() {
                     whileHover={{ y: -12, scale: 1.03 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   >
-                    <Card className="overflow-hidden border-2 border-orange-100 shadow-2xl rounded-[2rem] bg-white group flex flex-col h-full hover:border-orange-300 transition-all">
-                      {/* Image Container - Balanced Aspect Ratio */}
-                      <div className="relative w-full overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50 aspect-[4/3]">
+                    <Card className="overflow-hidden border-2 border-orange-100 shadow-xl rounded-[1.5rem] bg-white group flex flex-row h-[160px] hover:border-orange-300 transition-all">
+                      {/* Image Container - Horizontal Layout */}
+                      <div className="relative w-1/3 h-full overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50">
                         <img 
                           src={offer.imageUrl} 
                           alt={offer.title} 
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                           style={{ display: 'block' }}
                         />
-                        {/* Floating Timer Badge */}
-                        <div className="absolute top-4 right-4 z-10">
-                          <motion.div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-full flex items-center gap-2 shadow-lg border border-orange-400 backdrop-blur-sm" whileHover={{ scale: 1.05 }}>
+                        {/* Floating Timer Badge - Smaller for horizontal layout */}
+                        <div className="absolute top-2 right-2 z-10">
+                          <motion.div className="bg-orange-600/90 text-white px-2 py-1 rounded-lg flex items-center gap-1 shadow-lg backdrop-blur-sm" style={{ fontSize: '10px' }}>
                             <CountdownTimer expiresAt={offer.expiresAt} />
                           </motion.div>
                         </div>
-                        {/* Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       </div>
 
-                      {/* Content Section - Clear & Readable */}
-                      <div className="px-6 pt-4 pb-6 flex flex-col flex-grow space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex items-start justify-between gap-2">
-                            <h4 className="text-lg font-black text-slate-900 leading-tight flex-1">{offer.title}</h4>
-                            <motion.div className="bg-orange-100 p-2 rounded-lg" whileHover={{ scale: 1.1, rotate: 10 }}>
-                              <Zap className="h-5 w-5 text-orange-600 fill-orange-600" />
-                            </motion.div>
+                      {/* Content Section - Horizontal Layout */}
+                      <div className="w-2/3 p-4 flex flex-col justify-between">
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <h4 className="text-base font-black text-slate-900 leading-tight line-clamp-1">{offer.title}</h4>
+                            <Zap className="h-4 w-4 text-orange-500 fill-orange-500 flex-shrink-0" />
                           </div>
-                          <p className="text-sm font-medium text-slate-600 leading-relaxed line-clamp-2">
+                          <p className="text-xs font-medium text-slate-500 leading-relaxed line-clamp-2">
                             {offer.description}
                           </p>
                         </div>
                         
-                        <motion.div className="pt-2 mt-auto" whileHover={{ scale: 1.02 }}>
+                        <div className="flex items-center justify-between gap-2 mt-2">
                           <Button 
-                            className="w-full bg-gradient-to-r from-orange-500 via-orange-550 to-orange-600 hover:from-orange-600 hover:via-orange-600 hover:to-orange-700 text-white rounded-xl px-4 py-6 h-auto text-base font-black shadow-xl shadow-orange-300/50 transition-all active:scale-95 flex items-center justify-center gap-2"
+                            className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl px-3 py-2 h-auto text-xs font-black shadow-md transition-all active:scale-95 flex items-center justify-center gap-1"
                             onClick={() => setActiveTab("restaurants")}
                           >
-                            <Plus className="h-5 w-5" />
-                            اطلب الآن من المطعم
+                            <Plus className="h-3 w-3" />
+                            اطلب الآن
                           </Button>
-                        </motion.div>
+                          <div className="bg-orange-50 p-2 rounded-lg border border-orange-100">
+                            <ChevronLeft className="h-4 w-4 text-orange-600" />
+                          </div>
+                        </div>
                       </div>
                     </Card>
                   </motion.div>
