@@ -14,6 +14,7 @@ import { useChatContext } from "@/contexts/ChatContext";
 import { useCriticalAlerts } from "@/hooks/useCriticalAlerts";
 import { useFCM } from "@/hooks/useFCM";
 import { Link } from "wouter";
+import { useLocationTracking } from "@/hooks/useLocationTracking";
 
 // Leaflet imports
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from 'react-leaflet';
@@ -156,6 +157,7 @@ export default function DriverDashboard() {
   const [showMapModal, setShowMapModal] = useState(false);
   const [mapModalData, setMapModalData] = useState<any>(null);
   const { unreadCounts } = useChatContext();
+  const { isConnected, joinAsDriver, updateLocation } = useLocationTracking();
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
   const { startAlert, stopAlert, isAlertActive } = useCriticalAlerts();
 
@@ -220,6 +222,11 @@ export default function DriverDashboard() {
   useEffect(() => {
     if (!user || user.role !== "driver") return;
 
+    // Join as driver for live location tracking
+    if (isConnected) {
+      joinAsDriver(user.id);
+    }
+
     // ربط هوية السائق بـ OneSignal للإشعارات المنبثقة (Push Notifications)
     if (typeof window !== 'undefined' && (window as any).OneSignalDeferred) {
       (window as any).OneSignalDeferred.push(async function(OneSignal: any) {
@@ -247,6 +254,10 @@ export default function DriverDashboard() {
             lastLocationUpdateRef.current = { lat: latitude, lng: longitude, time: now };
             setDriverLocation({ latitude, longitude });
             updateLocationMutation.mutate({ latitude, longitude });
+            
+            // Broadcast location to customers via WebSocket
+            const activeOrder = ordersQuery.data?.find(o => ['assigned', 'accepted', 'picked_up', 'in_transit', 'arrived'].includes(o.status));
+            updateLocation(latitude, longitude, activeOrder?.id);
           }
         },
         (error) => console.warn("Location error:", error),
