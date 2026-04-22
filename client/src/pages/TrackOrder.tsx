@@ -1,6 +1,6 @@
 import { useRoute } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { OrderTracking } from "@/components/OrderTracking";
+import { LiveTrackingMap } from "@/components/LiveTrackingMap";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, Loader2, MapPin } from "lucide-react";
 import { Link } from "wouter";
@@ -86,13 +86,11 @@ export default function TrackOrder() {
           </div>
 
           {/* Map Component */}
-          <div className="rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white bg-white h-[500px] relative">
+          <div className="rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white bg-white min-h-[500px] relative">
             {order.driverId ? (
-              <OrderTracking
+              <LiveTrackingMap
                 orderId={orderId}
                 driverId={order.driverId}
-                driverName={order.driver?.name}
-                driverPhone={order.driver?.phone}
                 pickupLocation={{
                   address: order.pickupLocation?.address || "موقع الاستلام",
                   latitude: order.pickupLocation?.latitude || 0,
