@@ -424,22 +424,24 @@ export default function CustomerDashboard() {
               </div>
             ) : orderDetailsQuery.data ? (
               <>
-                {/* Driver Info Section - Priority Visibility */}
-                {orderDetailsQuery.data.driver ? (
+                {/* Driver Info Section - Priority Visibility Fixed Logic */}
+                {orderDetailsQuery.data.driverId || orderDetailsQuery.data.driver ? (
                   <div className="flex items-center justify-between p-4 bg-orange-50 border border-orange-100 rounded-[1.5rem] shadow-sm">
                     <div className="flex items-center gap-3">
                       <div className="h-12 w-12 rounded-2xl bg-orange-500 flex items-center justify-center text-white font-black text-lg shadow-md">
-                        {orderDetailsQuery.data.driver.name.charAt(0)}
+                        {(orderDetailsQuery.data.driver?.name || "كابتن").charAt(0)}
                       </div>
                       <div>
-                        <p className="text-sm font-black text-slate-900">{orderDetailsQuery.data.driver.name}</p>
+                        <p className="text-sm font-black text-slate-900">{orderDetailsQuery.data.driver?.name || "كابتن وصلي"}</p>
                         <p className="text-[10px] font-black text-orange-600">كابتن وصلي</p>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <a href={`tel:${orderDetailsQuery.data.driver.phone}`} className="bg-white p-2.5 rounded-xl text-orange-500 shadow-sm border border-orange-100 hover:bg-orange-500 hover:text-white transition-all active:scale-90">
-                        <Phone className="h-5 w-5" />
-                      </a>
+                      {orderDetailsQuery.data.driver?.phone && (
+                        <a href={`tel:${orderDetailsQuery.data.driver.phone}`} className="bg-white p-2.5 rounded-xl text-orange-500 shadow-sm border border-orange-100 hover:bg-orange-500 hover:text-white transition-all active:scale-90">
+                          <Phone className="h-5 w-5" />
+                        </a>
+                      )}
                       <div 
                         onClick={() => { setIsDetailsOpen(false); handleOpenChat(selectedOrderId!); }}
                         className="bg-white p-2.5 rounded-xl text-blue-500 shadow-sm border border-blue-100 hover:bg-blue-500 hover:text-white transition-all active:scale-90 cursor-pointer"
