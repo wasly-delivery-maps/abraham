@@ -282,19 +282,29 @@ export default function CustomerDashboard() {
                           </div>
                         </div>
 
+                        {/* Order Description (Notes) for Customer List */}
+                        {order.description && (
+                          <div className="mb-4 bg-slate-50/50 p-3 rounded-xl border border-slate-100/50">
+                            <p className="text-[10px] font-bold text-slate-400 mb-1">ملاحظات الطلب:</p>
+                            <p className="text-[11px] font-bold text-slate-600 italic line-clamp-1">"{order.description}"</p>
+                          </div>
+                        )}
+
                         <div className="flex items-center justify-between pt-5 border-t border-slate-50">
                           <div className="flex items-center gap-3">
-                            {order.driver ? (
+                            {order.driverId || order.driver ? (
                               <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100 pr-4">
                                 <div className="h-10 w-10 rounded-xl bg-orange-500 flex items-center justify-center text-white font-black text-sm shadow-sm">
-                                  {order.driver.name.charAt(0)}
+                                  {(order.driver?.name || "كابتن").charAt(0)}
                                 </div>
                                 <div className="flex flex-col">
-                                  <span className="text-xs font-black text-slate-700">{order.driver.name}</span>
+                                  <span className="text-xs font-black text-slate-700">{order.driver?.name || "كابتن وصلي"}</span>
                                   <div className="flex items-center gap-2 mt-1">
-                                    <a href={`tel:${order.driver.phone}`} className="text-orange-600 bg-orange-50 p-1.5 rounded-lg hover:bg-orange-100 transition-colors">
-                                      <Phone className="h-3.5 w-3.5" />
-                                    </a>
+                                    {order.driver?.phone && (
+                                      <a href={`tel:${order.driver.phone}`} className="text-orange-600 bg-orange-50 p-1.5 rounded-lg hover:bg-orange-100 transition-colors">
+                                        <Phone className="h-3.5 w-3.5" />
+                                      </a>
+                                    )}
                                     <div 
                                       onClick={() => handleOpenChat(order.id)}
                                       className="relative text-blue-600 bg-blue-50 p-1.5 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
@@ -477,7 +487,8 @@ export default function CustomerDashboard() {
                   </div>
                   {orderDetailsQuery.data.description && (
                     <div className="pt-3 border-t border-slate-200">
-                      <p className="text-xs font-bold text-slate-500 italic">
+                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1">ملاحظات العميل:</p>
+                      <p className="text-xs font-bold text-slate-600 italic bg-white p-3 rounded-xl border border-slate-100">
                         "{orderDetailsQuery.data.description}"
                       </p>
                     </div>
