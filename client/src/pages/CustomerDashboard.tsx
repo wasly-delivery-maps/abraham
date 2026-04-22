@@ -10,6 +10,7 @@ import { RestaurantMenu } from "@/components/customer/RestaurantMenu";
 import { Link, useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { useChatContext } from "@/contexts/ChatContext";
+import { ChatBox } from "@/components/ChatBox";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -52,6 +53,7 @@ export default function CustomerDashboard() {
   const [, navigate] = useLocation();
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("active");
   const { unreadCounts } = useChatContext();
 
@@ -76,6 +78,11 @@ export default function CustomerDashboard() {
     setIsDetailsOpen(true);
   };
 
+  const handleOpenChat = (orderId: number) => {
+    setSelectedOrderId(orderId);
+    setIsChatOpen(true);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
@@ -96,6 +103,7 @@ export default function CustomerDashboard() {
       pending: { label: "قيد الانتظار", color: "text-amber-600", bgColor: "bg-amber-50", icon: Clock },
       assigned: { label: "تم الإسناد", color: "text-blue-600", bgColor: "bg-blue-50", icon: User },
       accepted: { label: "تم القبول", color: "text-indigo-600", bgColor: "bg-indigo-50", icon: Package },
+      picked_up: { label: "تم الاستلام", color: "text-purple-600", bgColor: "bg-purple-50", icon: Package },
       in_transit: { label: "في الطريق", color: "text-purple-600", bgColor: "bg-purple-50", icon: Truck },
       arrived: { label: "وصل السائق", color: "text-orange-600", bgColor: "bg-orange-50", icon: MapPin },
       delivered: { label: "تم التسليم", color: "text-emerald-600", bgColor: "bg-emerald-50", icon: Package },
@@ -106,6 +114,9 @@ export default function CustomerDashboard() {
 
   const activeOrders = orders.filter((o) => !["delivered", "cancelled"].includes(o.status));
   const completedOrders = orders.filter((o) => ["delivered", "cancelled"].includes(o.status));
+
+  const selectedOrder = orders.find(o => o.id === selectedOrderId);
+  const otherUserName = selectedOrder?.driver?.name || "السائق";
 
   return (
     <div className="min-h-screen bg-[#F8F9FB] text-slate-900 font-sans pb-10" dir="rtl">
@@ -282,16 +293,17 @@ export default function CustomerDashboard() {
                                     <a href={`tel:${order.driver.phone}`} className="text-orange-600 bg-orange-50 p-1.5 rounded-lg hover:bg-orange-100 transition-colors">
                                       <Phone className="h-3.5 w-3.5" />
                                     </a>
-                                    <Link href={`/chat/${order.id}`}>
-                                      <div className="relative text-blue-600 bg-blue-50 p-1.5 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer">
-                                        <MessageCircle className="h-3.5 w-3.5" />
-                                        {unreadCount > 0 && (
-                                          <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[8px] font-bold h-3.5 w-3.5 rounded-full flex items-center justify-center border border-white">
-                                            {unreadCount}
-                                          </span>
-                                        )}
-                                      </div>
-                                    </Link>
+                                    <div 
+                                      onClick={() => handleOpenChat(order.id)}
+                                      className="relative text-blue-600 bg-blue-50 p-1.5 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
+                                    >
+                                      <MessageCircle className="h-3.5 w-3.5" />
+                                      {unreadCount > 0 && (
+                                        <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[8px] font-bold h-3.5 w-3.5 rounded-full flex items-center justify-center border border-white">
+                                          {unreadCount}
+                                        </span>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -449,11 +461,12 @@ export default function CustomerDashboard() {
                       <a href={`tel:${orderDetailsQuery.data.driver.phone}`} className="bg-white p-3.5 rounded-2xl text-orange-500 shadow-sm border border-orange-100 hover:bg-orange-500 hover:text-white transition-all active:scale-90">
                         <Phone className="h-6 w-6" />
                       </a>
-                      <Link href={`/chat/${selectedOrderId}`}>
-                        <div className="bg-white p-3.5 rounded-2xl text-blue-500 shadow-sm border border-blue-100 hover:bg-blue-500 hover:text-white transition-all active:scale-90 cursor-pointer">
-                          <MessageCircle className="h-6 w-6" />
-                        </div>
-                      </Link>
+                      <div 
+                        onClick={() => { setIsDetailsOpen(false); handleOpenChat(selectedOrderId!); }}
+                        className="bg-white p-3.5 rounded-2xl text-blue-500 shadow-sm border border-blue-100 hover:bg-blue-500 hover:text-white transition-all active:scale-90 cursor-pointer"
+                      >
+                        <MessageCircle className="h-6 w-6" />
+                      </div>
                     </div>
                   </div>
                 )}
@@ -467,6 +480,19 @@ export default function CustomerDashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Chat Box Component */}
+      {isChatOpen && selectedOrderId && (
+        <ChatBox 
+          orderId={selectedOrderId}
+          userId={user.id}
+          userRole="customer"
+          userName={user.name}
+          otherUserName={otherUserName}
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+        />
+      )}
     </div>
   );
 }
