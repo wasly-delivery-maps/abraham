@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Plus, User, Truck, Clock, X, Phone, ChevronRight, Package, MessageCircle, BarChart3, Zap, Timer, ChevronLeft, Info } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { MapPin, Plus, User, Truck, Clock, X, Phone, ChevronRight, Package, MessageCircle, BarChart3, Zap, Timer, ChevronLeft, Info, Loader2 } from "lucide-react";
 import { CountdownTimer } from "@/components/customer/CountdownTimer";
 import { RestaurantMenu } from "@/components/customer/RestaurantMenu";
 import { Link, useLocation } from "wouter";
@@ -12,7 +13,6 @@ import { useChatContext } from "@/contexts/ChatContext";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2 } from "lucide-react";
 
 // Cancel Order Button Component
 function CancelOrderButton({ orderId, onSuccess }: { orderId: number; onSuccess: () => void }) {
@@ -63,8 +63,18 @@ export default function CustomerDashboard() {
     refetchInterval: 60000,
   });
 
+  const orderDetailsQuery = trpc.orders.getOrderDetails.useQuery(
+    { orderId: selectedOrderId as number },
+    { enabled: !!selectedOrderId && isDetailsOpen }
+  );
+
   const orders = useMemo(() => ordersQuery.data || [], [ordersQuery.data]);
   const activeOffers = useMemo(() => offersQuery.data || [], [offersQuery.data]);
+
+  const handleShowDetails = (orderId: number) => {
+    setSelectedOrderId(orderId);
+    setIsDetailsOpen(true);
+  };
 
   if (loading) {
     return (
@@ -103,8 +113,8 @@ export default function CustomerDashboard() {
       <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-slate-100">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-orange-500 p-1.5 rounded-xl shadow-lg shadow-orange-200">
-              <img src="/logo.jpg" alt="وصلي" className="h-7 w-7 object-contain brightness-0 invert" />
+            <div className="bg-orange-500 p-1 rounded-xl shadow-lg shadow-orange-200 overflow-hidden">
+              <img src="/logo.jpg" alt="وصلي" className="h-8 w-8 object-cover" />
             </div>
             <span className="text-xl font-black tracking-tight text-slate-900">وصلي</span>
           </div>
@@ -169,7 +179,7 @@ export default function CustomerDashboard() {
             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x">
               {activeOffers.map((offer) => (
                 <motion.div key={offer.id} className="min-w-[320px] snap-center">
-                  <Card className="overflow-hidden border-none shadow-md rounded-2xl bg-white flex h-40">
+                  <Card className="overflow-hidden border-none shadow-md rounded-2xl bg-white flex h-44">
                     <div className="w-2/5 relative">
                       <img src={offer.imageUrl} alt={offer.title} className="w-full h-full object-cover" />
                       <div className="absolute top-2 right-2 bg-orange-600/90 backdrop-blur-sm text-white px-2 py-1 rounded-lg text-[10px] font-bold shadow-lg">
@@ -184,7 +194,7 @@ export default function CustomerDashboard() {
                       <div className="flex items-center gap-2">
                         <Button 
                           size="sm" 
-                          className="flex-1 bg-orange-500 text-white hover:bg-orange-600 border-none shadow-md h-8 text-xs font-black rounded-xl"
+                          className="flex-1 bg-orange-500 text-white hover:bg-orange-600 border-none shadow-md h-9 text-xs font-black rounded-xl"
                           onClick={() => setActiveTab("restaurants")}
                         >
                           اطلب الآن
@@ -260,7 +270,14 @@ export default function CustomerDashboard() {
                             {!["in_transit", "arrived", "delivered", "cancelled"].includes(order.status) && (
                               <CancelOrderButton orderId={order.id} onSuccess={() => ordersQuery.refetch()} />
                             )}
-                            <Button variant="outline" size="sm" className="rounded-xl border-slate-100 text-slate-600 font-bold text-xs h-9 px-4">التفاصيل</Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleShowDetails(order.id)}
+                              className="rounded-xl border-slate-100 text-slate-600 font-bold text-xs h-9 px-4"
+                            >
+                              التفاصيل
+                            </Button>
                           </div>
                         </div>
                       </CardContent>
@@ -314,6 +331,91 @@ export default function CustomerDashboard() {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Order Details Dialog */}
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="max-w-md rounded-[2rem] p-0 overflow-hidden border-none" dir="rtl">
+          <div className="bg-orange-500 p-6 text-white">
+            <div className="flex justify-between items-start mb-4">
+              <DialogTitle className="text-xl font-black">تفاصيل الطلب #{selectedOrderId}</DialogTitle>
+              <Button variant="ghost" size="icon" onClick={() => setIsDetailsOpen(false)} className="text-white hover:bg-white/20 rounded-full">
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            {orderDetailsQuery.data && (
+              <div className="flex items-center gap-2">
+                <Badge className="bg-white/20 text-white border-none font-bold">
+                  {getStatusInfo(orderDetailsQuery.data.status).label}
+                </Badge>
+                <span className="text-sm font-bold opacity-80">
+                  {new Date(orderDetailsQuery.data.createdAt).toLocaleString('ar-EG')}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="p-6 space-y-6 bg-white">
+            {orderDetailsQuery.isLoading ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="h-8 w-8 text-orange-500 animate-spin" />
+              </div>
+            ) : orderDetailsQuery.data ? (
+              <>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="h-2 w-2 rounded-full bg-orange-500 mt-2" />
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">من</p>
+                      <p className="text-sm font-bold text-slate-700">{orderDetailsQuery.data.pickupLocation?.address}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-4 w-4 text-orange-500 mt-1" />
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">إلى</p>
+                      <p className="text-sm font-bold text-slate-700">{orderDetailsQuery.data.deliveryLocation?.address}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 p-4 rounded-2xl space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-bold text-slate-500">سعر التوصيل</span>
+                    <span className="text-base font-black text-slate-900">ج.م {orderDetailsQuery.data.price}</span>
+                  </div>
+                  {orderDetailsQuery.data.description && (
+                    <div className="pt-3 border-t border-slate-200">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">ملاحظات</p>
+                      <p className="text-sm font-medium text-slate-600">{orderDetailsQuery.data.description}</p>
+                    </div>
+                  )}
+                </div>
+
+                {orderDetailsQuery.data.driver && (
+                  <div className="flex items-center justify-between p-4 border-2 border-orange-100 rounded-2xl">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-black text-lg">
+                        {orderDetailsQuery.data.driver.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-slate-900">{orderDetailsQuery.data.driver.name}</p>
+                        <p className="text-xs font-bold text-slate-400">سائق التوصيل</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <a href={`tel:${orderDetailsQuery.data.driver.phone}`} className="bg-orange-500 p-2.5 rounded-xl text-white shadow-lg shadow-orange-200">
+                        <Phone className="h-5 w-5" />
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="text-center text-slate-500 font-bold">فشل تحميل التفاصيل</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
