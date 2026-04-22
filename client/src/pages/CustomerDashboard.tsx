@@ -122,12 +122,15 @@ export default function CustomerDashboard() {
     <div className="min-h-screen bg-[#F8F9FB] text-slate-900 font-sans pb-10" dir="rtl">
       {/* Modern Header */}
       <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-slate-100">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-be	          <div className="flex items-center gap-3">
-	            <div className="overflow-hidden">
-	              <img src="/logo.jpg" alt="وصلي" className="h-10 w-10 object-contain" />
-	            </div>
-	            <span className="text-xl font-black tracking-tight text-slate-900">وصلي</span>
-	          </div>div className="flex items-center gap-2">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="overflow-hidden">
+              <img src="/logo.jpg" alt="وصلي" className="h-10 w-10 object-contain" />
+            </div>
+            <span className="text-xl font-black tracking-tight text-slate-900">وصلي</span>
+          </div>
+
+          <div className="flex items-center gap-2">
             <Link href="/customer/stats">
               <Button variant="ghost" size="icon" className="rounded-xl hover:bg-slate-100">
                 <BarChart3 className="h-5 w-5 text-slate-600" />
@@ -251,43 +254,39 @@ export default function CustomerDashboard() {
             {activeOrders.length > 0 ? (
               activeOrders.map((order) => {
                 const status = getStatusInfo(order.status);
-                const StatusIcon = status.icon;
                 const unreadCount = unreadCounts[order.id] || 0;
-                
                 return (
                   <motion.div key={order.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                    <Card className="border-none shadow-sm rounded-[2rem] overflow-hidden bg-white">
-                      <CardContent className="p-5">
-                        <div className="flex items-center justify-between mb-5">
-                          <div className="flex items-center gap-3">
-                            <div className={`${status.bgColor} p-2.5 rounded-2xl`}>
-                              <StatusIcon className={`h-5 w-5 ${status.color}`} />
+                    <Card className="border-none shadow-sm hover:shadow-md transition-all rounded-[2rem] bg-white overflow-hidden group">
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-6">
+                          <div className="flex items-center gap-4">
+                            <div className={`${status.bgColor} p-3 rounded-2xl group-hover:scale-110 transition-transform`}>
+                              <status.icon className={`h-6 w-6 ${status.color}`} />
                             </div>
                             <div>
-                              <span className="text-[10px] font-black text-slate-400 block uppercase tracking-widest">طلب #{order.id}</span>
-                              <span className={`text-sm font-black ${status.color}`}>{status.label}</span>
+                              <span className="text-base font-black text-slate-900 block">طلب #{order.id}</span>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="secondary" className={`${status.bgColor} ${status.color} border-none font-black text-[10px] px-3 rounded-lg`}>
+                                  {status.label}
+                                </Badge>
+                                <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {new Date(order.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
                             </div>
                           </div>
-                          <div className="text-xl font-black text-slate-900">ج.م {order.price}</div>
-                        </div>
-
-                        <div className="space-y-4 mb-6 relative">
-                          <div className="absolute right-[7px] top-2 bottom-2 w-0.5 bg-slate-100" />
-                          <div className="flex items-start gap-4 relative z-10">
-                            <div className="h-3.5 w-3.5 rounded-full border-2 border-white bg-slate-300 mt-1 shadow-sm" />
-                            <p className="text-xs font-bold text-slate-500 line-clamp-1">{order.pickupLocation?.address}</p>
-                          </div>
-                          <div className="flex items-start gap-4 relative z-10">
-                            <div className="h-3.5 w-3.5 rounded-full border-2 border-white bg-orange-500 mt-1 shadow-sm" />
-                            <p className="text-xs font-bold text-slate-800 line-clamp-1">{order.deliveryLocation?.address}</p>
+                          <div className="text-right">
+                            <div className="text-xl font-black text-slate-900">ج.م {order.price}</div>
                           </div>
                         </div>
 
                         <div className="flex items-center justify-between pt-5 border-t border-slate-50">
                           <div className="flex items-center gap-3">
                             {order.driver ? (
-                              <div className="flex items-center gap-2.5">
-                                <div className="h-9 w-9 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-600 font-black text-sm shadow-inner">
+                              <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100 pr-4">
+                                <div className="h-10 w-10 rounded-xl bg-orange-500 flex items-center justify-center text-white font-black text-sm shadow-sm">
                                   {order.driver.name.charAt(0)}
                                 </div>
                                 <div className="flex flex-col">
