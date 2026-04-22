@@ -196,11 +196,11 @@ export default function CustomerDashboard() {
                 >
                   <Card className="overflow-hidden border-none shadow-lg hover:shadow-2xl transition-all duration-300 rounded-2xl bg-white flex flex-col h-full">
                     {/* Image Container */}
-                    <div className="relative overflow-hidden bg-slate-100 h-40 sm:h-48">
+                    <div className="relative overflow-hidden bg-slate-100 flex items-center justify-center" style={{ aspectRatio: '16/10' }}>
                       <img 
                         src={offer.imageUrl} 
                         alt={offer.title} 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                        className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105" 
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22300%22/%3E%3C/svg%3E';
                         }}
