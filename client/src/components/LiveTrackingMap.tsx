@@ -111,7 +111,7 @@ export function LiveTrackingMap({
       [pickupLocation.latitude, pickupLocation.longitude],
       [deliveryLocation.latitude, deliveryLocation.longitude]
     ];
-    if (driverLocation) {
+    if (driverLocation && typeof driverLocation.latitude === 'number' && typeof driverLocation.longitude === 'number') {
       points.push([driverLocation.latitude, driverLocation.longitude]);
     }
     return L.latLngBounds(points);
@@ -159,8 +159,8 @@ export function LiveTrackingMap({
               <Popup>نقطة التسليم</Popup>
             </Marker>
 
-            {/* Driver Marker */}
-            {driverLocation && (
+            {/* Driver Marker - Enhanced Visibility Logic */}
+            {driverLocation && typeof driverLocation.latitude === 'number' && (
               <>
                 <Marker position={[driverLocation.latitude, driverLocation.longitude]} icon={iconDriver}>
                   <Popup>موقع الكابتن الحالي</Popup>
@@ -170,6 +170,14 @@ export function LiveTrackingMap({
                   end={[deliveryLocation.latitude, deliveryLocation.longitude]} 
                 />
               </>
+            )}
+            
+            {/* Always show route between Pickup and Delivery if driver is not yet tracked */}
+            {!driverLocation && (
+              <RoutingPolyline 
+                start={[pickupLocation.latitude, pickupLocation.longitude]} 
+                end={[deliveryLocation.latitude, deliveryLocation.longitude]} 
+              />
             )}
           </MapContainer>
         </div>
