@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { MapPin, Plus, User, Truck, Clock, X, Phone, ChevronRight, Package, MessageCircle, BarChart3, Zap, Timer, ChevronLeft, Info, Loader2 } from "lucide-react";
+import { MapPin, Plus, User, Truck, Clock, X, Phone, ChevronRight, Package, MessageCircle, BarChart3, Zap, Timer, ChevronLeft, Info, Loader2, Sparkles } from "lucide-react";
 import { CountdownTimer } from "@/components/customer/CountdownTimer";
 import { RestaurantMenu } from "@/components/customer/RestaurantMenu";
 import { Link, useLocation } from "wouter";
@@ -163,44 +163,59 @@ export default function CustomerDashboard() {
           </motion.div>
         </Link>
 
-        {/* Horizontal Offers Section */}
+        {/* Horizontal Offers Section - Redesigned */}
         {activeOffers.length > 0 && (
           <div className="mb-10">
-            <div className="flex items-center justify-between mb-4 px-1">
+            <div className="flex items-center justify-between mb-5 px-1">
               <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                <Zap className="h-5 w-5 text-orange-500 fill-orange-500" />
-                عروض حصرية
+                <Sparkles className="h-5 w-5 text-orange-500 fill-orange-500" />
+                عروض حصرية لك
               </h3>
-              <Badge variant="secondary" className="bg-orange-50 text-orange-600 border-none font-bold text-[10px] px-3 py-1 rounded-full">
+              <Badge variant="secondary" className="bg-orange-50 text-orange-600 border-none font-bold text-[10px] px-3 py-1 rounded-full animate-pulse">
                 لفترة محدودة
               </Badge>
             </div>
             
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x">
+            <div className="flex gap-5 overflow-x-auto pb-6 scrollbar-hide snap-x">
               {activeOffers.map((offer) => (
-                <motion.div key={offer.id} className="min-w-[320px] snap-center">
-                  <Card className="overflow-hidden border-none shadow-md rounded-2xl bg-white flex h-44">
-                    <div className="w-2/5 relative">
-                      <img src={offer.imageUrl} alt={offer.title} className="w-full h-full object-cover" />
-                      <div className="absolute top-2 right-2 bg-orange-600/90 backdrop-blur-sm text-white px-2 py-1 rounded-lg text-[10px] font-bold shadow-lg">
+                <motion.div key={offer.id} className="min-w-[340px] snap-center">
+                  <Card className="overflow-hidden border-none shadow-xl shadow-slate-200/50 rounded-[2rem] bg-white flex h-48 group cursor-pointer relative">
+                    {/* Image Section */}
+                    <div className="w-[42%] relative overflow-hidden">
+                      <img 
+                        src={offer.imageUrl} 
+                        alt={offer.title} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                      <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md text-orange-600 px-2.5 py-1 rounded-xl text-[10px] font-black shadow-lg flex items-center gap-1">
+                        <Timer className="h-3 w-3" />
                         <CountdownTimer expiresAt={offer.expiresAt} />
                       </div>
                     </div>
-                    <div className="w-3/5 p-4 flex flex-col justify-between">
-                      <div className="space-y-1">
-                        <h4 className="text-base font-black text-slate-900 line-clamp-1">{offer.title}</h4>
-                        <p className="text-xs font-medium text-slate-500 line-clamp-3 leading-relaxed">{offer.description}</p>
+
+                    {/* Content Section */}
+                    <div className="w-[58%] p-5 flex flex-col justify-between bg-white">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-1.5 w-1.5 rounded-full bg-orange-500" />
+                          <h4 className="text-base font-black text-slate-900 line-clamp-1 leading-tight">{offer.title}</h4>
+                        </div>
+                        <p className="text-xs font-bold text-slate-400 line-clamp-3 leading-relaxed">
+                          {offer.description}
+                        </p>
                       </div>
-                      <div className="flex items-center gap-2">
+
+                      <div className="flex items-center gap-2 pt-2">
                         <Button 
                           size="sm" 
-                          className="flex-1 bg-orange-500 text-white hover:bg-orange-600 border-none shadow-md h-9 text-xs font-black rounded-xl"
+                          className="flex-1 bg-orange-500 text-white hover:bg-orange-600 border-none shadow-lg shadow-orange-100 h-10 text-xs font-black rounded-2xl transition-all active:scale-95"
                           onClick={() => setActiveTab("restaurants")}
                         >
-                          اطلب الآن
+                          استفد بالعرض
                         </Button>
-                        <div className="bg-slate-50 p-2 rounded-xl border border-slate-100">
-                          <Info className="h-4 w-4 text-slate-400" />
+                        <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-100 text-slate-400 hover:text-orange-500 transition-colors">
+                          <Info className="h-4 w-4" />
                         </div>
                       </div>
                     </div>
@@ -213,56 +228,62 @@ export default function CustomerDashboard() {
 
         {/* Orders Section */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="bg-slate-100 p-1 rounded-2xl mb-6 w-full grid grid-cols-3">
-            <TabsTrigger value="active" className="rounded-xl font-bold text-sm data-[state=active]:bg-white data-[state=active]:text-orange-600 transition-all">
+          <TabsList className="bg-slate-100 p-1.5 rounded-[1.5rem] mb-8 w-full grid grid-cols-3 h-14">
+            <TabsTrigger value="active" className="rounded-2xl font-black text-sm data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-sm transition-all">
               النشطة
-              {activeOrders.length > 0 && <span className="mr-1.5 bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-md text-[10px]">{activeOrders.length}</span>}
+              {activeOrders.length > 0 && <span className="mr-2 bg-orange-500 text-white px-2 py-0.5 rounded-lg text-[10px]">{activeOrders.length}</span>}
             </TabsTrigger>
-            <TabsTrigger value="completed" className="rounded-xl font-bold text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 transition-all">السجل</TabsTrigger>
-            <TabsTrigger value="restaurants" className="rounded-xl font-bold text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 transition-all">المطاعم</TabsTrigger>
+            <TabsTrigger value="completed" className="rounded-2xl font-black text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm transition-all">السجل</TabsTrigger>
+            <TabsTrigger value="restaurants" className="rounded-2xl font-black text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm transition-all">المطاعم</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="active" className="space-y-4">
+          <TabsContent value="active" className="space-y-5">
             {activeOrders.length > 0 ? (
               activeOrders.map((order) => {
                 const status = getStatusInfo(order.status);
                 const StatusIcon = status.icon;
                 return (
                   <motion.div key={order.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                    <Card className="border-none shadow-sm rounded-2xl overflow-hidden bg-white">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-2">
-                            <div className={`${status.bgColor} p-2 rounded-xl`}>
-                              <StatusIcon className={`h-4 w-4 ${status.color}`} />
+                    <Card className="border-none shadow-sm rounded-[2rem] overflow-hidden bg-white">
+                      <CardContent className="p-5">
+                        <div className="flex items-center justify-between mb-5">
+                          <div className="flex items-center gap-3">
+                            <div className={`${status.bgColor} p-2.5 rounded-2xl`}>
+                              <StatusIcon className={`h-5 w-5 ${status.color}`} />
                             </div>
                             <div>
-                              <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">طلب #{order.id}</span>
-                              <span className={`text-xs font-black ${status.color}`}>{status.label}</span>
+                              <span className="text-[10px] font-black text-slate-400 block uppercase tracking-widest">طلب #{order.id}</span>
+                              <span className={`text-sm font-black ${status.color}`}>{status.label}</span>
                             </div>
                           </div>
-                          <div className="text-lg font-black text-slate-900">ج.م {order.price}</div>
+                          <div className="text-xl font-black text-slate-900">ج.م {order.price}</div>
                         </div>
 
-                        <div className="space-y-3 mb-4">
-                          <div className="flex items-start gap-3">
-                            <div className="h-2 w-2 rounded-full bg-slate-200 mt-1.5" />
-                            <p className="text-xs font-medium text-slate-600 line-clamp-1">{order.pickupLocation?.address}</p>
+                        <div className="space-y-4 mb-6 relative">
+                          <div className="absolute right-[7px] top-2 bottom-2 w-0.5 bg-slate-100" />
+                          <div className="flex items-start gap-4 relative z-10">
+                            <div className="h-3.5 w-3.5 rounded-full border-2 border-white bg-slate-300 mt-1 shadow-sm" />
+                            <p className="text-xs font-bold text-slate-500 line-clamp-1">{order.pickupLocation?.address}</p>
                           </div>
-                          <div className="flex items-start gap-3">
-                            <MapPin className="h-3.5 w-3.5 text-orange-500 mt-0.5" />
-                            <p className="text-xs font-medium text-slate-600 line-clamp-1">{order.deliveryLocation?.address}</p>
+                          <div className="flex items-start gap-4 relative z-10">
+                            <div className="h-3.5 w-3.5 rounded-full border-2 border-white bg-orange-500 mt-1 shadow-sm" />
+                            <p className="text-xs font-bold text-slate-800 line-clamp-1">{order.deliveryLocation?.address}</p>
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                          <div className="flex items-center gap-2">
-                            {order.driver && (
-                              <div className="flex items-center gap-2">
-                                <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-xs">
+                        <div className="flex items-center justify-between pt-5 border-t border-slate-50">
+                          <div className="flex items-center gap-3">
+                            {order.driver ? (
+                              <div className="flex items-center gap-2.5">
+                                <div className="h-9 w-9 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-600 font-black text-sm shadow-inner">
                                   {order.driver.name.charAt(0)}
                                 </div>
-                                <span className="text-xs font-bold text-slate-700">{order.driver.name}</span>
+                                <span className="text-xs font-black text-slate-700">{order.driver.name}</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 text-slate-400">
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                <span className="text-[10px] font-bold">بحث عن سائق...</span>
                               </div>
                             )}
                           </div>
@@ -274,7 +295,7 @@ export default function CustomerDashboard() {
                               variant="outline" 
                               size="sm" 
                               onClick={() => handleShowDetails(order.id)}
-                              className="rounded-xl border-slate-100 text-slate-600 font-bold text-xs h-9 px-4"
+                              className="rounded-2xl border-slate-100 text-slate-600 font-black text-xs h-10 px-5 hover:bg-slate-50 transition-all"
                             >
                               التفاصيل
                             </Button>
@@ -286,11 +307,12 @@ export default function CustomerDashboard() {
                 );
               })
             ) : (
-              <div className="text-center py-12">
-                <div className="bg-slate-100 h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Package className="h-8 w-8 text-slate-300" />
+              <div className="text-center py-16">
+                <div className="bg-slate-100 h-20 w-20 rounded-[2rem] flex items-center justify-center mx-auto mb-5">
+                  <Package className="h-10 w-10 text-slate-300" />
                 </div>
-                <p className="text-slate-400 font-bold">لا توجد طلبات نشطة حالياً</p>
+                <p className="text-slate-400 font-black text-lg">لا توجد طلبات نشطة حالياً</p>
+                <p className="text-slate-300 text-sm font-bold mt-1">اطلب الآن وسنصلك في أسرع وقت</p>
               </div>
             )}
           </TabsContent>
@@ -301,27 +323,27 @@ export default function CustomerDashboard() {
                 completedOrders.map((order) => {
                   const status = getStatusInfo(order.status);
                   return (
-                    <Card key={order.id} className="border-none shadow-sm rounded-2xl bg-white opacity-80">
-                      <CardContent className="p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={`${status.bgColor} p-2 rounded-xl`}>
-                            <Package className={`h-4 w-4 ${status.color}`} />
+                    <Card key={order.id} className="border-none shadow-sm rounded-[1.5rem] bg-white opacity-90">
+                      <CardContent className="p-5 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className={`${status.bgColor} p-2.5 rounded-2xl`}>
+                            <Package className={`h-5 w-5 ${status.color}`} />
                           </div>
                           <div>
-                            <span className="text-xs font-black text-slate-900 block">طلب #{order.id}</span>
+                            <span className="text-sm font-black text-slate-900 block">طلب #{order.id}</span>
                             <span className="text-[10px] font-bold text-slate-400">{new Date(order.createdAt).toLocaleDateString('ar-EG')}</span>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-sm font-black text-slate-900">ج.م {order.price}</div>
-                          <span className={`text-[10px] font-bold ${status.color}`}>{status.label}</span>
+                          <div className="text-base font-black text-slate-900">ج.م {order.price}</div>
+                          <span className={`text-[10px] font-black ${status.color}`}>{status.label}</span>
                         </div>
                       </CardContent>
                     </Card>
                   );
                 })
               ) : (
-                <div className="text-center py-12 text-slate-400 font-bold">سجل الطلبات فارغ</div>
+                <div className="text-center py-16 text-slate-400 font-black">سجل الطلبات فارغ</div>
               )}
             </div>
           </TabsContent>
@@ -332,86 +354,93 @@ export default function CustomerDashboard() {
         </Tabs>
       </main>
 
-      {/* Order Details Dialog */}
+      {/* Order Details Dialog - Redesigned */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-md rounded-[2rem] p-0 overflow-hidden border-none" dir="rtl">
-          <div className="bg-orange-500 p-6 text-white">
-            <div className="flex justify-between items-start mb-4">
-              <DialogTitle className="text-xl font-black">تفاصيل الطلب #{selectedOrderId}</DialogTitle>
-              <Button variant="ghost" size="icon" onClick={() => setIsDetailsOpen(false)} className="text-white hover:bg-white/20 rounded-full">
-                <X className="h-5 w-5" />
+        <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl" dir="rtl">
+          <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-8 text-white relative">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <DialogTitle className="text-2xl font-black mb-2">تفاصيل الطلب #{selectedOrderId}</DialogTitle>
+                {orderDetailsQuery.data && (
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-white/20 text-white border-none font-black px-3 py-1 rounded-lg backdrop-blur-md">
+                      {getStatusInfo(orderDetailsQuery.data.status).label}
+                    </Badge>
+                  </div>
+                )}
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setIsDetailsOpen(false)} className="text-white hover:bg-white/20 rounded-2xl h-10 w-10">
+                <X className="h-6 w-6" />
               </Button>
             </div>
-            {orderDetailsQuery.data && (
-              <div className="flex items-center gap-2">
-                <Badge className="bg-white/20 text-white border-none font-bold">
-                  {getStatusInfo(orderDetailsQuery.data.status).label}
-                </Badge>
-                <span className="text-sm font-bold opacity-80">
-                  {new Date(orderDetailsQuery.data.createdAt).toLocaleString('ar-EG')}
-                </span>
-              </div>
-            )}
+            <div className="absolute -left-6 -bottom-6 opacity-10">
+              <Package className="h-32 w-32" />
+            </div>
           </div>
 
-          <div className="p-6 space-y-6 bg-white">
+          <div className="p-8 space-y-8 bg-white">
             {orderDetailsQuery.isLoading ? (
-              <div className="flex justify-center py-10">
-                <Loader2 className="h-8 w-8 text-orange-500 animate-spin" />
+              <div className="flex flex-col items-center justify-center py-12 gap-4">
+                <Loader2 className="h-10 w-10 text-orange-500 animate-spin" />
+                <p className="text-slate-400 font-bold">جاري تحميل البيانات...</p>
               </div>
             ) : orderDetailsQuery.data ? (
               <>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="h-2 w-2 rounded-full bg-orange-500 mt-2" />
+                <div className="space-y-6 relative">
+                  <div className="absolute right-[7px] top-3 bottom-3 w-0.5 bg-slate-100" />
+                  <div className="flex items-start gap-5 relative z-10">
+                    <div className="h-4 w-4 rounded-full border-4 border-white bg-slate-300 shadow-md mt-1" />
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">من</p>
-                      <p className="text-sm font-bold text-slate-700">{orderDetailsQuery.data.pickupLocation?.address}</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">نقطة الاستلام</p>
+                      <p className="text-sm font-black text-slate-700 leading-relaxed">{orderDetailsQuery.data.pickupLocation?.address}</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-4 w-4 text-orange-500 mt-1" />
+                  <div className="flex items-start gap-5 relative z-10">
+                    <div className="h-4 w-4 rounded-full border-4 border-white bg-orange-500 shadow-md mt-1" />
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">إلى</p>
-                      <p className="text-sm font-bold text-slate-700">{orderDetailsQuery.data.deliveryLocation?.address}</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">وجهة التوصيل</p>
+                      <p className="text-sm font-black text-slate-700 leading-relaxed">{orderDetailsQuery.data.deliveryLocation?.address}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-slate-50 p-4 rounded-2xl space-y-3">
+                <div className="bg-slate-50 p-6 rounded-[2rem] space-y-4 border border-slate-100">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-bold text-slate-500">سعر التوصيل</span>
-                    <span className="text-base font-black text-slate-900">ج.م {orderDetailsQuery.data.price}</span>
+                    <span className="text-sm font-black text-slate-400">تكلفة التوصيل</span>
+                    <span className="text-2xl font-black text-orange-600">ج.م {orderDetailsQuery.data.price}</span>
                   </div>
                   {orderDetailsQuery.data.description && (
-                    <div className="pt-3 border-t border-slate-200">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">ملاحظات</p>
-                      <p className="text-sm font-medium text-slate-600">{orderDetailsQuery.data.description}</p>
+                    <div className="pt-4 border-t border-slate-200">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">ملاحظات العميل</p>
+                      <p className="text-sm font-bold text-slate-600 bg-white p-3 rounded-xl border border-slate-100 italic">
+                        "{orderDetailsQuery.data.description}"
+                      </p>
                     </div>
                   )}
                 </div>
 
                 {orderDetailsQuery.data.driver && (
-                  <div className="flex items-center justify-between p-4 border-2 border-orange-100 rounded-2xl">
-                    <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-black text-lg">
+                  <div className="flex items-center justify-between p-5 bg-orange-50/50 border-2 border-orange-100 rounded-[2rem]">
+                    <div className="flex items-center gap-4">
+                      <div className="h-14 w-14 rounded-[1.25rem] bg-orange-500 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-orange-200">
                         {orderDetailsQuery.data.driver.name.charAt(0)}
                       </div>
                       <div>
-                        <p className="text-sm font-black text-slate-900">{orderDetailsQuery.data.driver.name}</p>
-                        <p className="text-xs font-bold text-slate-400">سائق التوصيل</p>
+                        <p className="text-base font-black text-slate-900">{orderDetailsQuery.data.driver.name}</p>
+                        <p className="text-xs font-black text-orange-600">كابتن وصلي</p>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <a href={`tel:${orderDetailsQuery.data.driver.phone}`} className="bg-orange-500 p-2.5 rounded-xl text-white shadow-lg shadow-orange-200">
-                        <Phone className="h-5 w-5" />
-                      </a>
-                    </div>
+                    <a href={`tel:${orderDetailsQuery.data.driver.phone}`} className="bg-white p-3.5 rounded-2xl text-orange-500 shadow-sm border border-orange-100 hover:bg-orange-500 hover:text-white transition-all active:scale-90">
+                      <Phone className="h-6 w-6" />
+                    </a>
                   </div>
                 )}
               </>
             ) : (
-              <p className="text-center text-slate-500 font-bold">فشل تحميل التفاصيل</p>
+              <div className="text-center py-10">
+                <X className="h-12 w-12 text-rose-500 mx-auto mb-4" />
+                <p className="text-slate-500 font-black">عذراً، فشل تحميل تفاصيل الطلب</p>
+              </div>
             )}
           </div>
         </DialogContent>
