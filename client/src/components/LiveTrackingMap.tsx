@@ -85,6 +85,7 @@ interface LiveTrackingMapProps {
   driverId: number;
   pickupLocation: { latitude: number; longitude: number; address: string };
   deliveryLocation: { latitude: number; longitude: number; address: string };
+  initialDriverLocation?: { latitude: number; longitude: number };
 }
 
 export function LiveTrackingMap({
@@ -92,6 +93,7 @@ export function LiveTrackingMap({
   driverId,
   pickupLocation,
   deliveryLocation,
+  initialDriverLocation,
 }: LiveTrackingMapProps) {
   const { isConnected, driverLocations, trackDriver, stopTracking } = useLocationTracking();
 
@@ -104,7 +106,8 @@ export function LiveTrackingMap({
     };
   }, [isConnected, orderId, driverId, trackDriver, stopTracking]);
 
-  const driverLocation = driverLocations.get(driverId);
+  const liveDriverLocation = driverLocations.get(driverId);
+  const driverLocation = liveDriverLocation || initialDriverLocation;
 
   const bounds = useMemo(() => {
     const points: [number, number][] = [

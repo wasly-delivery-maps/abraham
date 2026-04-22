@@ -101,6 +101,10 @@ export default function TrackOrder() {
                   latitude: order.deliveryLocation?.latitude || 0,
                   longitude: order.deliveryLocation?.longitude || 0
                 }}
+                initialDriverLocation={order.driver?.latitude && order.driver?.longitude ? {
+                  latitude: order.driver.latitude,
+                  longitude: order.driver.longitude
+                } : undefined}
               />
             ) : (
               <div className="h-full flex flex-col items-center justify-center p-8 text-center gap-4 bg-slate-50">
