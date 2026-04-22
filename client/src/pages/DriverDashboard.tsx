@@ -51,9 +51,14 @@ const iconB = L.divIcon({
 
 const iconDriver = L.divIcon({
   className: 'custom-div-icon',
-  html: "<div style='background-color:#10b981; color:white; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 0 10px rgba(16,185,129,0.5);'><div style='width:8px; height:8px; background:white; border-radius:50%;'></div></div>",
-  iconSize: [24, 24],
-  iconAnchor: [12, 12]
+  html: `<div style='background-color:#10b981; color:white; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 0 15px rgba(16,185,129,0.6);'>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
+      <path d="M12 17h5"/><path d="M9 17h3l3-9h2"/><path d="M13 8.5h2.5L13 11h2"/>
+    </svg>
+  </div>`,
+  iconSize: [36, 36],
+  iconAnchor: [18, 18]
 });
 
 // Component to auto-fit map bounds with zoom lock
@@ -257,7 +262,7 @@ export default function DriverDashboard() {
             
             // Broadcast location to customers via WebSocket
             const activeOrder = ordersQuery.data?.find(o => ['assigned', 'accepted', 'picked_up', 'in_transit', 'arrived'].includes(o.status));
-            updateLocation(latitude, longitude, activeOrder?.id);
+            updateLocation(latitude, longitude, activeOrder?.id, user.id);
           }
         },
         (error) => console.warn("Location error:", error),

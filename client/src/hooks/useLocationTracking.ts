@@ -84,12 +84,13 @@ export function useLocationTracking() {
   };
 
   // Update driver location
-  const updateLocation = (latitude: number, longitude: number, orderId?: number) => {
+  const updateLocation = (latitude: number, longitude: number, orderId?: number, driverId?: number) => {
     if (socketRef.current) {
       socketRef.current.emit("driver:update-location", {
         latitude,
         longitude,
         orderId,
+        driverId,
       });
     }
   };

@@ -155,12 +155,24 @@ export function OrderTracking({
       driverMarker.setMap(null);
     }
 
-    // Create new driver marker (blue)
+    // Create new driver marker (Motorcycle icon)
     const newDriverMarker = new google.maps.Marker({
       position: driverPos,
       map,
       title: "موقع السائق",
-      icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+      icon: {
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="11" fill="#10b981" stroke="white" stroke-width="2"/>
+            <g transform="translate(4, 4) scale(0.65)">
+              <circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
+              <path d="M12 17h5"/><path d="M9 17h3l3-9h2"/><path d="M13 8.5h2.5L13 11h2"/>
+            </g>
+          </svg>
+        `),
+        scaledSize: new google.maps.Size(36, 36),
+        anchor: new google.maps.Point(18, 18)
+      }
     });
 
     setDriverMarker(newDriverMarker);
