@@ -313,12 +313,31 @@ export default function CustomerDashboard() {
                           <Button 
                             className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl px-4 py-5 h-auto text-sm font-black shadow-lg shadow-orange-200 transition-all active:scale-95"
                             onClick={() => {
-                              const message = encodeURIComponent(`مرحباً مطعم الحوت، أود طلب العرض: ${offer.title}\n\n${offer.description}`);
-                              window.open(`https://wa.me/201557564373?text=${message}`, '_blank');
+                              // البحث عن زر تبويب المطاعم والضغط عليه
+                              const restaurantsTab = document.querySelector('[value="restaurants"]') as HTMLButtonElement;
+                              if (restaurantsTab) {
+                                restaurantsTab.click();
+                                // الانتظار قليلاً حتى يتم تحميل قائمة المطاعم ثم اختيار المطعم المناسب
+                                setTimeout(() => {
+                                  const restaurantCards = document.querySelectorAll('.cursor-pointer.group');
+                                  restaurantCards.forEach((card) => {
+                                    const nameElement = card.querySelector('h3');
+                                    // إذا كان العرض يحتوي على كلمة "الخديوي" أو "الحوت" نقوم باختيار المطعم المناسب
+                                    if (nameElement && (
+                                      (offer.title.includes('الخديوي') && nameElement.innerText.includes('الخديوي')) ||
+                                      (offer.title.includes('الحوت') && nameElement.innerText.includes('الحوت')) ||
+                                      (offer.description.includes('الخديوي') && nameElement.innerText.includes('الخديوي')) ||
+                                      (offer.description.includes('الحوت') && nameElement.innerText.includes('الحوت'))
+                                    )) {
+                                      (card as HTMLElement).click();
+                                    }
+                                  });
+                                }, 100);
+                              }
                             }}
                           >
-                            اطلب عبر واتساب
-                            <MessageCircle className="h-4 w-4 mr-2" />
+                            اطلب الآن من المطعم
+                            <Plus className="h-4 w-4 mr-2" />
                           </Button>
                           
                           <div className="bg-orange-50 p-2.5 rounded-xl border border-orange-100">
