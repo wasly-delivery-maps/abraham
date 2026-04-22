@@ -194,19 +194,21 @@ export default function CustomerDashboard() {
                   className="min-w-[280px] sm:min-w-[320px] snap-center group cursor-pointer"
                 >
                   <Card className="overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-300 rounded-[2rem] bg-white flex flex-col h-full">
-                    {/* Image Container */}
-                    <div className="relative overflow-hidden bg-slate-50 flex items-center justify-center h-40">
+                    {/* Image Container - Professional Full Bleed Auto-Fit */}
+                    <div className="relative overflow-hidden bg-slate-100 w-full" style={{ aspectRatio: '16/10' }}>
                       <img 
                         src={offer.imageUrl} 
                         alt={offer.title} 
-                        className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105" 
+                        className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110" 
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22300%22/%3E%3C/svg%3E';
+                          (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 250%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22250%22/%3E%3C/svg%3E';
                         }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                      {/* Timer Badge */}
-                      <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md text-orange-600 px-3 py-1.5 rounded-xl text-[10px] font-black shadow-lg flex items-center gap-1.5">
+                      {/* Premium Overlay for readability */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60" />
+                      
+                      {/* Timer Badge - Floating Design */}
+                      <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md text-orange-600 px-3 py-1.5 rounded-xl text-[10px] font-black shadow-xl flex items-center gap-1.5 border border-white/20">
                         <Timer className="h-3 w-3" />
                         <CountdownTimer expiresAt={offer.expiresAt} />
                       </div>
