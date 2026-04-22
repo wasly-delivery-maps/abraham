@@ -522,10 +522,27 @@ export default function DriverDashboard() {
               <div className="grid grid-cols-1 gap-4">
                 <div className="bg-orange-600 p-6 rounded-[2rem] shadow-lg shadow-orange-100 text-white text-center">
                   <p className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-80">إجمالي التحصيل من العميل</p>
-                  <p className="text-3xl font-black">ج.م {(order.price || 0) + (order.itemPrice || 0)}</p>
+                  <p className="text-3xl font-black">
+                    ج.م {(() => {
+                      const deliveryPrice = order.price || 0;
+                      let itemPrice = 0;
+                      const notes = order.notes || "";
+                      const match = notes.match(/قيمة الطعام:\s*ج\.م\s*(\d+(\.\d+)?)/);
+                      if (match && match[1]) {
+                        itemPrice = parseFloat(match[1]);
+                      }
+                      return deliveryPrice + itemPrice;
+                    })()}
+                  </p>
                   <div className="flex justify-center gap-4 mt-2 pt-2 border-t border-white/20 text-[10px] font-bold">
                     <span>التوصيل: {order.price || 0}</span>
-                    <span>الأكل: {order.itemPrice || 0}</span>
+                    <span>
+                      الأكل: {(() => {
+                        const notes = order.notes || "";
+                        const match = notes.match(/قيمة الطعام:\s*ج\.م\s*(\d+(\.\d+)?)/);
+                        return match ? match[1] : "0";
+                      })()}
+                    </span>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
