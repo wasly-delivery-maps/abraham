@@ -561,9 +561,17 @@ export function RestaurantMenu() {
 
       {cart.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-transparent">
-          <Card className="max-w-2xl mx-auto border-none shadow-2xl bg-slate-900 text-white rounded-3xl overflow-hidden">
+          <Card className="max-w-2xl mx-auto border-none shadow-2xl bg-slate-900 text-white rounded-3xl overflow-hidden relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 left-4 h-8 w-8 rounded-full bg-slate-800 text-white hover:bg-slate-700 z-50"
+              onClick={() => setCart([])}
+            >
+              <X className="h-4 w-4" />
+            </Button>
             <CardContent className="p-0">
-              <div className="p-4 max-h-60 overflow-y-auto border-b border-slate-800">
+              <div className="p-4 pt-12 max-h-60 overflow-y-auto border-b border-slate-800">
                 {cart.map((item) => (
                   <div key={item.id} className="flex justify-between items-center py-3 border-b border-slate-800 last:border-0">
                     <div className="flex-1">
@@ -577,7 +585,7 @@ export function RestaurantMenu() {
                         size="icon"
                         variant="ghost"
                         className="h-7 w-7 rounded-lg hover:bg-slate-700 text-white"
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        onClick={() => updateQuantity(item.id, -1)}
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
@@ -586,7 +594,7 @@ export function RestaurantMenu() {
                         size="icon"
                         variant="ghost"
                         className="h-7 w-7 rounded-lg hover:bg-slate-700 text-white"
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        onClick={() => updateQuantity(item.id, 1)}
                       >
                         <Plus className="h-3 w-3" />
                       </Button>
