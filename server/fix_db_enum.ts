@@ -1,19 +1,17 @@
 import { getDb } from "./db";
 import { sql } from "drizzle-orm";
 
-async function fixDbEnum() {
-  console.log("Starting DB Enum fix...");
+export async function runFixes() {
+  console.log("Starting DB Schema synchronization...");
   const db = await getDb();
   
   if (!db) {
     console.error("Could not connect to database. Make sure DATABASE_URL is set.");
-    process.exit(1);
+    return;
   }
 
   try {
     console.log("Updating 'orders' table status enum...");
-    // Direct SQL to alter the enum column in MySQL
-    // We use a more robust approach to ensure the column is updated
     try {
       await db.execute(sql`
         ALTER TABLE \`orders\` 
@@ -29,12 +27,11 @@ async function fixDbEnum() {
         ) DEFAULT 'pending' NOT NULL
       `);
       console.log("Successfully updated 'orders' table status enum.");
-    } catch (e) {
-      console.warn("Could not update orders status enum, it might already be updated or table is locked:", e.message);
+    } catch (e: any) {
+      console.warn("Could not update orders status enum:", e.message);
     }
 
     console.log("Updating 'notifications' table type enum...");
-    // Also update notifications type if needed to support new order states
     await db.execute(sql`
       ALTER TABLE \`notifications\` 
       MODIFY COLUMN \`type\` ENUM(
@@ -58,9 +55,7 @@ async function fixDbEnum() {
         ADD COLUMN IF NOT EXISTS \`avatarUrl\` TEXT
       `);
       console.log("Successfully added 'avatarUrl' column to 'users' table.");
-    } catch (e) {
-      // MySQL doesn't support ADD COLUMN IF NOT EXISTS directly in some versions, 
-      // so we handle the error if it already exists
+    } catch (e: any) {
       if (e.message.includes("Duplicate column name")) {
         console.log("'avatarUrl' column already exists.");
       } else {
@@ -70,7 +65,6 @@ async function fixDbEnum() {
 
     console.log("Ensuring 'offers' table matches schema...");
     try {
-      // Create table if it doesn't exist with correct schema
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS \`offers\` (
           \`id\` int NOT NULL AUTO_INCREMENT,
@@ -83,19 +77,8 @@ async function fixDbEnum() {
           \`createdAt\` datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
           \`updatedAt\` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
           PRIMARY KEY (\`id\`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
-      
-      // Ensure columns match schema
-      try {
-        await db.execute(sql`ALTER TABLE \`offers\` MODIFY COLUMN \`imageUrl\` LONGTEXT NOT NULL`);
-        await db.execute(sql`ALTER TABLE \`offers\` MODIFY COLUMN \`expiresAt\` datetime NOT NULL`);
-        await db.execute(sql`ALTER TABLE \`offers\` MODIFY COLUMN \`createdAt\` datetime DEFAULT CURRENT_TIMESTAMP NOT NULL`);
-        await db.execute(sql`ALTER TABLE \`offers\` MODIFY COLUMN \`updatedAt\` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL`);
-        console.log("Successfully synchronized 'offers' table with schema.");
-      } catch (modifyError: any) {
-        console.warn("Could not modify some columns in 'offers':", modifyError.message);
-      }
     } catch (e: any) {
       console.error("Failed to ensure 'offers' table schema:", e.message);
     }
@@ -132,7 +115,6 @@ async function fixDbEnum() {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
 
-      // إنشاء كوبون WASLY50 تلقائياً إذا لم يكن موجوداً
       try {
         const existingCoupons = await db.execute(sql`SELECT id FROM \`coupons\` WHERE \`code\` = 'WASLY50'`);
         if (!existingCoupons || (existingCoupons as any)[0].length === 0) {
@@ -151,12 +133,13 @@ async function fixDbEnum() {
       console.error("Failed to ensure coupon tables:", couponTableError.message);
     }
 
-    console.log("All fixes applied successfully!");
-    process.exit(0);
+    console.log("All schema fixes applied successfully!");
   } catch (error) {
-    console.error("Error applying fixes:", error);
-    process.exit(1);
+    console.error("Error applying schema fixes:", error);
   }
 }
 
-fixDbEnum();
+// Keep the auto-run for manual execution
+if (require.main === module) {
+  runFixes().then(() => process.exit(0)).catch(() => process.exit(1));
+}

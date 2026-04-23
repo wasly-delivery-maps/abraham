@@ -40,6 +40,18 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   // Log environment status
   console.log("[Environment] Server starting...");
+  
+  // Run DB fixes before starting
+  if (process.env.DATABASE_URL) {
+    try {
+      console.log("[Database] Running schema fixes...");
+      const { runFixes } = await import("../fix_db_enum");
+      await runFixes();
+      console.log("[Database] Schema fixes completed.");
+    } catch (error) {
+      console.error("[Database] Failed to run schema fixes:", error);
+    }
+  }
   if (!process.env.DATABASE_URL) {
     console.warn("[Environment] WARNING: DATABASE_URL is not set. Falling back to in-memory database.");
   } else {
