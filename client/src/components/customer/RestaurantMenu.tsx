@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { trpc } from "@/utils/trpc";
+import { trpc } from "@/lib/trpc";
 
 interface MenuItem {
   id: number;
@@ -84,7 +84,7 @@ const restaurants: Restaurant[] = [
   }
 ];
 
-export default function RestaurantMenu() {
+export function RestaurantMenu() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartExpanded, setIsCartExpanded] = useState(false);
