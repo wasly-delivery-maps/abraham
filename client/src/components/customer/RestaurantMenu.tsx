@@ -1,17 +1,19 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { useState, useMemo, useEffect } from "react";
 import { ShoppingCart, Plus, Minus, X, MessageCircle, MapPin, Phone, Loader2, ChevronRight, Star, Clock, Coins, Gift, Truck } from "lucide-react";
-import { trpc } from "@/lib/trpc";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+import { trpc } from "@/utils/trpc";
 
 interface MenuItem {
   id: number;
   name: string;
-  category: string;
+  description: string;
   price: number;
-  description?: string;
+  image: string;
+  category: string;
 }
 
 interface CartItem extends MenuItem {
@@ -21,224 +23,88 @@ interface CartItem extends MenuItem {
 interface Restaurant {
   id: number;
   name: string;
-  phone: string;
-  whatsappPhone: string;
+  category: string;
+  rating: number;
+  deliveryTime: string;
+  minOrder: number;
+  image: string;
   address: string;
-  description?: string;
-  logoUrl?: string;
-  coverUrl?: string;
-  rating?: string;
-  deliveryTime?: string;
-  location: {
-    latitude: number;
-    longitude: number;
-  };
+  phone: string;
+  menu: MenuItem[];
 }
 
-// مطعم "كشري الخديوي" - البيانات
-const KHEDIVE_KOSHARY_RESTAURANT: Restaurant = {
-  id: 2,
-  name: "كشري الخديوي",
-  phone: "01032809502",
-  whatsappPhone: "201032809502",
-  address: "7F49+V89 كشري الخديوي، العبور، القليوبية",
-  description: "أصل الكشري المصري والطواجن البيتي في قلب العبور",
-  logoUrl: "https://ui-avatars.com/api/?name=KK&background=e11d48&color=fff&size=128&bold=true",
-  coverUrl: "https://web-production-0eb1b.up.railway.app/uploads/khedive_koshary_logo_fb.webp",
-  rating: "4.9",
-  deliveryTime: "20-35 دقيقة",
-  location: {
-    latitude: 30.2570159,
-    longitude: 31.4682469
+const restaurants: Restaurant[] = [
+  {
+    id: 1,
+    name: "كشري الخديوي",
+    category: "كشري مصري",
+    rating: 4.8,
+    deliveryTime: "20-30 دقيقة",
+    minOrder: 50,
+    image: "https://images.unsplash.com/photo-1562158074-934339958745?w=800&auto=format&fit=crop&q=60",
+    address: "7F49+V89 كشري الخديوي، العبور، القليوبية",
+    phone: "01234567890",
+    menu: [
+      { id: 101, name: "علبة كشري سوبر", description: "أرز، مكرونة، عدس، حمص، بصل مقرمش، صلصة ودقة", price: 45, image: "https://images.unsplash.com/photo-1562158074-934339958745?w=400&auto=format&fit=crop&q=60", category: "كشري" },
+      { id: 102, name: "طاجن لحمة", description: "مكرونة بالفرن مع اللحم المفروم والصلصة", price: 65, image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&auto=format&fit=crop&q=60", category: "طواجن" },
+      { id: 103, name: "أرز بلبن", description: "أرز باللبن كريمي ومحلى", price: 25, image: "https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?w=400&auto=format&fit=crop&q=60", category: "حلويات" },
+    ]
+  },
+  {
+    id: 2,
+    name: "برجر كينج",
+    category: "وجبات سريعة",
+    rating: 4.5,
+    deliveryTime: "30-45 دقيقة",
+    minOrder: 100,
+    image: "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=800&auto=format&fit=crop&q=60",
+    address: "العبور الجديدة - حي المجد - مول ريتاج - بجانب مدرسة بلال بن رباح الثانوية",
+    phone: "01098765432",
+    menu: [
+      { id: 201, name: "وجبة ووبر", description: "ساندوتش ووبر مع بطاطس وبيبسي", price: 185, image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&auto=format&fit=crop&q=60", category: "وجبات" },
+      { id: 202, name: "تشيكن رويال", description: "ساندوتش دجاج مقرمش مع مايونيز وخس", price: 145, image: "https://images.unsplash.com/photo-1610614819513-58e34989848b?w=400&auto=format&fit=crop&q=60", category: "ساندوتشات" },
+      { id: 203, name: "بطاطس مقلية", description: "بطاطس مقرمشة ومملحة", price: 40, image: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&auto=format&fit=crop&q=60", category: "جانبيات" },
+    ]
+  },
+  {
+    id: 3,
+    name: "بيتزا هت",
+    category: "بيتزا",
+    rating: 4.6,
+    deliveryTime: "25-40 دقيقة",
+    minOrder: 120,
+    image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&auto=format&fit=crop&q=60",
+    address: "7GG2+462 ملعب حي الحرية, العبور، محافظة القليوبية 6363322",
+    phone: "01122334455",
+    menu: [
+      { id: 301, name: "بيتزا سوبر سوبريم", description: "لحم بقري، بيبيروني، فلفل، بصل، زيتون، مشروم", price: 210, image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&auto=format&fit=crop&q=60", category: "بيتزا" },
+      { id: 302, name: "بيتزا مارجريتا", description: "صلصة طماطم وجبنة موتزاريللا", price: 140, image: "https://images.unsplash.com/photo-1574071318508-1cdbad80ad38?w=400&auto=format&fit=crop&q=60", category: "بيتزا" },
+      { id: 303, name: "خبز بالثوم", description: "خبز محمص بالزبدة والثوم والجبنة", price: 55, image: "https://images.unsplash.com/photo-1573140247632-f8fd74997d5c?w=400&auto=format&fit=crop&q=60", category: "مقبلات" },
+    ]
   }
-};
-
-const KHEDIVE_KOSHARY_MENU: MenuItem[] = [
-  // العلب
-  { id: 101, name: "علبة كمالة 🥣", category: "العلب", price: 15 },
-  { id: 102, name: "علبة صغيرة 🥣", category: "العلب", price: 17 },
-  { id: 103, name: "علبة الخديوي 👑", category: "العلب", price: 25 },
-  { id: 104, name: "لوكس الخديوي ✨", category: "العلب", price: 30 },
-  { id: 105, name: "سوبر الخديوي 🔥", category: "العلب", price: 35 },
-  { id: 106, name: "أسبيشيال الخديوي 🌟", category: "العلب", price: 40 },
-  { id: 107, name: "وليمة الخديوي 🥘", category: "العلب", price: 45 },
-  { id: 108, name: "جامبو الخديوي 🐘", category: "العلب", price: 50 },
-  // الطواجن
-  { id: 109, name: "طاجن عادة 🥘", category: "الطواجن", price: 30 },
-  { id: 110, name: "طاجن لحمة 🥩", category: "الطواجن", price: 45 },
-  { id: 111, name: "طاجن سجق 🌭", category: "الطواجن", price: 45 },
-  { id: 112, name: "طاجن كبدة 🥘", category: "الطواجن", price: 45 },
-  { id: 113, name: "طاجن فراخ 🍗", category: "الطواجن", price: 50 },
-  { id: 114, name: "طاجن خضار 🥦", category: "الطواجن", price: 50 },
-  // طواجن وايت صوص
-  { id: 115, name: "طاجن وايت صوص 🥛", category: "طواجن وايت صوص", price: 80 },
-  { id: 116, name: "طاجن لحمة وايت صوص 🥩", category: "طواجن وايت صوص", price: 80 },
-  { id: 117, name: "طاجن سجق وايت صوص 🌭", category: "طواجن وايت صوص", price: 80 },
-  { id: 118, name: "طاجن فراخ وايت صوص 🍗", category: "طواجن وايت صوص", price: 90 },
-  { id: 119, name: "طاجن جمبري 🍤", category: "طواجن وايت صوص", price: 120 },
-  { id: 120, name: "طاجن مشروم 🍄", category: "طواجن وايت صوص", price: 80 },
-  // طواجن موتزاريللا
-  { id: 121, name: "موتزاريللا سادة 🧀", category: "طواجن موتزاريللا", price: 53 },
-  { id: 122, name: "موتزاريللا لحمة 🥩", category: "طواجن موتزاريللا", price: 68 },
-  { id: 123, name: "موتزاريللا كبدة 🥘", category: "طواجن موتزاريللا", price: 68 },
-  { id: 124, name: "موتزاريللا سجق 🌭", category: "طواجن موتزاريللا", price: 68 },
-  { id: 125, name: "موتزاريللا فراخ 🍗", category: "طواجن موتزاريللا", price: 75 },
-  { id: 126, name: "موتزاريللا خضار 🥦", category: "طواجن موتزاريللا", price: 75 },
-  // الميكسات
-  { id: 127, name: "ميكس عادة 🥘", category: "الميكسات", price: 48 },
-  { id: 128, name: "ميكس لحمة 🥩", category: "الميكسات", price: 60 },
-  { id: 129, name: "ميكس سجق 🌭", category: "الميكسات", price: 60 },
-  { id: 130, name: "ميكس كبدة 🥘", category: "الميكسات", price: 60 },
-  { id: 131, name: "ميكس فراخ 🍗", category: "الميكسات", price: 66 },
-  // الحواوشي
-  { id: 132, name: "حواوشي سادة 🥙", category: "الحواوشي", price: 35 },
-  { id: 133, name: "حواوشي سجق 🌭", category: "الحواوشي", price: 60 },
-  { id: 134, name: "حواوشي بسطرمة 🥩", category: "الحواوشي", price: 60 },
-  { id: 135, name: "حواوشي هالبينو 🌶️", category: "الحواوشي", price: 40 },
-  { id: 136, name: "حواوشي ميكس تركي 🥙", category: "الحواوشي", price: 60 },
-  // الحلويات
-  { id: 137, name: "أرز باللبن سادة 🍚", category: "الحلويات", price: 20 },
-  { id: 138, name: "أرز باللبن فرن 🍮", category: "الحلويات", price: 22 },
-  { id: 139, name: "أرز باللبن مكسرات 🥜", category: "الحلويات", price: 26 },
-  { id: 140, name: "أرز باللبن كنافة 🍯", category: "الحلويات", price: 26 },
-  { id: 141, name: "أرز باللبن لوتس 🍪", category: "الحلويات", price: 37 },
-  { id: 142, name: "أرز باللبن مانجو 🥭", category: "الحلويات", price: 32 },
-  { id: 143, name: "قنبلة بسبوسة 💣", category: "الحلويات", price: 27 },
-  { id: 144, name: "قنبلة فراولة 🍓", category: "الحلويات", price: 27 },
-  { id: 145, name: "شوكليت كيك 🍰", category: "الحلويات", price: 27 },
-  { id: 146, name: "ديسباسيتو 🍫", category: "الحلويات", price: 32 },
-  { id: 147, name: "أم علي 🥣", category: "الحلويات", price: 37 },
-  // الإضافات
-  { id: 148, name: "دقة 🍶", category: "الإضافات", price: 9 },
-  { id: 149, name: "شطة 🌶️", category: "الإضافات", price: 10 },
-  { id: 150, name: "عدس 🥣", category: "الإضافات", price: 10 },
-  { id: 151, name: "حمص 🥜", category: "الإضافات", price: 10 },
-  { id: 152, name: "تقلية 🧅", category: "الإضافات", price: 12 },
-  { id: 153, name: "صلصة 🍅", category: "الإضافات", price: 12 },
-  { id: 154, name: "سلطة 🥗", category: "الإضافات", price: 9 },
-  { id: 155, name: "عيش لبناني 🍞", category: "الإضافات", price: 10 },
-  { id: 156, name: "موتزاريللا 🧀", category: "الإضافات", price: 25 },
 ];
 
-// مطعم "الحوت" - البيانات
-const AL_HOUT_RESTAURANT: Restaurant = {
-  id: 3,
-  name: "الحوت - Al-Hout",
-  phone: "01557564373",
-  whatsappPhone: "201557564373",
-  address: "العبور الجديدة - حي المجد - مول ريتاج - بجانب مدرسة بلال بن رباح الثانوية",
-  description: "أشهى المأكولات البحرية والأسماك",
-  logoUrl: "https://ui-avatars.com/api/?name=AH&background=0369a1&color=fff&size=128&bold=true",
-  coverUrl: "/assets/al-hout-blue-whale.jpg",
-  rating: "5.0",
-  deliveryTime: "25-40 دقيقة",
-  location: {
-    latitude: 30.2767773,
-    longitude: 31.5299175
-  }
-};
-
-// مطعم "رول وي" - البيانات
-const ROLL_WE_RESTAURANT: Restaurant = {
-  id: 1,
-  name: "رول وي - مطعم وكافيه",
-  phone: "01032809502",
-  whatsappPhone: "201032809502",
-  address: "7GG2+462 ملعب حي الحرية, العبور، محافظة القليوبية 6363322",
-  description: "أشهى أنواع الكريب والرول والمكرونة والحواوشي في العبور",
-  logoUrl: "https://ui-avatars.com/api/?name=RW&background=f97316&color=fff&size=128&bold=true",
-  coverUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format&fit=crop",
-  rating: "4.8",
-  deliveryTime: "30-45 دقيقة",
-  location: {
-    latitude: 30.275262,
-    longitude: 31.5005241
-  }
-};
-
-const ROLL_WE_MENU: MenuItem[] = [
-  // كريب
-  { id: 1, name: "كريب موزاريلا 🧀", category: "كريب", price: 45 },
-  { id: 2, name: "كريب سجق 🌭", category: "كريب", price: 55 },
-  { id: 3, name: "كريب دجاج 🍗", category: "كريب", price: 50 },
-  { id: 4, name: "كريب جبن 🧀", category: "كريب", price: 40 },
-  { id: 5, name: "كريب شوكولاتة 🍫", category: "كريب", price: 35 },
-  { id: 6, name: "كريب فراولة 🍓", category: "كريب", price: 35 },
-  { id: 7, name: "كريب عسل 🍯", category: "كريب", price: 30 },
-  { id: 8, name: "كريب نوتيلا 🍫", category: "كريب", price: 40 },
-  // رول
-  { id: 9, name: "رول موزاريلا 🧀", category: "رول", price: 50 },
-  { id: 10, name: "رول دجاج 🍗", category: "رول", price: 55 },
-  { id: 11, name: "رول سجق 🌭", category: "رول", price: 60 },
-  { id: 12, name: "رول جبن 🧀", category: "رول", price: 45 },
-  { id: 13, name: "رول خضار 🥦", category: "رول", price: 40 },
-  { id: 14, name: "رول مختلط 🥙", category: "رول", price: 65 },
-  // مكرونة
-  { id: 15, name: "مكرونة كريمة 🥛", category: "مكرونة", price: 45 },
-  { id: 16, name: "مكرونة طماطم 🍅", category: "مكرونة", price: 40 },
-  { id: 17, name: "مكرونة بشاميل 🥘", category: "مكرونة", price: 50 },
-  { id: 18, name: "مكرونة جبن 🧀", category: "مكرونة", price: 45 },
-  { id: 19, name: "مكرونة دجاج 🍗", category: "مكرونة", price: 55 },
-  // حواوشي
-  { id: 20, name: "حواوشي دجاج 🍗", category: "حواوشي", price: 35 },
-  { id: 21, name: "حواوشي لحم 🥩", category: "حواوشي", price: 40 },
-  { id: 22, name: "حواوشي مختلط 🥙", category: "حواوشي", price: 45 },
-  { id: 23, name: "حواوشي جبن 🧀", category: "حواوشي", price: 30 },
-];
-
-const AL_HOUT_MENU: MenuItem[] = [
-  // أنواع الأسماك المتاحة (حسب الوزن)
-  { id: 319, name: "سمك بلطي 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 320, name: "سمك بوري 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 321, name: "سمك ماكريل 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 322, name: "فيليه قشر بياض 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 323, name: "سمك مكرونة 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 324, name: "سمك دنيس 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 325, name: "سمك لوت 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 326, name: "سبيط بلدي 🦑", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 327, name: "كالماري 🦑", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 328, name: "بلح بحر 🐚", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 329, name: "جندوفلي 🐚", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 330, name: "جمبري قشر إسكندراني 🍤", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  // سوق السمك والطواجن
-  { id: 315, name: "مكرونة وايت صوص (سي فود / جمبري) 🍝", category: "سوق السمك والطواجن", price: 180 },
-  { id: 316, name: "مكرونة ريد صوص (سي فود / جمبري) 🍝", category: "سوق السمك والطواجن", price: 180 },
-  { id: 317, name: "كابوريا إسكندراني 🦀", category: "سوق السمك والطواجن", price: 130 },
-  { id: 318, name: "فيليه (وايت صوص / ريد صوص) 🐟", category: "سوق السمك والطواجن", price: 130 },
-  // الشوربة
-  { id: 301, name: "شوربة كريمة 🥣", category: "الشوربة", price: 140 },
-  { id: 302, name: "شوربة جمبري حمراء 🥣", category: "الشوربة", price: 140 },
-  { id: 303, name: "شوربة صيامي 🥣", category: "الشوربة", price: 120 },
-  { id: 304, name: "ملوخية بالجمبري 🥘", category: "الشوربة", price: 100 },
-];
-
-const RESTAURANTS = [ROLL_WE_RESTAURANT, KHEDIVE_KOSHARY_RESTAURANT, AL_HOUT_RESTAURANT];
-const MENUS: Record<number, MenuItem[]> = {
-  1: ROLL_WE_MENU,
-  2: KHEDIVE_KOSHARY_MENU,
-  3: AL_HOUT_MENU,
-};
-
-export function RestaurantMenu() {
+export default function RestaurantMenu() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartExpanded, setIsCartExpanded] = useState(false);
   const [customerNotes, setCustomerNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
   const [addressDescription, setAddressDescription] = useState("");
-  const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [showGiftAlert, setShowGiftAlert] = useState(false);
-  const [usePoints, setUsePoints] = useState(false);
 
-  const createRestaurantOrderMutation = trpc.orders.createRestaurantOrder.useMutation();
+  const createOrderMutation = trpc.orders.createOrder.useMutation();
+
+  const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const freeDeliveryThreshold = 300;
+  const hasFreeDelivery = totalPrice >= freeDeliveryThreshold;
+  const hasGift = totalPrice >= 500;
 
   const addToCart = (item: MenuItem) => {
     setCart((prev) => {
       const existing = prev.find((i) => i.id === item.id);
       if (existing) {
-        return prev.map((i) => (i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i));
+        return prev.map((i) => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
       }
       return [...prev, { ...item, quantity: 1 }];
     });
@@ -247,453 +113,317 @@ export function RestaurantMenu() {
 
   const updateQuantity = (id: number, delta: number) => {
     setCart((prev) => {
-      return prev
-        .map((item) => {
-          if (item.id === id) {
-            const newQty = Math.max(0, item.quantity + delta);
-            return { ...item, quantity: newQty };
-          }
-          return item;
-        })
-        .filter((item) => item.quantity > 0);
+      return prev.map((item) => {
+        if (item.id === id) {
+          const newQty = Math.max(0, item.quantity + delta);
+          return { ...item, quantity: newQty };
+        }
+        return item;
+      }).filter((item) => item.quantity > 0);
     });
   };
 
-  useEffect(() => {
-    if (selectedRestaurant) {
-      const menu = MENUS[selectedRestaurant.id] || [];
-      if (menu.length > 0) {
-        setSelectedCategory(menu[0].category);
-      }
-    }
-  }, [selectedRestaurant]);
-
-  const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const hasGift = totalPrice >= 600;
-  const freeDeliveryThreshold = 1000;
-  const hasFreeDelivery = totalPrice >= freeDeliveryThreshold;
-
-  useEffect(() => {
-    if (hasGift && !showGiftAlert) {
-      setShowGiftAlert(true);
-      toast.success("مبروك! لقد فتحت هدية سرية مجانية 🎁", {
-        description: "سيتم إضافة صنف جانبي مجاني لطلبك تلقائياً (عرض الـ 600 جنيه).",
-        duration: 5000,
-      });
-    } else if (!hasGift && showGiftAlert) {
-      setShowGiftAlert(false);
-    }
-  }, [hasGift, showGiftAlert]);
-
   const handleCheckout = async () => {
     if (!selectedRestaurant) return;
-    if (cart.length === 0) {
-      toast.error("السلة فارغة!");
-      return;
-    }
-
     if (!addressDescription || addressDescription.trim().length < 5) {
       toast.error("يرجى كتابة العنوان بالتفصيل أولاً (رقم العمارة، الشقة، أو علامة مميزة)");
       return;
     }
 
     setIsLoading(true);
-    
-    const getCurrentPositionPromise = () => {
-      return new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0 
-        });
-      });
-    };
-
     try {
-      const toastId = toast.info("جاري التأكد من موقعك الحالي بدقة... 📍", { duration: 5000 });
-      const position = await getCurrentPositionPromise();
+      const orderItems = cart.map(item => `${item.name} (${item.quantity})`).join('\n');
       
-      if (!position || !position.coords.latitude || !position.coords.longitude) {
-        throw new Error("لم نتمكن من الحصول على إحداثيات دقيقة. يرجى التأكد من فتح الـ GPS.");
-      }
-
-      const finalLocation = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        address: "موقعي الحالي المكتشف",
-      };
-      
-      setUserLocation(finalLocation);
-      setLocationStatus("success");
-      toast.dismiss(toastId);
-
-      const orderItems = cart
-        .map((item) => `${item.name} × ${item.quantity} = ${item.price * item.quantity} ج.م`)
-        .join("\n");
-
-      const message = `طلب جديد من تطبيق وصلي 📱\n\nالمطعم: ${selectedRestaurant.name}\n\n${orderItems}\n\nالإجمالي: ${totalPrice} ج.م\n\nالعنوان: ${addressDescription || "موقع GPS"}\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
-
-      const encodedMessage = encodeURIComponent(message);
-      const directWhatsappUrl = `https://wa.me/${selectedRestaurant.whatsappPhone}?text=${encodedMessage}`;
-
-      window.open(directWhatsappUrl, "_blank");
-
-      const cartItemsData = cart.map((item) => ({
-        menuItemId: item.id,
-        quantity: item.quantity,
-        price: item.price,
-      }));
-
-      await createRestaurantOrderMutation.mutateAsync({
+      // Create order in database
+      const result = await createOrderMutation.mutateAsync({
         restaurantId: selectedRestaurant.id,
-        items: cartItemsData,
         totalPrice,
-        notes: `${customerNotes}${hasGift ? "\n🎁 [هدية مجانية]: وجبة جانبية مجانية (عرض الـ 600 جنيه)" : ""}${hasFreeDelivery ? "\n🚚 [توصيل مجاني]: هذا الطلب مؤهل للتوصيل المجاني (عرض الـ 1000 جنيه)" : ""}`,
-        usePoints: usePoints,
+        items: cart.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity
+        })),
         pickupLocation: {
+          latitude: 30.2219, // Default coordinates for Obour City
+          longitude: 31.4719,
           address: selectedRestaurant.address,
-          latitude: selectedRestaurant.location.latitude,
-          longitude: selectedRestaurant.location.longitude,
-          neighborhood: "موقع المطعم",
         },
         deliveryLocation: {
+          latitude: userLocation?.latitude || 30.2219,
+          longitude: userLocation?.longitude || 31.4719,
           address: addressDescription || "موقع العميل المكتشف",
-          latitude: finalLocation.latitude,
-          longitude: finalLocation.longitude,
-          neighborhood: "موقع العميل",
         },
+        notes: customerNotes
       });
 
-      toast.success("تم إرسال الطلب للمطعم وتم إنشاء طلب توصيل تلقائي!");
+      const message = `طلب جديد من تطبيق وصلي 📱\n\nالمطعم: ${selectedRestaurant.name}\n\n${orderItems}\n\nالإجمالي: ${totalPrice} ج.م\n\nالعنوان: ${addressDescription || "موقع GPS"}\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
+      const whatsappUrl = `https://wa.me/${selectedRestaurant.phone}?text=${encodeURIComponent(message)}`;
+      
+      window.open(whatsappUrl, '_blank');
+      toast.success("تم إرسال الطلب بنجاح!");
       setCart([]);
       setCustomerNotes("");
       setAddressDescription("");
       setIsCartExpanded(false);
-    } catch (error: any) {
-      console.error("Checkout error:", error);
-      if (error.code || error.message?.includes("denied") || error.message?.includes("location")) {
-        toast.error("يجب فتح الموقع (GPS) وإعطاء صلاحية للمتصفح لإتمام الطلب. لا يمكن إرسال الطلب بدون تحديد مكانك الفعلي.");
-        setLocationStatus("error");
-      } else {
-        toast.error(error.message || "فشل في إنشاء الطلب");
-      }
+    } catch (error) {
+      console.error("Error creating order:", error);
+      toast.error("حدث خطأ أثناء إرسال الطلب");
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!selectedRestaurant) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" dir="rtl">
-        {RESTAURANTS.map((restaurant) => (
-          <Card 
-            key={restaurant.id} 
-            className="overflow-hidden hover:shadow-lg transition-all cursor-pointer group border-none bg-white/50 backdrop-blur-sm rounded-xl"
-            onClick={() => setSelectedRestaurant(restaurant)}
-          >
-            <div className="h-32 w-full relative overflow-hidden">
-              <img 
-                src={restaurant.coverUrl} 
-                alt={restaurant.name} 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-              <div className="absolute bottom-2 right-2 flex items-center gap-1.5">
-                <div className="bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
-                  <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500" />
-                  <span className="text-[10px] font-black text-slate-800">{restaurant.rating}</span>
-                </div>
-                <div className="bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
-                  <Clock className="h-2.5 w-2.5 text-orange-500" />
-                  <span className="text-[10px] font-black text-slate-800">{restaurant.deliveryTime}</span>
+  return (
+    <div className="min-h-screen bg-slate-50 pb-32">
+      <div className="max-w-4xl mx-auto p-4 space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-black text-slate-900">المطاعم المتاحة</h1>
+          <Badge variant="outline" className="bg-white font-bold">العبور الجديدة</Badge>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {restaurants.map((restaurant) => (
+            <Card 
+              key={restaurant.id} 
+              className={`overflow-hidden cursor-pointer transition-all hover:shadow-xl border-2 ${selectedRestaurant?.id === restaurant.id ? 'border-orange-500 ring-2 ring-orange-500/20' : 'border-transparent'}`}
+              onClick={() => setSelectedRestaurant(restaurant)}
+            >
+              <div className="relative h-40">
+                <img src={restaurant.image} alt={restaurant.name} className="w-full h-full object-cover" />
+                <div className="absolute top-3 right-3">
+                  <Badge className="bg-white/90 text-slate-900 font-black backdrop-blur-sm">
+                    <Star className="h-3 w-3 ml-1 fill-orange-500 text-orange-500" />
+                    {restaurant.rating}
+                  </Badge>
                 </div>
               </div>
-            </div>
-            <CardContent className="p-3 relative">
-              <div className="absolute -top-8 right-3 h-12 w-12 rounded-xl bg-white p-1 shadow-lg border border-slate-50 overflow-hidden">
-                <img src={restaurant.logoUrl} alt="Logo" className="w-full h-full object-contain rounded-lg" />
-              </div>
-              <div className="pt-2">
-                <h3 className="text-lg font-black text-slate-800 mb-0.5 group-hover:text-orange-600 transition-colors">{restaurant.name}</h3>
-                <p className="text-slate-500 text-[11px] font-medium line-clamp-1 mb-2">{restaurant.description}</p>
-                <div className="flex items-center gap-1.5 text-slate-400">
+              <CardContent className="p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className="font-black text-lg text-slate-900">{restaurant.name}</h3>
+                    <p className="text-xs text-slate-500 font-bold">{restaurant.category}</p>
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs font-black text-orange-600">{restaurant.deliveryTime}</p>
+                    <p className="text-[10px] text-slate-400 font-bold">أقل طلب: {restaurant.minOrder} ج.م</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 text-slate-400 mt-3">
                   <MapPin className="h-3 w-3" />
                   <span className="text-[10px] font-bold line-clamp-1">{restaurant.address}</span>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
-  const currentMenu = MENUS[selectedRestaurant.id] || [];
-  const categories = Array.from(new Set(currentMenu.map((item) => item.category)));
-  const filteredMenu = currentMenu.filter((item) => item.category === selectedCategory);
-
-  return (
-    <div className="space-y-6 pb-32" dir="rtl">
-      <Button 
-        variant="ghost" 
-        onClick={() => setSelectedRestaurant(null)}
-        className="mb-2 font-bold text-slate-600 hover:text-orange-600 transition-colors"
-      >
-        <ChevronRight className="h-5 w-5 ml-1" /> العودة للمطاعم
-      </Button>
-
-      <div className="relative rounded-2xl overflow-hidden shadow-xl mb-6 group">
-        <div className="h-48 w-full relative">
-          {selectedRestaurant.id === 3 ? (
-            <motion.img 
-              src={selectedRestaurant.coverUrl} 
-              alt="Restaurant Cover" 
-              className="w-full h-full object-cover brightness-110"
-              animate={{ 
-                scale: [1, 1.1, 1],
-                x: [0, 10, -10, 0],
-                y: [0, -5, 5, 0]
-              }}
-              transition={{ 
-                duration: 20, 
-                repeat: Infinity, 
-                ease: "easeInOut" 
-              }}
-            />
-          ) : (
-            <img 
-              src={selectedRestaurant.coverUrl} 
-              alt="Restaurant Cover" 
-              className="w-full h-full object-cover brightness-100 group-hover:scale-105 transition-transform duration-700"
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
-        </div>
-
-        <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end gap-4">
-          <div className="h-20 w-20 rounded-2xl bg-white p-1.5 shadow-2xl flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-orange-400 z-20 transform -translate-y-2">
-             <img 
-              src={selectedRestaurant.logoUrl} 
-              alt="Logo" 
-              className="w-full h-full object-contain rounded-lg"
-            />
-          </div>
-          <div className="flex-1 pb-2 text-white z-20">
-            <h1 className="text-2xl font-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{selectedRestaurant.name}</h1>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-2 mb-4">
-        <p className="text-sm text-gray-600 font-medium leading-relaxed border-r-4 border-orange-500 pr-3">
-          {selectedRestaurant.description}
-        </p>
-      </div>
-
-      <div className="sticky top-16 z-30 bg-white/80 backdrop-blur-md py-3 -mx-4 px-4 border-b border-orange-100 overflow-x-auto no-scrollbar">
-        <div className="flex gap-2 min-w-max">
-          {categories.map((category) => (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? "default" : "outline"}
-              onClick={() => setSelectedCategory(category)}
-              className={`rounded-full px-6 font-bold transition-all ${
-                selectedCategory === category 
-                ? "bg-orange-500 hover:bg-orange-600 shadow-md shadow-orange-200" 
-                : "border-orange-100 text-orange-600 hover:bg-orange-50"
-              }`}
-            >
-              {category}
-            </Button>
+              </CardContent>
+            </Card>
           ))}
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <AnimatePresence mode="popLayout">
-          {filteredMenu.map((item) => (
+        <AnimatePresence>
+          {selectedRestaurant && (
             <motion.div
-              key={item.id}
-              layout
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4"
             >
-              <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all rounded-2xl bg-white group">
-                <CardContent className="p-4 flex justify-between items-center">
-                  <div className="space-y-1">
-                    <h3 className="font-black text-slate-800 group-hover:text-orange-600 transition-colors">{item.name}</h3>
-                    <p className="text-orange-600 font-black text-lg">
-                      {item.price === 0 ? "سعر اليوم" : `ج.م ${item.price}`}
-                    </p>
-                  </div>
-                  <Button
-                    size="icon"
-                    onClick={() => addToCart(item)}
-                    className="rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-500 hover:text-white transition-all shadow-none"
-                  >
-                    <Plus className="h-5 w-5" />
-                  </Button>
-                </CardContent>
-              </Card>
+              <div className="flex items-center gap-2 pt-4">
+                <div className="h-1 w-8 bg-orange-500 rounded-full"></div>
+                <h2 className="text-xl font-black text-slate-900">قائمة الطعام - {selectedRestaurant.name}</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-3">
+                {selectedRestaurant.menu.map((item) => (
+                  <Card key={item.id} className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all">
+                    <div className="flex p-3 gap-4">
+                      <img src={item.image} alt={item.name} className="w-24 h-24 rounded-2xl object-cover" />
+                      <div className="flex-1 flex flex-col justify-between py-1">
+                        <div>
+                          <h4 className="font-black text-slate-900">{item.name}</h4>
+                          <p className="text-xs text-slate-500 font-bold line-clamp-2 mt-1">{item.description}</p>
+                        </div>
+                        <div className="flex justify-between items-center mt-2">
+                          <span className="font-black text-orange-600">ج.م {item.price}</span>
+                          <Button 
+                            size="sm" 
+                            className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-black h-8 px-4"
+                            onClick={() => addToCart(item)}
+                          >
+                            <Plus className="h-4 w-4 ml-1" />
+                            إضافة
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
             </motion.div>
-          ))}
+          )}
         </AnimatePresence>
       </div>
 
+      {/* Floating Cart */}
       {cart.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 p-4 pointer-events-none">
+        <div className="fixed bottom-6 left-0 right-0 px-4 z-50 pointer-events-none">
           <Card className={`max-w-2xl mx-auto border-none shadow-2xl bg-slate-900 text-white rounded-3xl overflow-hidden relative transition-all duration-300 pointer-events-auto ${isCartExpanded ? 'h-auto' : 'h-20'}`}>
             {!isCartExpanded ? (
               <div 
-                className="h-20 flex items-center justify-between px-6 cursor-pointer hover:bg-slate-800 transition-colors"
+                className="h-full flex items-center justify-between px-6 cursor-pointer"
                 onClick={() => setIsCartExpanded(true)}
               >
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className="bg-orange-500 text-white text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center absolute -top-2 -right-2 border-2 border-slate-900">
-                      {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                    <div className="bg-orange-500 p-3 rounded-2xl shadow-lg shadow-orange-500/20">
+                      <ShoppingCart className="h-6 w-6 text-white" />
                     </div>
-                    <ShoppingCart className="h-6 w-6 text-orange-500" />
+                    <Badge className="absolute -top-2 -right-2 bg-white text-slate-900 border-none font-black h-6 w-6 flex items-center justify-center rounded-full">
+                      {cart.reduce((sum, i) => sum + i.quantity, 0)}
+                    </Badge>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-400">سلتك الحالية</p>
+                    <p className="text-xs text-slate-400 font-bold">سلة المشتريات</p>
                     <p className="text-lg font-black text-white">ج.م {totalPrice}</p>
                   </div>
                 </div>
-                <Button className="bg-orange-500 hover:bg-orange-600 text-white font-black rounded-xl px-6">
+                <Button className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-black px-6">
                   عرض السلة
+                  <ChevronRight className="h-4 w-4 mr-1" />
                 </Button>
               </div>
             ) : (
-              <CardContent className="p-0">
-                <div className="flex items-center justify-between p-4 border-b border-slate-800">
-                  <h3 className="font-black text-lg">سلة الطلبات</h3>
+              <CardContent className="p-0 max-h-[80vh] overflow-y-auto">
+                <div className="p-6 border-b border-slate-800 flex justify-between items-center sticky top-0 bg-slate-900 z-10">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-xl font-black">سلة المشتريات</h3>
+                    <Badge variant="outline" className="text-slate-400 border-slate-700">
+                      {cart.length} أصناف
+                    </Badge>
+                  </div>
                   <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-full bg-slate-800 text-white hover:bg-slate-700"
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-slate-400 hover:text-white font-bold"
                       onClick={() => setCart([])}
                     >
-                      <X className="h-4 w-4" />
+                      مسح الكل
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-full bg-slate-800 text-white hover:bg-slate-700"
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="rounded-full hover:bg-slate-800"
                       onClick={() => setIsCartExpanded(false)}
                     >
-                      <Minus className="h-4 w-4" />
+                      <X className="h-5 w-5" />
                     </Button>
                   </div>
                 </div>
-                <div className="p-4 max-h-60 overflow-y-auto border-b border-slate-800">
-                {cart.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center py-3 border-b border-slate-800 last:border-0">
-                    <div className="flex-1">
-                      <p className="font-bold text-sm">{item.name}</p>
-                      <p className="text-orange-400 text-xs font-black">
-                        {item.price === 0 ? "سعر اليوم" : `ج.م ${item.price * item.quantity}`}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3 bg-slate-800 rounded-xl p-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7 rounded-lg hover:bg-slate-700 text-white"
-                        onClick={() => updateQuantity(item.id, -1)}
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="font-black text-sm w-4 text-center">{item.quantity}</span>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7 rounded-lg hover:bg-slate-700 text-white"
-                        onClick={() => updateQuantity(item.id, 1)}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
 
-              <div className="p-4 space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <MapPin className="h-4 w-4 text-orange-500" />
-                    <span className="text-xs font-bold text-slate-400">عنوان التوصيل</span>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="رقم العمارة، الشقة، الدور، أو علامة مميزة..."
-                    value={addressDescription}
-                    onChange={(e) => setAddressDescription(e.target.value)}
-                    className="w-full bg-slate-800 border-none rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 transition-all"
-                  />
-                  <textarea
-                    placeholder="ملاحظات إضافية للمطعم (اختياري)..."
-                    value={customerNotes}
-                    onChange={(e) => setCustomerNotes(e.target.value)}
-                    className="w-full bg-slate-800 border-none rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 transition-all h-20 resize-none"
-                  />
+                <div className="p-4 space-y-3">
+                  {cart.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between bg-slate-800/50 p-3 rounded-2xl border border-slate-800">
+                      <div className="flex items-center gap-3">
+                        <img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover" />
+                        <div>
+                          <p className="font-black text-sm">{item.name}</p>
+                          <p className="text-xs text-orange-500 font-bold">ج.م {item.price * item.quantity}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 bg-slate-800 rounded-xl p-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 rounded-lg hover:bg-slate-700 text-white"
+                          onClick={() => updateQuantity(item.id, -1)}
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="font-black text-sm w-4 text-center">{item.quantity}</span>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 rounded-lg hover:bg-slate-700 text-white"
+                          onClick={() => updateQuantity(item.id, 1)}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
-                <div className="flex items-center justify-between pt-2">
-                  <div>
-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">الإجمالي</p>
-                    <p className="text-2xl font-black text-orange-500">ج.م {totalPrice}</p>
-                    <div className="flex flex-col gap-1 mt-1">
-                      {hasGift && (
-                        <motion.div 
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="flex items-center gap-1 text-emerald-400 text-[10px] font-black"
-                        >
-                          <Gift className="h-3 w-3" />
-                          <span>تم تفعيل الهدية المجانية! 🎁</span>
-                        </motion.div>
-                      )}
-                      {hasFreeDelivery ? (
-                        <motion.div 
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="flex items-center gap-1 text-sky-400 text-[10px] font-black"
-                        >
-                          <Truck className="h-3 w-3" />
-                          <span>توصيل مجاني مفعل! 🚚</span>
-                        </motion.div>
+                <div className="p-4 space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <MapPin className="h-4 w-4 text-orange-500" />
+                      <span className="text-xs font-bold text-slate-400">عنوان التوصيل</span>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="رقم العمارة، الشقة، الدور، أو علامة مميزة..."
+                      value={addressDescription}
+                      onChange={(e) => setAddressDescription(e.target.value)}
+                      className="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all outline-none shadow-inner"
+                    />
+                    <textarea
+                      placeholder="ملاحظات إضافية للمطعم (اختياري)..."
+                      value={customerNotes}
+                      onChange={(e) => setCustomerNotes(e.target.value)}
+                      className="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all h-20 resize-none outline-none shadow-inner"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2">
+                    <div>
+                      <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">الإجمالي</p>
+                      <p className="text-2xl font-black text-orange-500">ج.م {totalPrice}</p>
+                      <div className="flex flex-col gap-1 mt-1">
+                        {hasGift && (
+                          <motion.div 
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="flex items-center gap-1 text-emerald-400 text-[10px] font-black"
+                          >
+                            <Gift className="h-3 w-3" />
+                            <span>تم تفعيل الهدية المجانية! 🎁</span>
+                          </motion.div>
+                        )}
+                        {hasFreeDelivery ? (
+                          <motion.div 
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="flex items-center gap-1 text-sky-400 text-[10px] font-black"
+                          >
+                            <Truck className="h-3 w-3" />
+                            <span>توصيل مجاني مفعل! 🚚</span>
+                          </motion.div>
+                        ) : (
+                          <p className="text-[9px] text-slate-400 font-bold">
+                            أضف {freeDeliveryThreshold - totalPrice} ج.م للحصول على توصيل مجاني 🚚
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      onClick={handleCheckout}
+                      disabled={isLoading || !addressDescription.trim()}
+                      className={`font-black px-8 py-7 rounded-2xl shadow-lg transition-all ${
+                        !addressDescription.trim() 
+                        ? "bg-slate-700 text-slate-400 cursor-not-allowed opacity-50" 
+                        : "bg-orange-500 hover:bg-orange-600 text-white shadow-orange-900/20"
+                      }`}
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
                       ) : (
-                        <p className="text-[9px] text-slate-400 font-bold">
-                          أضف {freeDeliveryThreshold - totalPrice} ج.م للحصول على توصيل مجاني 🚚
-                        </p>
+                        <>
+                          <MessageCircle className="h-5 w-5 ml-2" />
+                          إرسال الطلب
+                        </>
                       )}
-                    </div>
+                    </Button>
+                  </div>
                 </div>
-                  <Button
-                    onClick={handleCheckout}
-                    disabled={isLoading || !addressDescription.trim()}
-                    className={`font-black px-8 py-7 rounded-2xl shadow-lg transition-all ${
-                      !addressDescription.trim() 
-                      ? "bg-slate-700 text-slate-400 cursor-not-allowed opacity-50" 
-                      : "bg-orange-500 hover:bg-orange-600 text-white shadow-orange-900/20"
-                    }`}
-                  >
-                    {isLoading ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <>
-                        <MessageCircle className="h-5 w-5 ml-2" />
-                        إرسال الطلب
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
+              </CardContent>
             )}
           </Card>
         </div>
