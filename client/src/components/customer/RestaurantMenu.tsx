@@ -632,13 +632,13 @@ export function RestaurantMenu() {
                     placeholder="رقم العمارة، الشقة، الدور، أو علامة مميزة..."
                     value={addressDescription}
                     onChange={(e) => setAddressDescription(e.target.value)}
-                    className="w-full bg-slate-800 border-none rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 transition-all"
+                    className="w-full bg-slate-700 border-2 border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all outline-none shadow-lg"
                   />
                   <textarea
                     placeholder="ملاحظات إضافية للمطعم (اختياري)..."
                     value={customerNotes}
                     onChange={(e) => setCustomerNotes(e.target.value)}
-                    className="w-full bg-slate-800 border-none rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 transition-all h-20 resize-none"
+                    className="w-full bg-slate-700 border-2 border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all h-20 resize-none outline-none shadow-lg"
                   />
                 </div>
 
