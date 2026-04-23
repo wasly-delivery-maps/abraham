@@ -141,7 +141,7 @@ export function LiveTrackingMap({
     ? { latitude: driverQuery.data.latitude, longitude: driverQuery.data.longitude }
     : null;
 
-  const driverLocation = liveDriverLocation || dbDriverLocation || initialDriverLocation;
+  const driverLocation = liveDriverLocation || (dbDriverLocation ? { ...dbDriverLocation, updatedAt: new Date().toISOString() } : null) || (initialDriverLocation ? { ...initialDriverLocation, updatedAt: new Date().toISOString() } : null);
 
   const bounds = useMemo(() => {
     const points: [number, number][] = [

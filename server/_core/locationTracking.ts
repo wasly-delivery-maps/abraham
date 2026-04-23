@@ -72,19 +72,19 @@ export function setupLocationTracking(io: SocketIOServer) {
         }
 
         // Update database
-        const db = await getDb();
         let finalOrderId = orderId;
         
-        if (db) {
-          // If orderId is not provided, try to find the active order for this driver
-          if (!finalOrderId) {
-            const availability = await db.getDriverAvailability(driverId);
-            if (availability && availability.currentOrderId) {
-              finalOrderId = availability.currentOrderId;
-            }
+        // If orderId is not provided, try to find the active order for this driver
+        if (!finalOrderId) {
+          const availability = await db.getDriverAvailability(driverId);
+          if (availability && availability.currentOrderId) {
+            finalOrderId = availability.currentOrderId;
           }
+        }
 
-          await db
+        const database = await getDb();
+        if (database) {
+          await database
             .update(driversAvailability)
             .set({
               latitude: latitude.toString(),
