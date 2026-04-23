@@ -60,7 +60,7 @@ function RoutingPolyline({
   weight?: number;
   opacity?: number;
 }) {
-  const [routeCoordinates, setRouteCoordinates] = useState<[number, number][]>([]);
+  const [routeCoordinates, setRouteCoordinates] = useState<[number, number][]>([start, end]);
 
   useEffect(() => {
     const fetchRoute = async () => {
@@ -76,19 +76,14 @@ function RoutingPolyline({
             coord[0],
           ] as [number, number]);
           setRouteCoordinates(coordinates);
-        } else {
-          setRouteCoordinates([start, end]);
         }
       } catch (error) {
         console.error('Error fetching route:', error);
-        setRouteCoordinates([start, end]);
       }
     };
 
     fetchRoute();
   }, [start[0], start[1], end[0], end[1]]);
-
-  if (routeCoordinates.length === 0) return null;
 
   return (
     <Polyline
@@ -202,22 +197,22 @@ export function LiveTrackingMap({
               end={[deliveryLocation.latitude, deliveryLocation.longitude]} 
               color="#cbd5e1"
               weight={3}
-              opacity={0.5}
+              opacity={0.4}
             />
 
-            {/* Driver Marker - Enhanced Visibility Logic */}
-            {driverLocation && typeof driverLocation.latitude === 'number' && (
+            {/* Driver Marker & Active Route */}
+            {driverLocation && typeof driverLocation.latitude === 'number' && typeof driverLocation.longitude === 'number' && (
               <>
                 <Marker position={[driverLocation.latitude, driverLocation.longitude]} icon={iconDriver}>
                   <Popup>موقع الكابتن الحالي</Popup>
                 </Marker>
-                {/* Active Route: Driver to Delivery */}
+                {/* Active Route: Driver to Delivery (The Orange Line) */}
                 <RoutingPolyline 
-                  key={`route-${driverLocation.latitude}-${driverLocation.longitude}`}
+                  key={`active-route-${driverLocation.latitude}-${driverLocation.longitude}`}
                   start={[driverLocation.latitude, driverLocation.longitude]} 
                   end={[deliveryLocation.latitude, deliveryLocation.longitude]} 
                   color="#f97316"
-                  weight={5}
+                  weight={6}
                   opacity={1}
                 />
               </>
