@@ -1,24 +1,57 @@
-import { useState, useMemo, useEffect } from "react";
-import { ShoppingCart, Plus, Minus, X, MessageCircle, MapPin, Phone, Loader2, ChevronRight, Star, Clock, Coins, Gift, Truck } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { ShoppingCart, Plus, Minus, X, MessageCircle, MapPin, Phone, Loader2, ChevronRight, Star, Clock, Coins, Gift, Truck } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useMemo, useEffect } from "react";
 
 interface MenuItem {
   id: number;
   name: string;
   category: string;
   price: number;
-  image?: string;
   description?: string;
 }
 
 interface CartItem extends MenuItem {
   quantity: number;
 }
+
+interface Restaurant {
+  id: number;
+  name: string;
+  phone: string;
+  whatsappPhone: string;
+  address: string;
+  description?: string;
+  logoUrl?: string;
+  coverUrl?: string;
+  rating?: string;
+  deliveryTime?: string;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
+}
+
+// مطعم "كشري الخديوي" - البيانات
+const KHEDIVE_KOSHARY_RESTAURANT: Restaurant = {
+  id: 2,
+  name: "كشري الخديوي",
+  phone: "01032809502",
+  whatsappPhone: "201032809502",
+  address: "7F49+V89 كشري الخديوي، العبور، القليوبية",
+  description: "أصل الكشري المصري والطواجن البيتي في قلب العبور",
+  logoUrl: "https://ui-avatars.com/api/?name=KK&background=e11d48&color=fff&size=128&bold=true",
+  coverUrl: "https://web-production-0eb1b.up.railway.app/uploads/khedive_koshary_logo_fb.webp",
+  rating: "4.9",
+  deliveryTime: "20-35 دقيقة",
+  location: {
+    latitude: 30.2570159,
+    longitude: 31.4682469
+  }
+};
 
 const KHEDIVE_KOSHARY_MENU: MenuItem[] = [
   // العلب
@@ -63,21 +96,23 @@ const KHEDIVE_KOSHARY_MENU: MenuItem[] = [
   { id: 134, name: "حواوشي بسطرمة 🥩", category: "الحواوشي", price: 60 },
   { id: 135, name: "حواوشي هالبينو 🌶️", category: "الحواوشي", price: 40 },
   { id: 136, name: "حواوشي ميكس تركي 🥙", category: "الحواوشي", price: 60 },
-  // الإضافات
-  { id: 137, name: "علبة صلصة 🍅", category: "الإضافات", price: 7 },
-  { id: 138, name: "علبة دقة 🍋", category: "الإضافات", price: 7 },
-  { id: 139, name: "علبة شطة 🌶️", category: "الإضافات", price: 7 },
-  { id: 140, name: "كيس تقلية 🧅", category: "الإضافات", price: 7 },
-  { id: 141, name: "كيس حمص 🥣", category: "الإضافات", price: 7 },
-  { id: 142, name: "كيس عيش 🍞", category: "الإضافات", price: 7 },
   // الحلويات
-  { id: 143, name: "أرز بلبن 🍚", category: "الحلويات", price: 15 },
-  { id: 144, name: "أرز بلبن فرن 🍮", category: "الحلويات", price: 20 },
-  { id: 145, name: "مهلبية 🍮", category: "الحلويات", price: 15 },
-  { id: 146, name: "عاشورا 🥣", category: "الحلويات", price: 15 },
+  { id: 137, name: "أرز باللبن سادة 🍚", category: "الحلويات", price: 20 },
+  { id: 138, name: "أرز باللبن فرن 🍮", category: "الحلويات", price: 25 },
+  { id: 139, name: "أرز باللبن مكسرات 🥜", category: "الحلويات", price: 30 },
+  { id: 140, name: "أرز باللبن قشطة 🥛", category: "الحلويات", price: 35 },
+  { id: 141, name: "أرز باللبن لوتس 🍪", category: "الحلويات", price: 45 },
+  { id: 142, name: "أرز باللبن نوتيلا 🍫", category: "الحلويات", price: 45 },
+  // الإضافات
+  { id: 143, name: "علبة صلصة 🍅", category: "الإضافات", price: 7 },
+  { id: 144, name: "علبة دقة 🍋", category: "الإضافات", price: 7 },
+  { id: 145, name: "علبة شطة 🌶️", category: "الإضافات", price: 7 },
+  { id: 146, name: "كيس تقلية 🧅", category: "الإضافات", price: 7 },
+  { id: 147, name: "كيس حمص 🥣", category: "الإضافات", price: 7 },
+  { id: 148, name: "كيس عيش 🍞", category: "الإضافات", price: 7 },
   // المشروبات
-  { id: 147, name: "بيبسي كانز 🥤", category: "المشروبات", price: 15 },
-  { id: 148, name: "مياه معدنية صغيرة 💧", category: "المشروبات", price: 7 },
+  { id: 149, name: "بيبسي كانز 🥤", category: "المشروبات", price: 15 },
+  { id: 150, name: "مياه معدنية صغيرة 💧", category: "المشروبات", price: 7 },
 ];
 
 export function RestaurantMenu() {
@@ -128,7 +163,7 @@ export function RestaurantMenu() {
       const orderItems = cart.map(item => `${item.name} (${item.quantity})`).join('\n');
       
       await createOrderMutation.mutateAsync({
-        restaurantId: 1, // Khedive Koshary
+        restaurantId: KHEDIVE_KOSHARY_RESTAURANT.id,
         totalPrice,
         items: cart.map(item => ({
           id: item.id,
@@ -137,20 +172,20 @@ export function RestaurantMenu() {
           quantity: item.quantity
         })),
         pickupLocation: {
-          latitude: 30.2219,
-          longitude: 31.4719,
-          address: "كشري الخديوي، العبور",
+          latitude: KHEDIVE_KOSHARY_RESTAURANT.location.latitude,
+          longitude: KHEDIVE_KOSHARY_RESTAURANT.location.longitude,
+          address: KHEDIVE_KOSHARY_RESTAURANT.address,
         },
         deliveryLocation: {
-          latitude: 30.2219,
-          longitude: 31.4719,
+          latitude: KHEDIVE_KOSHARY_RESTAURANT.location.latitude,
+          longitude: KHEDIVE_KOSHARY_RESTAURANT.location.longitude,
           address: addressDescription,
         },
         notes: customerNotes
       });
 
-      const message = `طلب جديد من تطبيق وصلي 📱\n\nالمطعم: كشري الخديوي\n\n${orderItems}\n\nالإجمالي: ${totalPrice} ج.م\n\nالعنوان: ${addressDescription}\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
-      const whatsappUrl = `https://wa.me/201234567890?text=${encodeURIComponent(message)}`;
+      const message = `طلب جديد من تطبيق وصلي 📱\n\nالمطعم: ${KHEDIVE_KOSHARY_RESTAURANT.name}\n\n${orderItems}\n\nالإجمالي: ${totalPrice} ج.م\n\nالعنوان: ${addressDescription}\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
+      const whatsappUrl = `https://wa.me/${KHEDIVE_KOSHARY_RESTAURANT.whatsappPhone}?text=${encodeURIComponent(message)}`;
       
       window.open(whatsappUrl, '_blank');
       toast.success("تم إرسال الطلب بنجاح!");
@@ -175,23 +210,23 @@ export function RestaurantMenu() {
       <div className="max-w-4xl mx-auto p-4 space-y-8">
         <div className="relative h-64 rounded-3xl overflow-hidden shadow-2xl">
           <img 
-            src="https://images.unsplash.com/photo-1562158074-934339958745?w=800&auto=format&fit=crop&q=60" 
+            src={KHEDIVE_KOSHARY_RESTAURANT.coverUrl} 
             className="w-full h-full object-cover"
-            alt="كشري الخديوي"
+            alt={KHEDIVE_KOSHARY_RESTAURANT.name}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
           <div className="absolute bottom-6 right-6 left-6 flex justify-between items-end">
             <div>
               <Badge className="bg-orange-500 text-white border-none mb-2 font-black">مفتوح الآن</Badge>
-              <h1 className="text-4xl font-black text-white mb-1">كشري الخديوي</h1>
+              <h1 className="text-4xl font-black text-white mb-1">{KHEDIVE_KOSHARY_RESTAURANT.name}</h1>
               <div className="flex items-center gap-3 text-slate-300">
                 <div className="flex items-center gap-1">
                   <Star className="h-4 w-4 fill-orange-500 text-orange-500" />
-                  <span className="text-sm font-black text-white">4.8</span>
+                  <span className="text-sm font-black text-white">{KHEDIVE_KOSHARY_RESTAURANT.rating}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
-                  <span className="text-sm font-bold">20-30 دقيقة</span>
+                  <span className="text-sm font-bold">{KHEDIVE_KOSHARY_RESTAURANT.deliveryTime}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <MapPin className="h-4 w-4" />
