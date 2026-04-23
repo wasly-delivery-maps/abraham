@@ -27,8 +27,12 @@ export default function CreateOrder() {
   const [step, setStep] = useState<'pickup' | 'delivery' | 'confirm'>('pickup');
   const [estimatedPrice, setEstimatedPrice] = useState<number | null>(null);
   const [calculatedDistance, setCalculatedDistance] = useState<number | null>(null);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
   const createOrderMutation = trpc.orders.createOrder.useMutation();
+  const validateCouponMutation = trpc.coupons.validate.useMutation();
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371;
@@ -73,6 +77,25 @@ export default function CreateOrder() {
     return null;
   }
 
+  const handleValidateCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setIsValidatingCoupon(true);
+    try {
+      const coupon = await validateCouponMutation.mutateAsync({ code: couponCode });
+      if (estimatedPrice && coupon.minOrderValue && estimatedPrice < coupon.minOrderValue) {
+        toast.error(`هذا الكوبون يتطلب طلباً بقيمة ${coupon.minOrderValue} ج.م على الأقل`);
+        return;
+      }
+      setAppliedCoupon(coupon);
+      toast.success("تم تطبيق الكوبون بنجاح! 🎉");
+    } catch (error: any) {
+      toast.error(error.message || "كود الخصم غير صحيح");
+      setAppliedCoupon(null);
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
   const handleCreateOrder = async () => {
     if (!pickupLocation || !deliveryLocation || !estimatedPrice) {
       toast.error("يرجى إكمال بيانات الطلب أولاً");
@@ -94,8 +117,9 @@ export default function CreateOrder() {
           latitude: deliveryLocation.latitude,
           longitude: deliveryLocation.longitude,
         },
-        price: estimatedPrice,
+        price: appliedCoupon ? (estimatedPrice - (appliedCoupon.discountType === 'fixed' ? appliedCoupon.discountValue : Math.min(estimatedPrice * (appliedCoupon.discountValue / 100), appliedCoupon.maxDiscount || Infinity))) : estimatedPrice,
         notes: notes || undefined,
+        couponId: appliedCoupon?.id,
       });
       toast.success("🚀 تم إرسال طلبك بنجاح! جاري البحث عن سائق...");
       navigate("/customer/dashboard");
@@ -222,7 +246,14 @@ export default function CreateOrder() {
                     <div className="p-4 bg-white/10 rounded-2xl"><DollarSign className="h-8 w-8 text-orange-500" /></div>
                     <div>
                       <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">التكلفة التقديرية</p>
-                      <p className="text-4xl font-black text-white">ج.م {estimatedPrice}</p>
+                      <div className="flex items-baseline gap-2">
+                        <p className={`text-4xl font-black text-white ${appliedCoupon ? 'line-through text-slate-500 text-2xl' : ''}`}>ج.م {estimatedPrice}</p>
+                        {appliedCoupon && estimatedPrice && (
+                          <p className="text-4xl font-black text-emerald-400">
+                            ج.م {Math.max(0, estimatedPrice - (appliedCoupon.discountType === 'fixed' ? appliedCoupon.discountValue : Math.min(estimatedPrice * (appliedCoupon.discountValue / 100), appliedCoupon.maxDiscount || Infinity)))}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="text-right">
@@ -231,6 +262,33 @@ export default function CreateOrder() {
                   </div>
                 </CardContent>
               </Card>
+
+              <div className="space-y-4">
+                <Label className="text-lg font-black text-slate-700 mr-2">كود الخصم</Label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="أدخل كود الخصم هنا..."
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    disabled={!!appliedCoupon || isValidatingCoupon}
+                    className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold text-lg focus:border-orange-500 focus:outline-none focus:ring-4 focus:ring-orange-500/10 disabled:bg-slate-50 disabled:text-slate-500 transition-all"
+                  />
+                  <Button
+                    onClick={appliedCoupon ? () => { setAppliedCoupon(null); setCouponCode(""); } : handleValidateCoupon}
+                    disabled={isValidatingCoupon || (!couponCode && !appliedCoupon)}
+                    className={`rounded-2xl px-8 font-black text-lg h-auto ${appliedCoupon ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-orange-500 text-white hover:bg-orange-600'}`}
+                  >
+                    {isValidatingCoupon ? <Loader2 className="h-5 w-5 animate-spin" /> : (appliedCoupon ? "إلغاء" : "تطبيق")}
+                  </Button>
+                </div>
+                {appliedCoupon && (
+                  <p className="text-emerald-600 font-bold flex items-center gap-1 mr-2">
+                    <CheckCircle2 className="h-4 w-4" />
+                    تم تطبيق خصم {appliedCoupon.discountType === 'percentage' ? `${appliedCoupon.discountValue}%` : `${appliedCoupon.discountValue} ج.م`}
+                  </p>
+                )}
+              </div>
 
               <div className="space-y-4">
                 <Label className="text-lg font-black text-slate-700 mr-2">ملاحظات إضافية (اختياري)</Label>
