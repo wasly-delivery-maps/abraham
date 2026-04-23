@@ -551,6 +551,7 @@ export const appRouter = router({
             longitude: z.number(),
             neighborhood: z.string().optional(),
           }),
+          couponId: z.number().optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -607,6 +608,7 @@ export const appRouter = router({
           distance,
           estimatedTime,
           notes: `المطعم: ${restaurantName}\nالعنوان: ${input.deliveryLocation.address}\nالملاحظات: ${input.notes || "بدون ملاحظات"}\nقيمة الطعام: ج.م ${input.totalPrice}`,
+          couponId: input.couponId,
         });
 
         // Notify drivers about new order
@@ -641,6 +643,7 @@ export const appRouter = router({
           }),
           price: z.number().optional(),
           notes: z.string().optional(),
+          couponId: z.number().optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -677,10 +680,11 @@ export const appRouter = router({
           customerId: ctx.user.id,
           pickupLocation: input.pickupLocation,
           deliveryLocation: input.deliveryLocation,
-          price: calculatedPrice,
+          price: priceToUse,
           distance,
           estimatedTime,
           notes: input.notes,
+          couponId: input.couponId,
         });
 
         // Notify drivers about new order

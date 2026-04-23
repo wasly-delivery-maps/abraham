@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ShoppingCart, Plus, Minus, X, MessageCircle, MapPin, Phone, Loader2, ChevronRight, Star, Clock, Coins, Gift, Truck } from "lucide-react";
+import { ShoppingCart, Plus, Minus, X, MessageCircle, MapPin, Phone, Loader2, ChevronRight, Star, Clock, Coins, Gift, Truck, CheckCircle2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -231,8 +231,12 @@ export function RestaurantMenu() {
   const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [showGiftAlert, setShowGiftAlert] = useState(false);
   const [usePoints, setUsePoints] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
   const createRestaurantOrderMutation = trpc.orders.createRestaurantOrder.useMutation();
+  const validateCouponMutation = trpc.coupons.validate.useMutation();
 
   const addToCart = (item: MenuItem) => {
     setCart((prev) => {
@@ -269,9 +273,31 @@ export function RestaurantMenu() {
   }, [selectedRestaurant]);
 
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const discountAmount = appliedCoupon ? (appliedCoupon.discountType === 'fixed' ? appliedCoupon.discountValue : Math.min(totalPrice * (appliedCoupon.discountValue / 100), appliedCoupon.maxDiscount || Infinity)) : 0;
+  const finalTotalPrice = Math.max(0, totalPrice - discountAmount);
+  
   const hasGift = totalPrice >= 600;
   const freeDeliveryThreshold = 1000;
   const hasFreeDelivery = totalPrice >= freeDeliveryThreshold;
+
+  const handleValidateCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setIsValidatingCoupon(true);
+    try {
+      const coupon = await validateCouponMutation.mutateAsync({ code: couponCode });
+      if (totalPrice && coupon.minOrderValue && totalPrice < coupon.minOrderValue) {
+        toast.error(`هذا الكوبون يتطلب طلباً بقيمة ${coupon.minOrderValue} ج.م على الأقل`);
+        return;
+      }
+      setAppliedCoupon(coupon);
+      toast.success("تم تطبيق الكوبون بنجاح! 🎉");
+    } catch (error: any) {
+      toast.error(error.message || "كود الخصم غير صحيح");
+      setAppliedCoupon(null);
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
 
   useEffect(() => {
     if (hasGift && !showGiftAlert) {
@@ -331,7 +357,7 @@ export function RestaurantMenu() {
         .map((item) => `${item.name} × ${item.quantity} = ${item.price * item.quantity} ج.م`)
         .join("\n");
 
-      const message = `طلب جديد من تطبيق وصلي 📱\n\nالمطعم: ${selectedRestaurant.name}\n\n${orderItems}\n\nالإجمالي: ${totalPrice} ج.م\n\nالعنوان: ${addressDescription || "موقع GPS"}\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
+      const message = `طلب جديد من تطبيق وصلي 📱\n\nالمطعم: ${selectedRestaurant.name}\n\n${orderItems}\n\nالإجمالي الأصلي: ${totalPrice} ج.م\n${appliedCoupon ? `الخصم: ${discountAmount} ج.م (${appliedCoupon.code})\nالإجمالي بعد الخصم: ${finalTotalPrice} ج.م\n` : ''}\nالعنوان: ${addressDescription || "موقع GPS"}\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
 
       const encodedMessage = encodeURIComponent(message);
       const directWhatsappUrl = `https://wa.me/${selectedRestaurant.whatsappPhone}?text=${encodedMessage}`;
@@ -347,8 +373,9 @@ export function RestaurantMenu() {
       await createRestaurantOrderMutation.mutateAsync({
         restaurantId: selectedRestaurant.id,
         items: cartItemsData,
-        totalPrice,
-        notes: `${customerNotes}${hasGift ? "\n🎁 [هدية مجانية]: وجبة جانبية مجانية (عرض الـ 600 جنيه)" : ""}${hasFreeDelivery ? "\n🚚 [توصيل مجاني]: هذا الطلب مؤهل للتوصيل المجاني (عرض الـ 1000 جنيه)" : ""}`,
+        totalPrice: finalTotalPrice,
+        notes: `${customerNotes}${appliedCoupon ? `\n🎟️ [كوبون]: ${appliedCoupon.code} (خصم ${discountAmount} ج.م)` : ""}${hasGift ? "\n🎁 [هدية مجانية]: وجبة جانبية مجانية (عرض الـ 600 جنيه)" : ""}${hasFreeDelivery ? "\n🚚 [توصيل مجاني]: هذا الطلب مؤهل للتوصيل المجاني (عرض الـ 1000 جنيه)" : ""}`,
+        couponId: appliedCoupon?.id,
         usePoints: usePoints,
         pickupLocation: {
           address: selectedRestaurant.address,
@@ -642,10 +669,46 @@ export function RestaurantMenu() {
                   />
                 </div>
 
+                <div className="space-y-4 mb-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Gift className="h-4 w-4 text-orange-500" />
+                    <span className="text-xs font-bold text-slate-400">كود الخصم</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="أدخل كود الخصم..."
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      disabled={!!appliedCoupon || isValidatingCoupon}
+                      className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-orange-500 outline-none disabled:opacity-50 transition-all"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={appliedCoupon ? () => { setAppliedCoupon(null); setCouponCode(""); } : handleValidateCoupon}
+                      disabled={isValidatingCoupon || (!couponCode && !appliedCoupon)}
+                      className={`rounded-xl font-black ${appliedCoupon ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20' : 'bg-orange-500 text-white hover:bg-orange-600'}`}
+                    >
+                      {isValidatingCoupon ? <Loader2 className="h-4 w-4 animate-spin" /> : (appliedCoupon ? "إلغاء" : "تطبيق")}
+                    </Button>
+                  </div>
+                  {appliedCoupon && (
+                    <p className="text-emerald-400 text-[10px] font-black flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3" />
+                      تم تطبيق خصم {appliedCoupon.discountType === 'percentage' ? `${appliedCoupon.discountValue}%` : `${appliedCoupon.discountValue} ج.م`}
+                    </p>
+                  )}
+                </div>
+
                 <div className="flex items-center justify-between pt-2">
                   <div>
                     <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">الإجمالي</p>
-                    <p className="text-2xl font-black text-orange-500">ج.م {totalPrice}</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className={`text-2xl font-black text-orange-500 ${appliedCoupon ? 'line-through text-slate-500 text-lg' : ''}`}>ج.م {totalPrice}</p>
+                      {appliedCoupon && (
+                        <p className="text-2xl font-black text-emerald-400">ج.م {finalTotalPrice}</p>
+                      )}
+                    </div>
                     <div className="flex flex-col gap-1 mt-1">
                       {hasGift && (
                         <motion.div 

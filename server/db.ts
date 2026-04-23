@@ -513,6 +513,7 @@ export async function createOrder(orderData: {
   estimatedTime?: number;
   notes?: string;
   status?: string;
+  couponId?: number;
 }) {
   const db = await getDb();
   if (!db) {
@@ -530,6 +531,7 @@ export async function createOrder(orderData: {
       estimatedTime: orderData.estimatedTime,
       notes: orderData.notes,
       status: (orderData.status || "pending") as any,
+      couponId: orderData.couponId,
     });
 
     return result;
