@@ -47,7 +47,19 @@ function ChangeView({ bounds }: { bounds: L.LatLngBoundsExpression }) {
 }
 
 // Component to draw routing path using OSRM
-function RoutingPolyline({ start, end }: { start: [number, number]; end: [number, number] }) {
+function RoutingPolyline({ 
+  start, 
+  end, 
+  color = "#f97316", 
+  weight = 4, 
+  opacity = 0.8 
+}: { 
+  start: [number, number]; 
+  end: [number, number];
+  color?: string;
+  weight?: number;
+  opacity?: number;
+}) {
   const [routeCoordinates, setRouteCoordinates] = useState<[number, number][]>([]);
 
   useEffect(() => {
@@ -64,6 +76,8 @@ function RoutingPolyline({ start, end }: { start: [number, number]; end: [number
             coord[0],
           ] as [number, number]);
           setRouteCoordinates(coordinates);
+        } else {
+          setRouteCoordinates([start, end]);
         }
       } catch (error) {
         console.error('Error fetching route:', error);
@@ -72,16 +86,16 @@ function RoutingPolyline({ start, end }: { start: [number, number]; end: [number
     };
 
     fetchRoute();
-  }, [start, end]);
+  }, [start[0], start[1], end[0], end[1]]);
 
   if (routeCoordinates.length === 0) return null;
 
   return (
     <Polyline
       positions={routeCoordinates}
-      color="#f97316"
-      weight={4}
-      opacity={0.8}
+      color={color}
+      weight={weight}
+      opacity={opacity}
     />
   );
 }
@@ -182,25 +196,31 @@ export function LiveTrackingMap({
               <Popup>نقطة التسليم</Popup>
             </Marker>
 
+            {/* Base Route: Pickup to Delivery (Always visible but lighter) */}
+            <RoutingPolyline 
+              start={[pickupLocation.latitude, pickupLocation.longitude]} 
+              end={[deliveryLocation.latitude, deliveryLocation.longitude]} 
+              color="#cbd5e1"
+              weight={3}
+              opacity={0.5}
+            />
+
             {/* Driver Marker - Enhanced Visibility Logic */}
             {driverLocation && typeof driverLocation.latitude === 'number' && (
               <>
                 <Marker position={[driverLocation.latitude, driverLocation.longitude]} icon={iconDriver}>
                   <Popup>موقع الكابتن الحالي</Popup>
                 </Marker>
+                {/* Active Route: Driver to Delivery */}
                 <RoutingPolyline 
+                  key={`route-${driverLocation.latitude}-${driverLocation.longitude}`}
                   start={[driverLocation.latitude, driverLocation.longitude]} 
                   end={[deliveryLocation.latitude, deliveryLocation.longitude]} 
+                  color="#f97316"
+                  weight={5}
+                  opacity={1}
                 />
               </>
-            )}
-            
-            {/* Always show route between Pickup and Delivery if driver is not yet tracked */}
-            {!driverLocation && (
-              <RoutingPolyline 
-                start={[pickupLocation.latitude, pickupLocation.longitude]} 
-                end={[deliveryLocation.latitude, deliveryLocation.longitude]} 
-              />
             )}
           </MapContainer>
         </div>
