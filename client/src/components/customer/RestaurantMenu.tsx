@@ -10,87 +10,81 @@ import { trpc } from "@/lib/trpc";
 interface MenuItem {
   id: number;
   name: string;
-  description: string;
-  price: number;
-  image: string;
   category: string;
+  price: number;
+  image?: string;
+  description?: string;
 }
 
 interface CartItem extends MenuItem {
   quantity: number;
 }
 
-interface Restaurant {
-  id: number;
-  name: string;
-  category: string;
-  rating: number;
-  deliveryTime: string;
-  minOrder: number;
-  image: string;
-  address: string;
-  phone: string;
-  menu: MenuItem[];
-}
-
-const restaurants: Restaurant[] = [
-  {
-    id: 1,
-    name: "كشري الخديوي",
-    category: "كشري مصري",
-    rating: 4.8,
-    deliveryTime: "20-30 دقيقة",
-    minOrder: 50,
-    image: "https://images.unsplash.com/photo-1562158074-934339958745?w=800&auto=format&fit=crop&q=60",
-    address: "7F49+V89 كشري الخديوي، العبور، القليوبية",
-    phone: "01234567890",
-    menu: [
-      { id: 101, name: "علبة كشري سوبر", description: "أرز، مكرونة، عدس، حمص، بصل مقرمش، صلصة ودقة", price: 45, image: "https://images.unsplash.com/photo-1562158074-934339958745?w=400&auto=format&fit=crop&q=60", category: "كشري" },
-      { id: 102, name: "طاجن لحمة", description: "مكرونة بالفرن مع اللحم المفروم والصلصة", price: 65, image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&auto=format&fit=crop&q=60", category: "طواجن" },
-      { id: 103, name: "أرز بلبن", description: "أرز باللبن كريمي ومحلى", price: 25, image: "https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?w=400&auto=format&fit=crop&q=60", category: "حلويات" },
-    ]
-  },
-  {
-    id: 2,
-    name: "برجر كينج",
-    category: "وجبات سريعة",
-    rating: 4.5,
-    deliveryTime: "30-45 دقيقة",
-    minOrder: 100,
-    image: "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=800&auto=format&fit=crop&q=60",
-    address: "العبور الجديدة - حي المجد - مول ريتاج - بجانب مدرسة بلال بن رباح الثانوية",
-    phone: "01098765432",
-    menu: [
-      { id: 201, name: "وجبة ووبر", description: "ساندوتش ووبر مع بطاطس وبيبسي", price: 185, image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&auto=format&fit=crop&q=60", category: "وجبات" },
-      { id: 202, name: "تشيكن رويال", description: "ساندوتش دجاج مقرمش مع مايونيز وخس", price: 145, image: "https://images.unsplash.com/photo-1610614819513-58e34989848b?w=400&auto=format&fit=crop&q=60", category: "ساندوتشات" },
-      { id: 203, name: "بطاطس مقلية", description: "بطاطس مقرمشة ومملحة", price: 40, image: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&auto=format&fit=crop&q=60", category: "جانبيات" },
-    ]
-  },
-  {
-    id: 3,
-    name: "بيتزا هت",
-    category: "بيتزا",
-    rating: 4.6,
-    deliveryTime: "25-40 دقيقة",
-    minOrder: 120,
-    image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&auto=format&fit=crop&q=60",
-    address: "7GG2+462 ملعب حي الحرية, العبور، محافظة القليوبية 6363322",
-    phone: "01122334455",
-    menu: [
-      { id: 301, name: "بيتزا سوبر سوبريم", description: "لحم بقري، بيبيروني، فلفل، بصل، زيتون، مشروم", price: 210, image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&auto=format&fit=crop&q=60", category: "بيتزا" },
-      { id: 302, name: "بيتزا مارجريتا", description: "صلصة طماطم وجبنة موتزاريللا", price: 140, image: "https://images.unsplash.com/photo-1574071318508-1cdbad80ad38?w=400&auto=format&fit=crop&q=60", category: "بيتزا" },
-      { id: 303, name: "خبز بالثوم", description: "خبز محمص بالزبدة والثوم والجبنة", price: 55, image: "https://images.unsplash.com/photo-1573140247632-f8fd74997d5c?w=400&auto=format&fit=crop&q=60", category: "مقبلات" },
-    ]
-  }
+const KHEDIVE_KOSHARY_MENU: MenuItem[] = [
+  // العلب
+  { id: 101, name: "علبة كمالة 🥣", category: "العلب", price: 15 },
+  { id: 102, name: "علبة صغيرة 🥣", category: "العلب", price: 17 },
+  { id: 103, name: "علبة الخديوي 👑", category: "العلب", price: 25 },
+  { id: 104, name: "لوكس الخديوي ✨", category: "العلب", price: 30 },
+  { id: 105, name: "سوبر الخديوي 🔥", category: "العلب", price: 35 },
+  { id: 106, name: "أسبيشيال الخديوي 🌟", category: "العلب", price: 40 },
+  { id: 107, name: "وليمة الخديوي 🥘", category: "العلب", price: 45 },
+  { id: 108, name: "جامبو الخديوي 🐘", category: "العلب", price: 50 },
+  // الطواجن
+  { id: 109, name: "طاجن عادة 🥘", category: "الطواجن", price: 30 },
+  { id: 110, name: "طاجن لحمة 🥩", category: "الطواجن", price: 45 },
+  { id: 111, name: "طاجن سجق 🌭", category: "الطواجن", price: 45 },
+  { id: 112, name: "طاجن كبدة 🥘", category: "الطواجن", price: 45 },
+  { id: 113, name: "طاجن فراخ 🍗", category: "الطواجن", price: 50 },
+  { id: 114, name: "طاجن خضار 🥦", category: "الطواجن", price: 50 },
+  // طواجن وايت صوص
+  { id: 115, name: "طاجن وايت صوص 🥛", category: "طواجن وايت صوص", price: 80 },
+  { id: 116, name: "طاجن لحمة وايت صوص 🥩", category: "طواجن وايت صوص", price: 80 },
+  { id: 117, name: "طاجن سجق وايت صوص 🌭", category: "طواجن وايت صوص", price: 80 },
+  { id: 118, name: "طاجن فراخ وايت صوص 🍗", category: "طواجن وايت صوص", price: 90 },
+  { id: 119, name: "طاجن جمبري 🍤", category: "طواجن وايت صوص", price: 120 },
+  { id: 120, name: "طاجن مشروم 🍄", category: "طواجن وايت صوص", price: 80 },
+  // طواجن موتزاريللا
+  { id: 121, name: "موتزاريللا سادة 🧀", category: "طواجن موتزاريللا", price: 53 },
+  { id: 122, name: "موتزاريللا لحمة 🥩", category: "طواجن موتزاريللا", price: 68 },
+  { id: 123, name: "موتزاريللا كبدة 🥘", category: "طواجن موتزاريللا", price: 68 },
+  { id: 124, name: "موتزاريللا سجق 🌭", category: "طواجن موتزاريللا", price: 68 },
+  { id: 125, name: "موتزاريللا فراخ 🍗", category: "طواجن موتزاريللا", price: 75 },
+  { id: 126, name: "موتزاريللا خضار 🥦", category: "طواجن موتزاريللا", price: 75 },
+  // الميكسات
+  { id: 127, name: "ميكس عادة 🥘", category: "الميكسات", price: 48 },
+  { id: 128, name: "ميكس لحمة 🥩", category: "الميكسات", price: 60 },
+  { id: 129, name: "ميكس سجق 🌭", category: "الميكسات", price: 60 },
+  { id: 130, name: "ميكس كبدة 🥘", category: "الميكسات", price: 60 },
+  { id: 131, name: "ميكس فراخ 🍗", category: "الميكسات", price: 66 },
+  // الحواوشي
+  { id: 132, name: "حواوشي سادة 🥙", category: "الحواوشي", price: 35 },
+  { id: 133, name: "حواوشي سجق 🌭", category: "الحواوشي", price: 60 },
+  { id: 134, name: "حواوشي بسطرمة 🥩", category: "الحواوشي", price: 60 },
+  { id: 135, name: "حواوشي هالبينو 🌶️", category: "الحواوشي", price: 40 },
+  { id: 136, name: "حواوشي ميكس تركي 🥙", category: "الحواوشي", price: 60 },
+  // الإضافات
+  { id: 137, name: "علبة صلصة 🍅", category: "الإضافات", price: 7 },
+  { id: 138, name: "علبة دقة 🍋", category: "الإضافات", price: 7 },
+  { id: 139, name: "علبة شطة 🌶️", category: "الإضافات", price: 7 },
+  { id: 140, name: "كيس تقلية 🧅", category: "الإضافات", price: 7 },
+  { id: 141, name: "كيس حمص 🥣", category: "الإضافات", price: 7 },
+  { id: 142, name: "كيس عيش 🍞", category: "الإضافات", price: 7 },
+  // الحلويات
+  { id: 143, name: "أرز بلبن 🍚", category: "الحلويات", price: 15 },
+  { id: 144, name: "أرز بلبن فرن 🍮", category: "الحلويات", price: 20 },
+  { id: 145, name: "مهلبية 🍮", category: "الحلويات", price: 15 },
+  { id: 146, name: "عاشورا 🥣", category: "الحلويات", price: 15 },
+  // المشروبات
+  { id: 147, name: "بيبسي كانز 🥤", category: "المشروبات", price: 15 },
+  { id: 148, name: "مياه معدنية صغيرة 💧", category: "المشروبات", price: 7 },
 ];
 
 export function RestaurantMenu() {
-  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartExpanded, setIsCartExpanded] = useState(false);
   const [customerNotes, setCustomerNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
   const [addressDescription, setAddressDescription] = useState("");
 
   const createOrderMutation = trpc.orders.createOrder.useMutation();
@@ -124,7 +118,6 @@ export function RestaurantMenu() {
   };
 
   const handleCheckout = async () => {
-    if (!selectedRestaurant) return;
     if (!addressDescription || addressDescription.trim().length < 5) {
       toast.error("يرجى كتابة العنوان بالتفصيل أولاً (رقم العمارة، الشقة، أو علامة مميزة)");
       return;
@@ -134,9 +127,8 @@ export function RestaurantMenu() {
     try {
       const orderItems = cart.map(item => `${item.name} (${item.quantity})`).join('\n');
       
-      // Create order in database
-      const result = await createOrderMutation.mutateAsync({
-        restaurantId: selectedRestaurant.id,
+      await createOrderMutation.mutateAsync({
+        restaurantId: 1, // Khedive Koshary
         totalPrice,
         items: cart.map(item => ({
           id: item.id,
@@ -145,20 +137,20 @@ export function RestaurantMenu() {
           quantity: item.quantity
         })),
         pickupLocation: {
-          latitude: 30.2219, // Default coordinates for Obour City
+          latitude: 30.2219,
           longitude: 31.4719,
-          address: selectedRestaurant.address,
+          address: "كشري الخديوي، العبور",
         },
         deliveryLocation: {
-          latitude: userLocation?.latitude || 30.2219,
-          longitude: userLocation?.longitude || 31.4719,
-          address: addressDescription || "موقع العميل المكتشف",
+          latitude: 30.2219,
+          longitude: 31.4719,
+          address: addressDescription,
         },
         notes: customerNotes
       });
 
-      const message = `طلب جديد من تطبيق وصلي 📱\n\nالمطعم: ${selectedRestaurant.name}\n\n${orderItems}\n\nالإجمالي: ${totalPrice} ج.م\n\nالعنوان: ${addressDescription || "موقع GPS"}\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
-      const whatsappUrl = `https://wa.me/${selectedRestaurant.phone}?text=${encodeURIComponent(message)}`;
+      const message = `طلب جديد من تطبيق وصلي 📱\n\nالمطعم: كشري الخديوي\n\n${orderItems}\n\nالإجمالي: ${totalPrice} ج.م\n\nالعنوان: ${addressDescription}\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
+      const whatsappUrl = `https://wa.me/201234567890?text=${encodeURIComponent(message)}`;
       
       window.open(whatsappUrl, '_blank');
       toast.success("تم إرسال الطلب بنجاح!");
@@ -174,91 +166,71 @@ export function RestaurantMenu() {
     }
   };
 
+  const categories = useMemo(() => {
+    return Array.from(new Set(KHEDIVE_KOSHARY_MENU.map(item => item.category)));
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-50 pb-32">
-      <div className="max-w-4xl mx-auto p-4 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-black text-slate-900">المطاعم المتاحة</h1>
-          <Badge variant="outline" className="bg-white font-bold">العبور الجديدة</Badge>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {restaurants.map((restaurant) => (
-            <Card 
-              key={restaurant.id} 
-              className={`overflow-hidden cursor-pointer transition-all hover:shadow-xl border-2 ${selectedRestaurant?.id === restaurant.id ? 'border-orange-500 ring-2 ring-orange-500/20' : 'border-transparent'}`}
-              onClick={() => setSelectedRestaurant(restaurant)}
-            >
-              <div className="relative h-40">
-                <img src={restaurant.image} alt={restaurant.name} className="w-full h-full object-cover" />
-                <div className="absolute top-3 right-3">
-                  <Badge className="bg-white/90 text-slate-900 font-black backdrop-blur-sm">
-                    <Star className="h-3 w-3 ml-1 fill-orange-500 text-orange-500" />
-                    {restaurant.rating}
-                  </Badge>
+      <div className="max-w-4xl mx-auto p-4 space-y-8">
+        <div className="relative h-64 rounded-3xl overflow-hidden shadow-2xl">
+          <img 
+            src="https://images.unsplash.com/photo-1562158074-934339958745?w=800&auto=format&fit=crop&q=60" 
+            className="w-full h-full object-cover"
+            alt="كشري الخديوي"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
+          <div className="absolute bottom-6 right-6 left-6 flex justify-between items-end">
+            <div>
+              <Badge className="bg-orange-500 text-white border-none mb-2 font-black">مفتوح الآن</Badge>
+              <h1 className="text-4xl font-black text-white mb-1">كشري الخديوي</h1>
+              <div className="flex items-center gap-3 text-slate-300">
+                <div className="flex items-center gap-1">
+                  <Star className="h-4 w-4 fill-orange-500 text-orange-500" />
+                  <span className="text-sm font-black text-white">4.8</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-sm font-bold">20-30 دقيقة</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <MapPin className="h-4 w-4" />
+                  <span className="text-sm font-bold">العبور، القليوبية</span>
                 </div>
               </div>
-              <CardContent className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="font-black text-lg text-slate-900">{restaurant.name}</h3>
-                    <p className="text-xs text-slate-500 font-bold">{restaurant.category}</p>
-                  </div>
-                  <div className="text-left">
-                    <p className="text-xs font-black text-orange-600">{restaurant.deliveryTime}</p>
-                    <p className="text-[10px] text-slate-400 font-bold">أقل طلب: {restaurant.minOrder} ج.م</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 text-slate-400 mt-3">
-                  <MapPin className="h-3 w-3" />
-                  <span className="text-[10px] font-bold line-clamp-1">{restaurant.address}</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+            </div>
+          </div>
         </div>
 
-        <AnimatePresence>
-          {selectedRestaurant && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-4"
-            >
-              <div className="flex items-center gap-2 pt-4">
-                <div className="h-1 w-8 bg-orange-500 rounded-full"></div>
-                <h2 className="text-xl font-black text-slate-900">قائمة الطعام - {selectedRestaurant.name}</h2>
-              </div>
-              
-              <div className="grid grid-cols-1 gap-3">
-                {selectedRestaurant.menu.map((item) => (
-                  <Card key={item.id} className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all">
-                    <div className="flex p-3 gap-4">
-                      <img src={item.image} alt={item.name} className="w-24 h-24 rounded-2xl object-cover" />
-                      <div className="flex-1 flex flex-col justify-between py-1">
-                        <div>
-                          <h4 className="font-black text-slate-900">{item.name}</h4>
-                          <p className="text-xs text-slate-500 font-bold line-clamp-2 mt-1">{item.description}</p>
-                        </div>
-                        <div className="flex justify-between items-center mt-2">
-                          <span className="font-black text-orange-600">ج.م {item.price}</span>
-                          <Button 
-                            size="sm" 
-                            className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-black h-8 px-4"
-                            onClick={() => addToCart(item)}
-                          >
-                            <Plus className="h-4 w-4 ml-1" />
-                            إضافة
-                          </Button>
-                        </div>
+        {categories.map((category) => (
+          <div key={category} className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-1.5 bg-orange-500 rounded-full"></div>
+              <h2 className="text-2xl font-black text-slate-900">{category}</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {KHEDIVE_KOSHARY_MENU.filter(item => item.category === category).map((item) => (
+                <Card key={item.id} className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all group">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-center">
+                      <div className="space-y-1">
+                        <h3 className="font-black text-slate-900 group-hover:text-orange-600 transition-colors">{item.name}</h3>
+                        <p className="text-lg font-black text-slate-900">ج.م {item.price}</p>
                       </div>
+                      <Button 
+                        size="icon"
+                        className="bg-slate-100 hover:bg-orange-500 text-slate-900 hover:text-white rounded-2xl transition-all duration-300"
+                        onClick={() => addToCart(item)}
+                      >
+                        <Plus className="h-5 w-5" />
+                      </Button>
                     </div>
-                  </Card>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Floating Cart */}
@@ -322,7 +294,6 @@ export function RestaurantMenu() {
                   {cart.map((item) => (
                     <div key={item.id} className="flex items-center justify-between bg-slate-800/50 p-3 rounded-2xl border border-slate-800">
                       <div className="flex items-center gap-3">
-                        <img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover" />
                         <div>
                           <p className="font-black text-sm">{item.name}</p>
                           <p className="text-xs text-orange-500 font-bold">ج.م {item.price * item.quantity}</p>
