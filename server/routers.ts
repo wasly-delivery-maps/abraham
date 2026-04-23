@@ -78,6 +78,21 @@ export const appRouter = router({
           });
         }
 
+        // Send welcome notification
+        try {
+          const app = (ctx.req as any)?.app;
+          if (app?.sendNotificationToUser) {
+            await app.sendNotificationToUser(user.id, {
+              title: "أهلاً بك في وصلي! 🚗",
+              body: `استمتع بخصم 50% على أول طلب باستخدام كود: WASLY50`,
+              url: "/",
+              tag: "welcome-bonus",
+            });
+          }
+        } catch (error) {
+          console.error("[WelcomeNotification] Failed to send:", error);
+        }
+
         // Create session token
         const sessionToken = await sdk.createSessionToken(user.openId, {
           name: user.name || "",
@@ -151,6 +166,21 @@ export const appRouter = router({
           password: user.password || undefined,
           lastSignedIn: new Date(),
         });
+
+        // Send welcome notification
+        try {
+          const app = (ctx.req as any)?.app;
+          if (app?.sendNotificationToUser) {
+            await app.sendNotificationToUser(user.id, {
+              title: "أهلاً بك في وصلي! 🚗",
+              body: `استمتع بخصم 50% على أول طلب باستخدام كود: WASLY50`,
+              url: "/",
+              tag: "welcome-bonus",
+            });
+          }
+        } catch (error) {
+          console.error("[WelcomeNotification] Failed to send:", error);
+        }
 
         // Create session token
         const sessionToken = await sdk.createSessionToken(user.openId, {
@@ -277,6 +307,68 @@ export const appRouter = router({
         }
       }),
   }),
+
+  coupons: router({
+    validate: protectedProcedure
+      .input(z.object({ code: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const coupon = await db.getCouponByCode(input.code);
+        if (!coupon || !coupon.isActive) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "كود الخصم غير صحيح أو منتهي الصلاحية" });
+        }
+
+        if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "كود الخصم منتهي الصلاحية" });
+        }
+
+        if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "تم الوصول للحد الأقصى لاستخدام الكود" });
+        }
+
+        const hasUsed = await db.hasUserUsedCoupon(ctx.user.id, coupon.id);
+        if (hasUsed) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "لقد استخدمت هذا الكود من قبل" });
+        }
+
+        if (coupon.isFirstOrderOnly) {
+          const userOrders = await db.getOrdersByCustomerId(ctx.user.id);
+          if (userOrders.length > 0) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "هذا الكود مخصص للطلب الأول فقط" });
+          }
+        }
+
+        return {
+          id: coupon.id,
+          code: coupon.code,
+          discountType: coupon.discountType,
+          discountValue: parseFloat(coupon.discountValue.toString()),
+          maxDiscount: coupon.maxDiscount ? parseFloat(coupon.maxDiscount.toString()) : null,
+          minOrderValue: coupon.minOrderValue ? parseFloat(coupon.minOrderValue.toString()) : 0,
+        };
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        code: z.string(),
+        discountType: z.enum(["percentage", "fixed"]),
+        discountValue: z.number(),
+        maxDiscount: z.number().optional(),
+        minOrderValue: z.number().optional(),
+        expiresAt: z.string().optional(),
+        usageLimit: z.number().optional(),
+        isFirstOrderOnly: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+        }
+        return await db.createCoupon({
+          ...input,
+          expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
+        });
+      }),
+  }),
+
 
   users: router({
     // Get current user

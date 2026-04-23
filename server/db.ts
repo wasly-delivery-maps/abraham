@@ -11,6 +11,8 @@ import {
   pushSubscriptions,
   InsertPushSubscription,
   offers,
+  coupons,
+  userCoupons,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -1070,6 +1072,40 @@ export async function deletePushSubscription(endpoint: string) {
     throw error;
   }
 }
+
+/**
+ * Get coupon by code
+ */
+export async function getCouponByCode(code: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(coupons).where(eq(coupons.code, code)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+/**
+ * Check if user has used a coupon
+ */
+export async function hasUserUsedCoupon(userId: number, couponId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db
+    .select()
+    .from(userCoupons)
+    .where(and(eq(userCoupons.userId, userId), eq(userCoupons.couponId, couponId)))
+    .limit(1);
+  return result.length > 0;
+}
+
+/**
+ * Create a coupon (Admin only)
+ */
+export async function createCoupon(couponData: any) {
+  const db = await getDb();
+  if (!db) return undefined;
+  return await db.insert(coupons).values(couponData);
+}
+
 
 /**
  * Get all push subscriptions for a user

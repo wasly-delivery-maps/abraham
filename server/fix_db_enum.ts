@@ -100,6 +100,57 @@ async function fixDbEnum() {
       console.error("Failed to ensure 'offers' table schema:", e.message);
     }
 
+    console.log("Ensuring 'coupons' and 'user_coupons' tables exist...");
+    try {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS \`coupons\` (
+          \`id\` int NOT NULL AUTO_INCREMENT,
+          \`code\` varchar(50) NOT NULL,
+          \`discountType\` enum('percentage','fixed') NOT NULL,
+          \`discountValue\` decimal(10,2) NOT NULL,
+          \`maxDiscount\` decimal(10,2) DEFAULT NULL,
+          \`minOrderValue\` decimal(10,2) DEFAULT '0.00',
+          \`expiresAt\` timestamp NULL DEFAULT NULL,
+          \`usageLimit\` int DEFAULT NULL,
+          \`usedCount\` int NOT NULL DEFAULT '0',
+          \`isActive\` tinyint(1) NOT NULL DEFAULT '1',
+          \`isFirstOrderOnly\` tinyint(1) NOT NULL DEFAULT '0',
+          \`createdAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (\`id\`),
+          UNIQUE KEY \`code_unique\` (\`code\`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+      
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS \`user_coupons\` (
+          \`id\` int NOT NULL AUTO_INCREMENT,
+          \`userId\` int NOT NULL,
+          \`couponId\` int NOT NULL,
+          \`orderId\` int DEFAULT NULL,
+          \`usedAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (\`id\`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+
+      // إنشاء كوبون WASLY50 تلقائياً إذا لم يكن موجوداً
+      try {
+        const existingCoupons = await db.execute(sql`SELECT id FROM \`coupons\` WHERE \`code\` = 'WASLY50'`);
+        if (!existingCoupons || (existingCoupons as any)[0].length === 0) {
+          await db.execute(sql`
+            INSERT INTO \`coupons\` (code, discountType, discountValue, maxDiscount, minOrderValue, isFirstOrderOnly)
+            VALUES ('WASLY50', 'percentage', 50.00, 50.00, 0.00, 1)
+          `);
+          console.log("Created default coupon 'WASLY50'");
+        }
+      } catch (couponError: any) {
+        console.warn("Could not check/create default coupon:", couponError.message);
+      }
+      
+      console.log("Successfully ensured coupon tables exist.");
+    } catch (couponTableError: any) {
+      console.error("Failed to ensure coupon tables:", couponTableError.message);
+    }
+
     console.log("All fixes applied successfully!");
     process.exit(0);
   } catch (error) {

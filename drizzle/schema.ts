@@ -272,3 +272,35 @@ export const offers = mysqlTable("offers", {
 
 export type Offer = typeof offers.$inferSelect;
 export type InsertOffer = typeof offers.$inferInsert;
+
+/**
+ * Coupons table - Discount codes for orders
+ */
+export const coupons = mysqlTable("coupons", {
+  id: int("id").autoincrement().primaryKey(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  discountType: mysqlEnum("discountType", ["percentage", "fixed"]).notNull(),
+  discountValue: decimal("discountValue", { precision: 10, scale: 2 }).notNull(),
+  maxDiscount: decimal("maxDiscount", { precision: 10, scale: 2 }), // For percentage discounts
+  minOrderValue: decimal("minOrderValue", { precision: 10, scale: 2 }).default("0"),
+  expiresAt: timestamp("expiresAt"),
+  usageLimit: int("usageLimit"),
+  usedCount: int("usedCount").default(0).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  isFirstOrderOnly: boolean("isFirstOrderOnly").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Coupon = typeof coupons.$inferSelect;
+export type InsertCoupon = typeof coupons.$inferInsert;
+
+/**
+ * User Coupons - Track coupon usage by users
+ */
+export const userCoupons = mysqlTable("user_coupons", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  couponId: int("couponId").notNull(),
+  orderId: int("orderId"),
+  usedAt: timestamp("usedAt").defaultNow().notNull(),
+});

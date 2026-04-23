@@ -104,11 +104,15 @@ export async function sendPushNotificationToUser(
         android: {
           priority: "high" as any,
           notification: {
-            channelId: "default_channel",
+            channelId: "push_notifications_urgent",
             priority: "max" as any,
             visibility: "public" as any,
             sound: "default",
             clickAction: "FLUTTER_NOTIFICATION_CLICK",
+            sticky: false,
+            localOnly: false,
+            defaultSound: true,
+            defaultVibrateTimings: true,
           },
         },
         apns: {
@@ -287,10 +291,14 @@ export async function notifyDriversOfNewOrder(
           android: {
             priority: "high" as any,
             notification: {
-              channelId: "default_channel",
+              channelId: "push_notifications_urgent",
               priority: "max" as any,
               visibility: "public" as any,
               sound: "default",
+              sticky: false,
+              localOnly: false,
+              defaultSound: true,
+              defaultVibrateTimings: true,
             },
           },
           apns: {
