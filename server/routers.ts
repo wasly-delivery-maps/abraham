@@ -705,7 +705,7 @@ export const appRouter = router({
           customerId: ctx.user.id,
           pickupLocation: input.pickupLocation,
           deliveryLocation: input.deliveryLocation,
-          price: priceToUse,
+          price: calculatedPrice,
           distance,
           estimatedTime,
           notes: input.notes,
@@ -1505,55 +1505,7 @@ export const appRouter = router({
         if (ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
         }
-
-        const drivers = await db.getAllDrivers();
-        let orders = await db.getAllOrders();
-        
-        if (input.startDate && input.endDate) {
-          orders = orders.filter(order => {
-            const orderDate = new Date(order.createdAt);
-            return orderDate >= input.startDate! && orderDate <= input.endDate!;
-          });
-        }
-
-        const totalOrders = orders.length;
-        const totalRevenue = orders.reduce((sum, order) => sum + (parseFloat(order.price?.toString() || "0")), 0);
-        const completedOrders = orders.filter(order => order.status === "delivered").length;
-        const totalCommission = drivers.reduce((sum, driver) => sum + (parseFloat(driver.pendingCommission?.toString() || "0")), 0);
-        const paidCommission = drivers.reduce((sum, driver) => sum + (parseFloat(driver.paidCommission?.toString() || "0")), 0);
-
-        return {
-          drivers: drivers.map(d => ({
-            id: d.id,
-            name: d.name,
-            phone: d.phone,
-            accountStatus: d.accountStatus,
-            totalOrders: orders.filter(o => o.driverId === d.id).length,
-            earnings: orders
-              .filter(o => o.driverId === d.id && o.status === "delivered")
-              .reduce((sum, o) => sum + parseFloat(o.price?.toString() || "0"), 0),
-            pendingCommission: parseFloat(d.pendingCommission?.toString() || "0"),
-            paidCommission: parseFloat(d.paidCommission?.toString() || "0"),
-          })),
-          orders: orders.map(o => ({
-            id: o.id,
-            customerId: o.customerId,
-            driverId: o.driverId,
-            pickupLocation: o.pickupLocation,
-            deliveryLocation: o.deliveryLocation,
-            price: parseFloat(o.price?.toString() || "0"),
-            status: o.status,
-            createdAt: o.createdAt,
-          })),
-          statistics: {
-            totalOrders,
-            completedOrders,
-            totalRevenue,
-            totalCommission,
-            paidCommission,
-            pendingCommission: totalCommission - paidCommission,
-          },
-        };
+        return await db.getReportData(input.startDate, input.endDate);
       }),
 
     // Send manual notification (Admin only)

@@ -6,12 +6,13 @@ import { useEffect, useState, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
-import { Users, Truck, ShoppingBag, TrendingUp, LogOut, BarChart3, User, Home, Download, Settings, ShieldCheck, ChevronLeft, Package, Clock, Zap, Star, Loader2, Plus, Trash2, Image as ImageIcon, Link as LinkIcon, Upload, Ticket } from "lucide-react";
+import { Users, Truck, ShoppingBag, TrendingUp, LogOut, BarChart3, User, Home, Download, Settings, ShieldCheck, ChevronLeft, Package, Clock, Zap, Star, Loader2, Plus, Trash2, Image as ImageIcon, Link as LinkIcon, Upload, Ticket, Bell } from "lucide-react";
 import { toast } from "sonner";
 import { UsersManagement } from "@/components/admin/UsersManagement";
 import { OrdersManagement } from "@/components/admin/OrdersManagement";
 import { CommissionsManagement } from "@/components/admin/CommissionsManagement";
 import { CouponsManagement } from "@/components/admin/CouponsManagement";
+import { NotificationsManagement } from "@/components/admin/NotificationsManagement";
 import { ReportExporter } from "@/components/admin/ReportExporter";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -212,6 +213,9 @@ export default function AdminDashboard() {
                 <TabsTrigger value="coupons" className="rounded-2xl px-6 md:px-8 py-3 font-black data-[state=active]:bg-orange-600 data-[state=active]:text-white transition-all whitespace-nowrap">
                   <Ticket className="h-4 w-4 ml-2" /> الكوبونات
                 </TabsTrigger>
+                <TabsTrigger value="notifications" className="rounded-2xl px-6 md:px-8 py-3 font-black data-[state=active]:bg-blue-500 data-[state=active]:text-white transition-all whitespace-nowrap">
+                  <Bell className="h-4 w-4 ml-2" /> الإشعارات
+                </TabsTrigger>
               </TabsList>
             </div>
             
@@ -228,6 +232,10 @@ export default function AdminDashboard() {
               
               <TabsContent value="coupons">
                 <CouponsManagement coupons={couponsQuery.data || []} />
+              </TabsContent>
+
+              <TabsContent value="notifications">
+                <NotificationsManagement />
               </TabsContent>
 
               <TabsContent value="offers">
