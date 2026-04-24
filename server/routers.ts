@@ -347,6 +347,13 @@ export const appRouter = router({
         };
       }),
 
+    getAll: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+      }
+      return await db.getAllCoupons();
+    }),
+
     create: protectedProcedure
       .input(z.object({
         code: z.string(),
@@ -366,6 +373,24 @@ export const appRouter = router({
           ...input,
           expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
         });
+      }),
+
+    updateStatus: protectedProcedure
+      .input(z.object({ id: z.number(), isActive: z.boolean() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+        }
+        return await db.updateCouponStatus(input.id, input.isActive);
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+        }
+        return await db.deleteCoupon(input.id);
       }),
   }),
 

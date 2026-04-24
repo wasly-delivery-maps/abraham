@@ -6,11 +6,12 @@ import { useEffect, useState, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
-import { Users, Truck, ShoppingBag, TrendingUp, LogOut, BarChart3, User, Home, Download, Settings, ShieldCheck, ChevronLeft, Package, Clock, Zap, Star, Loader2, Plus, Trash2, Image as ImageIcon, Link as LinkIcon, Upload } from "lucide-react";
+import { Users, Truck, ShoppingBag, TrendingUp, LogOut, BarChart3, User, Home, Download, Settings, ShieldCheck, ChevronLeft, Package, Clock, Zap, Star, Loader2, Plus, Trash2, Image as ImageIcon, Link as LinkIcon, Upload, Ticket } from "lucide-react";
 import { toast } from "sonner";
 import { UsersManagement } from "@/components/admin/UsersManagement";
 import { OrdersManagement } from "@/components/admin/OrdersManagement";
 import { CommissionsManagement } from "@/components/admin/CommissionsManagement";
+import { CouponsManagement } from "@/components/admin/CouponsManagement";
 import { ReportExporter } from "@/components/admin/ReportExporter";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,6 +39,7 @@ export default function AdminDashboard() {
   const usersQuery = trpc.admin.getAllUsers.useQuery();
   const ordersQuery = trpc.admin.getAllOrders.useQuery();
   const offersQuery = trpc.offers.getActive.useQuery();
+  const couponsQuery = trpc.coupons.getAll.useQuery();
   
   const uploadImageMutation = trpc.offers.uploadImage.useMutation();
 
@@ -207,6 +209,9 @@ export default function AdminDashboard() {
                 <TabsTrigger value="commissions" className="rounded-2xl px-6 md:px-8 py-3 font-black data-[state=active]:bg-emerald-500 data-[state=active]:text-white transition-all whitespace-nowrap">
                   <TrendingUp className="h-4 w-4 ml-2" /> العمولات
                 </TabsTrigger>
+                <TabsTrigger value="coupons" className="rounded-2xl px-6 md:px-8 py-3 font-black data-[state=active]:bg-orange-600 data-[state=active]:text-white transition-all whitespace-nowrap">
+                  <Ticket className="h-4 w-4 ml-2" /> الكوبونات
+                </TabsTrigger>
               </TabsList>
             </div>
             
@@ -221,6 +226,10 @@ export default function AdminDashboard() {
                 <CommissionsManagement drivers={users.filter(u => u.role === "driver")} />
               </TabsContent>
               
+              <TabsContent value="coupons">
+                <CouponsManagement coupons={couponsQuery.data || []} />
+              </TabsContent>
+
               <TabsContent value="offers">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   {/* Add Offer Form */}

@@ -1122,6 +1122,33 @@ export async function createCoupon(couponData: any) {
   return await db.insert(coupons).values(couponData);
 }
 
+/**
+ * Get all coupons (Admin only)
+ */
+export async function getAllCoupons() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(coupons);
+}
+
+/**
+ * Update coupon status (Admin only)
+ */
+export async function updateCouponStatus(id: number, isActive: boolean) {
+  const db = await getDb();
+  if (!db) return;
+  return await db.update(coupons).set({ isActive }).where(eq(coupons.id, id));
+}
+
+/**
+ * Delete coupon (Admin only)
+ */
+export async function deleteCoupon(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  return await db.delete(coupons).where(eq(coupons.id, id));
+}
+
 
 /**
  * Get all push subscriptions for a user
