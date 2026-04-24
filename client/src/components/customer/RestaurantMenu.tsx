@@ -139,10 +139,7 @@ const AL_HOUT_RESTAURANT: Restaurant = {
 };
 
 // مطعم "رول وي" - البيانات
-const ROLL_WE_RESTAURANT: Restaurant = {
-  id: 1,
-  name: "مطعم وصلي",
-  phone: "0124592580",
+A557564373",
   whatsappPhone: "20124592580",
   address: "العبور الجديدة - مطعم وصلي",
   description: "أشهى المأكولات والبيتزا والكريب في العبور الجديدة",
