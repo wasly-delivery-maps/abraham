@@ -17,6 +17,20 @@
     <link rel="icon" type="image/jpeg" href="/logo.jpg" />
     <link rel="apple-touch-icon" href="/logo.jpg" />
     <title>منصة وصلي للتوصيل الذكية</title>
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "c7e88fa4-df0e-42a5-960a-fd9088b949b4",
+          safari_web_id: "web.onesignal.auto.064e473c-968e-473c-968e-096868888888",
+          notifyButton: {
+            enable: true,
+          },
+          allowLocalhostAsSecureOrigin: true,
+        });
+      });
+    </script>
     <script>
       // ============================================
       // PWA Install Prompt Handler
