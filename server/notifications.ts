@@ -159,7 +159,10 @@ export async function sendOneSignalNotification(
       notificationPayload.included_segments = ["Subscribed Users"];
     }
 
-    await axios.post(
+    console.log("[Notifications] Sending to OneSignal with AppID:", ONESIGNAL_APP_ID);
+    console.log("[Notifications] Payload:", JSON.stringify(notificationPayload));
+
+    const response = await axios.post(
       "https://onesignal.com/api/v1/notifications",
       notificationPayload,
       {
@@ -169,6 +172,9 @@ export async function sendOneSignalNotification(
         },
       }
     );
+    
+    console.log("[Notifications] OneSignal Response Status:", response.status);
+    console.log("[Notifications] OneSignal Response Data:", JSON.stringify(response.data));
     console.log(`[Notifications] OneSignal notification sent successfully to ${target.userId ? 'user ' + target.userId : (target.role ? 'role ' + target.role : 'all users')}`);
   } catch (error: any) {
     console.error("[Notifications] OneSignal notification failed:", error.response?.data || error.message);
@@ -263,8 +269,9 @@ export async function notifyDriversOfNewOrder(
       console.warn("[Notifications] Firebase Admin SDK not initialized, skipping Firebase broadcast");
     }
 
-    // 3. OneSignal is now deprecated - Firebase is the primary notification system
-    console.log("[Notifications] OneSignal is disabled - using Firebase exclusively");
+    // 3. OneSignal Broadcast
+    console.log("[Notifications] Sending OneSignal broadcast to all drivers");
+    await sendOneSignalNotification({ role: "driver" }, notification);
   } catch (error) {
     console.error("[Notifications] Failed to notify drivers:", error);
   }
