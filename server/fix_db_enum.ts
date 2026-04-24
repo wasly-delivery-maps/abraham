@@ -115,18 +115,27 @@ export async function runFixes() {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
 
-      try {
-        const existingCoupons = await db.execute(sql`SELECT id FROM \`coupons\` WHERE \`code\` = 'WASLY50'`);
-        if (!existingCoupons || (existingCoupons as any)[0].length === 0) {
-          await db.execute(sql`
-            INSERT INTO \`coupons\` (code, discountType, discountValue, maxDiscount, minOrderValue, isFirstOrderOnly)
-            VALUES ('WASLY50', 'percentage', 50.00, 50.00, 0.00, 1)
-          `);
-          console.log("Created default coupon 'WASLY50'");
-        }
-      } catch (couponError: any) {
-        console.warn("Could not check/create default coupon:", couponError.message);
-      }
+	      try {
+	        const existingCoupons50 = await db.execute(sql`SELECT id FROM \`coupons\` WHERE \`code\` = 'WASLY50'`);
+	        if (!existingCoupons50 || (existingCoupons50 as any)[0].length === 0) {
+	          await db.execute(sql`
+	            INSERT INTO \`coupons\` (code, discountType, discountValue, maxDiscount, minOrderValue, isFirstOrderOnly)
+	            VALUES ('WASLY50', 'percentage', 50.00, 50.00, 0.00, 1)
+	          `);
+	          console.log("Created default coupon 'WASLY50'");
+	        }
+
+	        const existingCoupons20 = await db.execute(sql`SELECT id FROM \`coupons\` WHERE \`code\` = 'WASLY20'`);
+	        if (!existingCoupons20 || (existingCoupons20 as any)[0].length === 0) {
+	          await db.execute(sql`
+	            INSERT INTO \`coupons\` (code, discountType, discountValue, maxDiscount, minOrderValue, isFirstOrderOnly)
+	            VALUES ('WASLY20', 'percentage', 20.00, 30.00, 0.00, 0)
+	          `);
+	          console.log("Created default coupon 'WASLY20'");
+	        }
+	      } catch (couponError: any) {
+	        console.warn("Could not check/create default coupon:", couponError.message);
+	      }
       
       console.log("Successfully ensured coupon tables exist.");
     } catch (couponTableError: any) {

@@ -522,7 +522,7 @@ export async function createOrder(orderData: {
   }
 
   try {
-    const result = await db.insert(orders).values({
+    const [result] = await db.insert(orders).values({
       customerId: orderData.customerId,
       pickupLocation: orderData.pickupLocation,
       deliveryLocation: orderData.deliveryLocation,
@@ -534,7 +534,21 @@ export async function createOrder(orderData: {
       couponId: orderData.couponId,
     });
 
-    return result;
+    const orderId = (result as any).insertId;
+
+    // Record coupon usage if applied
+    if (orderData.couponId) {
+      await db.insert(userCoupons).values({
+        userId: orderData.customerId,
+        couponId: orderData.couponId,
+        orderId: orderId,
+      });
+
+      // Increment coupon usage count
+      await db.execute(sql`UPDATE coupons SET usedCount = usedCount + 1 WHERE id = ${orderData.couponId}`);
+    }
+
+    return { id: orderId, ...orderData };
   } catch (error) {
     console.error("[Database] Failed to create order:", error);
     throw error;
