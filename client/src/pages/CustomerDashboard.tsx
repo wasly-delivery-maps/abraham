@@ -54,7 +54,13 @@ export default function CustomerDashboard() {
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("active");
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('tab') || "active";
+    }
+    return "active";
+  });
   const { unreadCounts } = useChatContext();
 
   const ordersQuery = trpc.orders.getCustomerOrders.useQuery(undefined, {
@@ -241,6 +247,14 @@ export default function CustomerDashboard() {
 
         {/* Orders Section */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
           <TabsList className="bg-slate-100 p-1.5 rounded-[1.5rem] mb-8 w-full grid grid-cols-3 h-14">
             <TabsTrigger value="active" className="rounded-2xl font-black text-sm data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-sm transition-all">
               النشطة
@@ -395,6 +409,8 @@ export default function CustomerDashboard() {
           <TabsContent value="restaurants">
             <RestaurantMenu />
           </TabsContent>
+            </motion.div>
+          </AnimatePresence>
         </Tabs>
       </main>
 

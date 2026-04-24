@@ -47,7 +47,7 @@ export default function Auth() {
       } else if (user.role === "admin") {
         navigate("/admin/dashboard");
       } else {
-        navigate("/customer/dashboard");
+        navigate("/customer/dashboard?tab=restaurants");
       }
     }
   }, [isAuthenticated, user, authLoading, navigate]);
@@ -128,7 +128,7 @@ export default function Auth() {
         } else if (result.user?.role === "admin") {
           navigate("/admin/dashboard");
         } else {
-          navigate("/customer/dashboard");
+          navigate("/customer/dashboard?tab=restaurants");
         }
       }, 100);
     } catch (error: any) {
@@ -216,7 +216,7 @@ export default function Auth() {
         } else if (result.user?.role === "admin") {
           navigate("/admin/dashboard");
         } else {
-          navigate("/customer/dashboard");
+          navigate("/customer/dashboard?tab=restaurants");
         }
       }, 100);
     } catch (error: any) {

@@ -929,13 +929,15 @@ export function RestaurantMenu() {
                       {item.price === 0 ? "سعر اليوم" : `ج.م ${item.price}`}
                     </p>
                   </div>
-                  <Button
-                    size="icon"
-                    onClick={() => addToCart(item)}
-                    className="rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-500 hover:text-white transition-all shadow-none"
-                  >
-                    <Plus className="h-5 w-5" />
-                  </Button>
+                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                    <Button
+                      size="icon"
+                      onClick={() => addToCart(item)}
+                      className="rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-500 hover:text-white transition-all shadow-none"
+                    >
+                      <Plus className="h-5 w-5" />
+                    </Button>
+                  </motion.div>
                 </CardContent>
               </Card>
             </motion.div>
