@@ -53,18 +53,12 @@ async function playAlertSound() {
   }
 }
 
-// Start continuous alert loop (plays every 3 seconds)
+// Start alert sound (plays once to avoid annoyance)
 function startContinuousAlert() {
-  console.log('[ServiceWorker] Starting continuous alert');
+  console.log('[ServiceWorker] Playing alert sound');
   
-  // Play immediately
+  // Play once
   playAlertSound();
-  
-  // Then repeat every 3 seconds
-  if (alertIntervalId) clearInterval(alertIntervalId);
-  alertIntervalId = setInterval(() => {
-    playAlertSound();
-  }, 3000);
 }
 
 // Stop continuous alert

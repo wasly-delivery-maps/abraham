@@ -158,10 +158,10 @@ export function useOrderNotifications() {
             // Send system notification
             sendSystemNotification(orderData);
 
-            // Auto-hide after 30 seconds if not accepted
+            // Auto-hide after 5 minutes if not accepted (increased from 30s for better visibility)
             setTimeout(() => {
               setIsNotificationVisible(false);
-            }, 30000);
+            }, 300000);
           } else if (data.type === 'pong') {
             console.log('[WebSocket] Pong received - connection alive');
           }
