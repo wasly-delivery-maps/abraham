@@ -138,100 +138,52 @@ const AL_HOUT_RESTAURANT: Restaurant = {
   }
 };
 
-// مطعم "وصلي" - البيانات الجديدة
-const WASLY_RESTAURANT: Restaurant = {
+// مطعم "رول وي" - البيانات
+const ROLL_WE_RESTAURANT: Restaurant = {
   id: 1,
-  name: "مطعم وصلي",
-  phone: "01109492630",
-  whatsappPhone: "201109492630",
-  address: "العبور الجديدة - حي المجد - خلف بنزينة بترومين مول جودي",
-  description: "أشهى أنواع الكريب والبيتزا والمشاوي والمكرونة في العبور",
-  logoUrl: "https://web-production-0eb1b.up.railway.app/uploads/wasly_logo.png",
+  name: "رول وي - مطعم وكافيه",
+  phone: "01032809502",
+  whatsappPhone: "201032809502",
+  address: "7GG2+462 ملعب حي الحرية, العبور، محافظة القليوبية 6363322",
+  description: "أشهى أنواع الكريب والرول والمكرونة والحواوشي في العبور",
+  logoUrl: "https://ui-avatars.com/api/?name=RW&background=f97316&color=fff&size=128&bold=true",
   coverUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format&fit=crop",
-  rating: "4.9",
-  deliveryTime: "20-40 دقيقة",
+  rating: "4.8",
+  deliveryTime: "30-45 دقيقة",
   location: {
     latitude: 30.275262,
     longitude: 31.5005241
   }
 };
 
-const WASLY_MENU: MenuItem[] = [
-  // البيتزا
-  { id: 1, name: "بيتزا فراخ (صغير)", category: "البيتزا", price: 120 },
-  { id: 2, name: "بيتزا فراخ (كبير)", category: "البيتزا", price: 170 },
-  { id: 3, name: "بيتزا جبن (صغير)", category: "البيتزا", price: 110 },
-  { id: 4, name: "بيتزا جبن (كبير)", category: "البيتزا", price: 130 },
-  { id: 5, name: "بيتزا مارغريتا (صغير)", category: "البيتزا", price: 90 },
-  { id: 6, name: "بيتزا مارغريتا (كبير)", category: "البيتزا", price: 130 },
-  { id: 7, name: "بيتزا كفتة (صغير)", category: "البيتزا", price: 130 },
-  { id: 8, name: "بيتزا كفتة (كبير)", category: "البيتزا", price: 150 },
-  { id: 9, name: "بيتزا سجق (صغير)", category: "البيتزا", price: 120 },
-  { id: 10, name: "بيتزا سجق (كبير)", category: "البيتزا", price: 160 },
-  { id: 11, name: "بيتزا استربس (صغير)", category: "البيتزا", price: 120 },
-  { id: 12, name: "بيتزا استربس (كبير)", category: "البيتزا", price: 170 },
-  { id: 13, name: "بيتزا شيش (صغير)", category: "البيتزا", price: 150 },
-  { id: 14, name: "بيتزا شيش (كبير)", category: "البيتزا", price: 200 },
-  { id: 15, name: "بيتزا برجر (صغير)", category: "البيتزا", price: 120 },
-  { id: 16, name: "بيتزا برجر (كبير)", category: "البيتزا", price: 150 },
-  { id: 17, name: "بيتزا شاورما (صغير)", category: "البيتزا", price: 120 },
-  { id: 18, name: "بيتزا شاورما (كبير)", category: "البيتزا", price: 200 },
-  { id: 19, name: "بيتزا مكس فراخ (صغير)", category: "البيتزا", price: 120 },
-  { id: 20, name: "بيتزا مكس فراخ (كبير)", category: "البيتزا", price: 160 },
-  { id: 21, name: "بيتزا مكس جبن (صغير)", category: "البيتزا", price: 100 },
-  { id: 22, name: "بيتزا مكس جبن (كبير)", category: "البيتزا", price: 130 },
-  { id: 23, name: "بيتزا فراخ رانش (صغير)", category: "البيتزا", price: 120 },
-  { id: 24, name: "بيتزا فراخ رانش (كبير)", category: "البيتزا", price: 170 },
-  // الكريب
-  { id: 25, name: "كريب استربس (عادي)", category: "الكريب", price: 80 },
-  { id: 26, name: "كريب استربس (سوبر)", category: "الكريب", price: 110 },
-  { id: 27, name: "كريب بانيه (عادي)", category: "الكريب", price: 50 },
-  { id: 28, name: "كريب بانيه (سوبر)", category: "الكريب", price: 70 },
-  { id: 29, name: "كريب كفتة (عادي)", category: "الكريب", price: 70 },
-  { id: 30, name: "كريب كفتة (سوبر)", category: "الكريب", price: 90 },
-  { id: 31, name: "كريب برجر (عادي)", category: "الكريب", price: 80 },
-  { id: 32, name: "كريب برجر (سوبر)", category: "الكريب", price: 100 },
-  { id: 33, name: "كريب سجق (عادي)", category: "الكريب", price: 70 },
-  { id: 34, name: "كريب سجق (سوبر)", category: "الكريب", price: 90 },
-  { id: 35, name: "كريب بطاطس (عادي)", category: "الكريب", price: 40 },
-  { id: 36, name: "كريب بطاطس (سوبر)", category: "الكريب", price: 60 },
-  { id: 37, name: "كريب زنجر (عادي)", category: "الكريب", price: 100 },
-  { id: 38, name: "كريب زنجر (سوبر)", category: "الكريب", price: 120 },
-  { id: 39, name: "كريب جبن (عادي)", category: "الكريب", price: 40 },
-  { id: 40, name: "كريب جبن (سوبر)", category: "الكريب", price: 70 },
-  { id: 41, name: "كريب شيش (عادي)", category: "الكريب", price: 110 },
-  // الوجبات
-  { id: 42, name: "وجبة كفتة", category: "الوجبات", price: 100 },
-  { id: 43, name: "وجبة شيش", category: "الوجبات", price: 100 },
-  { id: 44, name: "وجبة ميكس", category: "الوجبات", price: 150 },
-  // الميكسات
-  { id: 45, name: "استربس بانيه", category: "الميكسات", price: 100 },
-  { id: 46, name: "استربس بطاطس", category: "الميكسات", price: 100 },
-  { id: 47, name: "استربس شيش", category: "الميكسات", price: 120 },
-  { id: 48, name: "بانيه بطاطس", category: "الميكسات", price: 70 },
-  { id: 49, name: "شيش بطاطس", category: "الميكسات", price: 110 },
-  { id: 50, name: "شيش شاورما", category: "الميكسات", price: 120 },
-  { id: 51, name: "شيش برجر", category: "الميكسات", price: 100 },
-  // المكرونات
-  { id: 52, name: "نجرسكو فراخ ع الفحم", category: "المكرونات", price: 70 },
-  { id: 53, name: "نجرسكو فراخ ك", category: "المكرونات", price: 80 },
-  { id: 54, name: "نجرسكو لحوم", category: "المكرونات", price: 70 },
-  { id: 55, name: "نجرسكو جبن", category: "المكرونات", price: 50 },
-  // المشاوي
-  { id: 56, name: "فرخة مشوية كاملة", category: "المشاوي", price: 380 },
-  { id: 57, name: "نص فرخة", category: "المشاوي", price: 190 },
-  { id: 58, name: "ربع فرخة ورك", category: "المشاوي", price: 85 },
-  { id: 59, name: "ربع فرخة صدر", category: "المشاوي", price: 100 },
-  { id: 60, name: "ساندوتش كفتة", category: "المشاوي", price: 40 },
-  { id: 61, name: "ساندوتش شيش", category: "المشاوي", price: 50 },
-  { id: 62, name: "ساندوتش حواوشي", category: "المشاوي", price: 30 },
-  // كيزر
-  { id: 63, name: "ساندوتش برجر", category: "كيزر", price: 60 },
-  { id: 64, name: "ساندوتش رانش", category: "كيزر", price: 60 },
-  { id: 65, name: "ساندوتش زنجر", category: "كيزر", price: 70 },
-  // إضافات
-  { id: 66, name: "باكت بطاطس", category: "إضافات", price: 20 },
-  { id: 67, name: "سلطة", category: "إضافات", price: 15 },
+const ROLL_WE_MENU: MenuItem[] = [
+  // كريب
+  { id: 1, name: "كريب موزاريلا 🧀", category: "كريب", price: 45 },
+  { id: 2, name: "كريب سجق 🌭", category: "كريب", price: 55 },
+  { id: 3, name: "كريب دجاج 🍗", category: "كريب", price: 50 },
+  { id: 4, name: "كريب جبن 🧀", category: "كريب", price: 40 },
+  { id: 5, name: "كريب شوكولاتة 🍫", category: "كريب", price: 35 },
+  { id: 6, name: "كريب فراولة 🍓", category: "كريب", price: 35 },
+  { id: 7, name: "كريب عسل 🍯", category: "كريب", price: 30 },
+  { id: 8, name: "كريب نوتيلا 🍫", category: "كريب", price: 40 },
+  // رول
+  { id: 9, name: "رول موزاريلا 🧀", category: "رول", price: 50 },
+  { id: 10, name: "رول دجاج 🍗", category: "رول", price: 55 },
+  { id: 11, name: "رول سجق 🌭", category: "رول", price: 60 },
+  { id: 12, name: "رول جبن 🧀", category: "رول", price: 45 },
+  { id: 13, name: "رول خضار 🥦", category: "رول", price: 40 },
+  { id: 14, name: "رول مختلط 🥙", category: "رول", price: 65 },
+  // مكرونة
+  { id: 15, name: "مكرونة كريمة 🥛", category: "مكرونة", price: 45 },
+  { id: 16, name: "مكرونة طماطم 🍅", category: "مكرونة", price: 40 },
+  { id: 17, name: "مكرونة بشاميل 🥘", category: "مكرونة", price: 50 },
+  { id: 18, name: "مكرونة جبن 🧀", category: "مكرونة", price: 45 },
+  { id: 19, name: "مكرونة دجاج 🍗", category: "مكرونة", price: 55 },
+  // حواوشي
+  { id: 20, name: "حواوشي دجاج 🍗", category: "حواوشي", price: 35 },
+  { id: 21, name: "حواوشي لحم 🥩", category: "حواوشي", price: 40 },
+  { id: 22, name: "حواوشي مختلط 🥙", category: "حواوشي", price: 45 },
+  { id: 23, name: "حواوشي جبن 🧀", category: "حواوشي", price: 30 },
 ];
 
 const AL_HOUT_MENU: MenuItem[] = [
@@ -260,396 +212,555 @@ const AL_HOUT_MENU: MenuItem[] = [
   { id: 304, name: "ملوخية بالجمبري 🥘", category: "الشوربة", price: 100 },
 ];
 
-export default function RestaurantMenu() {
-  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant>(WASLY_RESTAURANT);
+const RESTAURANTS = [ROLL_WE_RESTAURANT, KHEDIVE_KOSHARY_RESTAURANT, AL_HOUT_RESTAURANT];
+const MENUS: Record<number, MenuItem[]> = {
+  1: ROLL_WE_MENU,
+  2: KHEDIVE_KOSHARY_MENU,
+  3: AL_HOUT_MENU,
+};
+
+export function RestaurantMenu() {
+  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [address, setAddress] = useState("");
-  const [notes, setNotes] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCartExpanded, setIsCartExpanded] = useState(false);
+  const [customerNotes, setCustomerNotes] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
+  const [addressDescription, setAddressDescription] = useState("");
+  const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [showGiftAlert, setShowGiftAlert] = useState(false);
+  const [usePoints, setUsePoints] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
-  const createOrder = trpc.createRestaurantOrder.useMutation({
-    onSuccess: () => {
-      toast.success("تم إرسال طلبك بنجاح! سيتم التواصل معك قريباً.");
-      setCart([]);
-      setAddress("");
-      setNotes("");
-      setIsCartOpen(false);
-      setAppliedCoupon(null);
-      setCouponCode("");
-    },
-    onError: (error) => {
-      toast.error(error.message || "حدث خطأ أثناء إرسال الطلب");
-    }
-  });
-
-  const validateCoupon = trpc.coupons.validate.useMutation({
-    onSuccess: (data) => {
-      setAppliedCoupon(data);
-      toast.success("تم تطبيق الكوبون بنجاح!");
-    },
-    onError: (error) => {
-      toast.error(error.message || "كود الخصم غير صحيح");
-      setAppliedCoupon(null);
-    }
-  });
-
-  const restaurants = [WASLY_RESTAURANT, KHEDIVE_KOSHARY_RESTAURANT, AL_HOUT_RESTAURANT];
-  const menu = selectedRestaurant.id === 1 ? WASLY_MENU : 
-               selectedRestaurant.id === 2 ? KHEDIVE_KOSHARY_MENU : 
-               AL_HOUT_MENU;
-
-  const categories = Array.from(new Set(menu.map(item => item.category)));
+  const createRestaurantOrderMutation = trpc.orders.createRestaurantOrder.useMutation();
+  const validateCouponMutation = trpc.coupons.validate.useMutation();
 
   const addToCart = (item: MenuItem) => {
-    setCart(prev => {
-      const existing = prev.find(i => i.id === item.id);
+    setCart((prev) => {
+      const existing = prev.find((i) => i.id === item.id);
       if (existing) {
-        return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
+        return prev.map((i) => (i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i));
       }
       return [...prev, { ...item, quantity: 1 }];
     });
-    toast.success(`تم إضافة ${item.name} إلى السلة`);
+    toast.success(`تم إضافة ${item.name} للسلة`);
   };
 
-  const removeFromCart = (id: number) => {
-    setCart(prev => {
-      const existing = prev.find(i => i.id === id);
-      if (existing && existing.quantity > 1) {
-        return prev.map(i => i.id === id ? { ...i, quantity: i.quantity - 1 } : i);
-      }
-      return prev.filter(i => i.id !== id);
+  const updateQuantity = (id: number, delta: number) => {
+    setCart((prev) => {
+      return prev
+        .map((item) => {
+          if (item.id === id) {
+            const newQty = Math.max(0, item.quantity + delta);
+            return { ...item, quantity: newQty };
+          }
+          return item;
+        })
+        .filter((item) => item.quantity > 0);
     });
   };
 
-  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  
-  const calculateDiscount = () => {
-    if (!appliedCoupon) return 0;
-    
-    if (appliedCoupon.minOrderValue && subtotal < appliedCoupon.minOrderValue) {
-      return 0;
-    }
-
-    let discount = 0;
-    if (appliedCoupon.discountType === 'percentage') {
-      discount = (subtotal * appliedCoupon.discountValue) / 100;
-      if (appliedCoupon.maxDiscount) {
-        discount = Math.min(discount, appliedCoupon.maxDiscount);
+  useEffect(() => {
+    if (selectedRestaurant) {
+      const menu = MENUS[selectedRestaurant.id] || [];
+      if (menu.length > 0) {
+        setSelectedCategory(menu[0].category);
       }
-    } else {
-      discount = appliedCoupon.discountValue;
     }
-    
-    return discount;
+  }, [selectedRestaurant]);
+
+  const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const discountAmount = appliedCoupon ? (appliedCoupon.discountType === 'fixed' ? appliedCoupon.discountValue : Math.min(totalPrice * (appliedCoupon.discountValue / 100), appliedCoupon.maxDiscount || Infinity)) : 0;
+  const finalTotalPrice = Math.max(0, totalPrice - discountAmount);
+  
+  const hasGift = totalPrice >= 600;
+  const freeDeliveryThreshold = 1000;
+  const hasFreeDelivery = totalPrice >= freeDeliveryThreshold;
+
+  const handleValidateCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setIsValidatingCoupon(true);
+    try {
+      const coupon = await validateCouponMutation.mutateAsync({ code: couponCode });
+      if (totalPrice && coupon.minOrderValue && totalPrice < coupon.minOrderValue) {
+        toast.error(`هذا الكوبون يتطلب طلباً بقيمة ${coupon.minOrderValue} ج.م على الأقل`);
+        return;
+      }
+      setAppliedCoupon(coupon);
+      toast.success("تم تطبيق الكوبون بنجاح! 🎉");
+    } catch (error: any) {
+      toast.error(error.message || "كود الخصم غير صحيح");
+      setAppliedCoupon(null);
+    } finally {
+      setIsValidatingCoupon(false);
+    }
   };
 
-  const discount = calculateDiscount();
-  const total = Math.max(0, subtotal - discount);
+  useEffect(() => {
+    if (hasGift && !showGiftAlert) {
+      setShowGiftAlert(true);
+      toast.success("مبروك! لقد فتحت هدية سرية مجانية 🎁", {
+        description: "سيتم إضافة صنف جانبي مجاني لطلبك تلقائياً (عرض الـ 600 جنيه).",
+        duration: 5000,
+      });
+    } else if (!hasGift && showGiftAlert) {
+      setShowGiftAlert(false);
+    }
+  }, [hasGift, showGiftAlert]);
 
-  const handleSubmitOrder = async () => {
+  const handleCheckout = async () => {
+    if (!selectedRestaurant) return;
     if (cart.length === 0) {
       toast.error("السلة فارغة!");
       return;
     }
-    if (!address.trim()) {
-      toast.error("يرجى إدخال عنوان التوصيل بالتفصيل");
+
+    if (!addressDescription || addressDescription.trim().length < 5) {
+      toast.error("يرجى كتابة العنوان بالتفصيل أولاً (رقم العمارة، الشقة، أو علامة مميزة)");
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      await createOrder.mutateAsync({
-        restaurantId: selectedRestaurant.id,
-        restaurantName: selectedRestaurant.name,
-        items: cart.map(item => ({
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price
-        })),
-        total,
-        subtotal,
-        discount,
-        couponCode: appliedCoupon?.code,
-        address,
-        notes,
-        customerPhone: selectedRestaurant.phone // This will be replaced by actual user phone in backend
+    setIsLoading(true);
+    
+    const getCurrentPositionPromise = () => {
+      return new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0 
+        });
       });
+    };
+
+    try {
+      const toastId = toast.info("جاري التأكد من موقعك الحالي بدقة... 📍", { duration: 5000 });
+      const position = await getCurrentPositionPromise();
+      
+      if (!position || !position.coords.latitude || !position.coords.longitude) {
+        throw new Error("لم نتمكن من الحصول على إحداثيات دقيقة. يرجى التأكد من فتح الـ GPS.");
+      }
+
+      const finalLocation = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        address: "موقعي الحالي المكتشف",
+      };
+      
+      setUserLocation(finalLocation);
+      setLocationStatus("success");
+      toast.dismiss(toastId);
+
+      const orderItems = cart
+        .map((item) => `${item.name} × ${item.quantity} = ${item.price * item.quantity} ج.م`)
+        .join("\n");
+
+      const message = `طلب جديد من تطبيق وصلي 📱\n\nالمطعم: ${selectedRestaurant.name}\n\n${orderItems}\n\nالإجمالي الأصلي: ${totalPrice} ج.م\n${appliedCoupon ? `الخصم: ${discountAmount} ج.م (${appliedCoupon.code})\nالإجمالي بعد الخصم: ${finalTotalPrice} ج.م\n` : ''}\nالعنوان: ${addressDescription || "موقع GPS"}\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
+
+      const encodedMessage = encodeURIComponent(message);
+      const directWhatsappUrl = `https://wa.me/${selectedRestaurant.whatsappPhone}?text=${encodedMessage}`;
+
+      window.open(directWhatsappUrl, "_blank");
+
+      const cartItemsData = cart.map((item) => ({
+        menuItemId: item.id,
+        quantity: item.quantity,
+        price: item.price,
+      }));
+
+      await createRestaurantOrderMutation.mutateAsync({
+        restaurantId: selectedRestaurant.id,
+        items: cartItemsData,
+        totalPrice: finalTotalPrice,
+        notes: `${customerNotes}${appliedCoupon ? `\n🎟️ [كوبون]: ${appliedCoupon.code} (خصم ${discountAmount} ج.م)` : ""}${hasGift ? "\n🎁 [هدية مجانية]: وجبة جانبية مجانية (عرض الـ 600 جنيه)" : ""}${hasFreeDelivery ? "\n🚚 [توصيل مجاني]: هذا الطلب مؤهل للتوصيل المجاني (عرض الـ 1000 جنيه)" : ""}`,
+        couponId: appliedCoupon?.id,
+        usePoints: usePoints,
+        pickupLocation: {
+          address: selectedRestaurant.address,
+          latitude: selectedRestaurant.location.latitude,
+          longitude: selectedRestaurant.location.longitude,
+          neighborhood: "موقع المطعم",
+        },
+        deliveryLocation: {
+          address: addressDescription || "موقع العميل المكتشف",
+          latitude: finalLocation.latitude,
+          longitude: finalLocation.longitude,
+          neighborhood: "موقع العميل",
+        },
+      });
+
+      toast.success("تم إرسال الطلب للمطعم وتم إنشاء طلب توصيل تلقائي!");
+      setCart([]);
+      setCustomerNotes("");
+      setAddressDescription("");
+      setIsCartExpanded(false);
+    } catch (error: any) {
+      console.error("Checkout error:", error);
+      if (error.code || error.message?.includes("denied") || error.message?.includes("location")) {
+        toast.error("يجب فتح الموقع (GPS) وإعطاء صلاحية للمتصفح لإتمام الطلب. لا يمكن إرسال الطلب بدون تحديد مكانك الفعلي.");
+        setLocationStatus("error");
+      } else {
+        toast.error(error.message || "فشل في إنشاء الطلب");
+      }
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header */}
-      <div className="bg-white sticky top-0 z-30 shadow-sm px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-white">
-            <ShoppingCart className="w-6 h-6" />
-          </div>
-          <h1 className="text-xl font-bold text-gray-900">وصلي</h1>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative"
-          onClick={() => setIsCartOpen(true)}
-        >
-          <ShoppingCart className="w-6 h-6" />
-          {cart.length > 0 && (
-            <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
-              {cart.reduce((sum, i) => sum + i.quantity, 0)}
-            </span>
-          )}
-        </Button>
-      </div>
-
-      <div className="max-w-md mx-auto px-4 pt-6">
-        {/* Restaurant Info */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm mb-8">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-1">{selectedRestaurant.name}</h2>
-              <div className="flex items-center gap-3 text-sm text-gray-500">
-                <div className="flex items-center gap-1">
-                  <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                  <span className="font-medium text-gray-900">{selectedRestaurant.rating}</span>
+  if (!selectedRestaurant) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" dir="rtl">
+        {RESTAURANTS.map((restaurant) => (
+          <Card 
+            key={restaurant.id} 
+            className="overflow-hidden hover:shadow-lg transition-all cursor-pointer group border-none bg-white/50 backdrop-blur-sm rounded-xl"
+            onClick={() => setSelectedRestaurant(restaurant)}
+          >
+            <div className="h-32 w-full relative overflow-hidden">
+              <img 
+                src={restaurant.coverUrl} 
+                alt={restaurant.name} 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+              <div className="absolute bottom-2 right-2 flex items-center gap-1.5">
+                <div className="bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
+                  <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500" />
+                  <span className="text-[10px] font-black text-slate-800">{restaurant.rating}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  <span>{selectedRestaurant.deliveryTime}</span>
+                <div className="bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
+                  <Clock className="h-2.5 w-2.5 text-orange-500" />
+                  <span className="text-[10px] font-black text-slate-800">{restaurant.deliveryTime}</span>
                 </div>
               </div>
             </div>
-            <img 
-              src={selectedRestaurant.logoUrl} 
-              alt={selectedRestaurant.name}
-              className="w-16 h-16 rounded-2xl object-cover shadow-md"
+            <CardContent className="p-3 relative">
+              <div className="absolute -top-8 right-3 h-12 w-12 rounded-xl bg-white p-1 shadow-lg border border-slate-50 overflow-hidden">
+                <img src={restaurant.logoUrl} alt="Logo" className="w-full h-full object-contain rounded-lg" />
+              </div>
+              <div className="pt-2">
+                <h3 className="text-lg font-black text-slate-800 mb-0.5 group-hover:text-orange-600 transition-colors">{restaurant.name}</h3>
+                <p className="text-slate-500 text-[11px] font-medium line-clamp-1 mb-2">{restaurant.description}</p>
+                <div className="flex items-center gap-1.5 text-slate-400">
+                  <MapPin className="h-3 w-3" />
+                  <span className="text-[10px] font-bold line-clamp-1">{restaurant.address}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  const currentMenu = MENUS[selectedRestaurant.id] || [];
+  const categories = Array.from(new Set(currentMenu.map((item) => item.category)));
+  const filteredMenu = currentMenu.filter((item) => item.category === selectedCategory);
+
+  return (
+    <div className="space-y-6 pb-32" dir="rtl">
+      <Button 
+        variant="ghost" 
+        onClick={() => setSelectedRestaurant(null)}
+        className="mb-2 font-bold text-slate-600 hover:text-orange-600 transition-colors"
+      >
+        <ChevronRight className="h-5 w-5 ml-1" /> العودة للمطاعم
+      </Button>
+
+      <div className="relative rounded-2xl overflow-hidden shadow-xl mb-6 group">
+        <div className="h-48 w-full relative">
+          {selectedRestaurant.id === 3 ? (
+            <motion.img 
+              src={selectedRestaurant.coverUrl} 
+              alt="Restaurant Cover" 
+              className="w-full h-full object-cover brightness-110"
+              animate={{ 
+                scale: [1, 1.1, 1],
+                x: [0, 10, -10, 0],
+                y: [0, -5, 5, 0]
+              }}
+              transition={{ 
+                duration: 20, 
+                repeat: Infinity, 
+                ease: "easeInOut" 
+              }}
             />
-          </div>
-          <p className="text-gray-600 text-sm leading-relaxed mb-4">
-            {selectedRestaurant.description}
-          </p>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <MapPin className="w-4 h-4 text-orange-500" />
-            <span className="truncate">{selectedRestaurant.address}</span>
-          </div>
+          ) : (
+            <img 
+              src={selectedRestaurant.coverUrl} 
+              alt="Restaurant Cover" 
+              className="w-full h-full object-cover brightness-100 group-hover:scale-105 transition-transform duration-700"
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
         </div>
 
-        {/* Restaurant Selector */}
-        <div className="flex gap-3 overflow-x-auto pb-4 mb-6 no-scrollbar">
-          {restaurants.map((r) => (
+        <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end gap-4">
+          <div className="h-20 w-20 rounded-2xl bg-white p-1.5 shadow-2xl flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-orange-400 z-20 transform -translate-y-2">
+             <img 
+              src={selectedRestaurant.logoUrl} 
+              alt="Logo" 
+              className="w-full h-full object-contain rounded-lg"
+            />
+          </div>
+          <div className="flex-1 pb-2 text-white z-20">
+            <h1 className="text-2xl font-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{selectedRestaurant.name}</h1>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-2 mb-4">
+        <p className="text-sm text-gray-600 font-medium leading-relaxed border-r-4 border-orange-500 pr-3">
+          {selectedRestaurant.description}
+        </p>
+      </div>
+
+      <div className="sticky top-16 z-30 bg-white/80 backdrop-blur-md py-3 -mx-4 px-4 border-b border-orange-100 overflow-x-auto no-scrollbar">
+        <div className="flex gap-2 min-w-max">
+          {categories.map((category) => (
             <Button
-              key={r.id}
-              variant={selectedRestaurant.id === r.id ? "default" : "outline"}
-              className={`rounded-full whitespace-nowrap px-6 ${
-                selectedRestaurant.id === r.id ? "bg-orange-500 hover:bg-orange-600" : ""
+              key={category}
+              variant={selectedCategory === category ? "default" : "outline"}
+              onClick={() => setSelectedCategory(category)}
+              className={`rounded-full px-6 font-bold transition-all ${
+                selectedCategory === category 
+                ? "bg-orange-500 hover:bg-orange-600 shadow-md shadow-orange-200" 
+                : "border-orange-100 text-orange-600 hover:bg-orange-50"
               }`}
-              onClick={() => {
-                setSelectedRestaurant(r);
-                setCart([]);
-                setAppliedCoupon(null);
-              }}
             >
-              {r.name}
+              {category}
             </Button>
           ))}
         </div>
-
-        {/* Menu Categories */}
-        {categories.map((category) => (
-          <div key={category} className="mb-8">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
-              {category}
-            </h3>
-            <div className="grid grid-cols-1 gap-4">
-              {menu
-                .filter((item) => item.category === category)
-                .map((item) => (
-                  <Card key={item.id} className="border-none shadow-sm hover:shadow-md transition-shadow overflow-hidden rounded-2xl">
-                    <CardContent className="p-4 flex items-center justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-bold text-gray-900 mb-1">{item.name}</h4>
-                        {item.description && (
-                          <p className="text-xs text-gray-500 mb-2 line-clamp-1">{item.description}</p>
-                        )}
-                        <div className="text-orange-600 font-bold">
-                          {item.price === 0 ? "سعر اليوم" : `${item.price} ج.م`}
-                        </div>
-                      </div>
-                      <Button
-                        size="icon"
-                        variant="secondary"
-                        className="rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-600"
-                        onClick={() => addToCart(item)}
-                      >
-                        <Plus className="w-5 h-5" />
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-            </div>
-          </div>
-        ))}
       </div>
 
-      {/* Cart Drawer */}
-      <AnimatePresence>
-        {isCartOpen && (
-          <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <AnimatePresence mode="popLayout">
+          {filteredMenu.map((item) => (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsCartOpen(false)}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
-            />
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              className="fixed inset-y-0 right-0 w-full max-w-md bg-white z-50 shadow-2xl flex flex-col"
+              key={item.id}
+              layout
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.2 }}
             >
-              <div className="p-6 border-b flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-white">
-                    <ShoppingCart className="w-6 h-6" />
-                  </div>
-                  <h2 className="text-xl font-bold">سلة الطلبات</h2>
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => setIsCartOpen(false)}>
-                  <X className="w-6 h-6" />
-                </Button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-6">
-                {cart.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-gray-400 gap-4">
-                    <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center">
-                      <ShoppingCart className="w-10 h-10" />
-                    </div>
-                    <div className="text-center">
-                      <p className="font-bold text-gray-900">السلة فارغة</p>
-                      <p className="text-sm">ابدأ بإضافة بعض الأصناف اللذيذة</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {cart.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between gap-4">
-                        <div className="flex-1">
-                          <h4 className="font-bold text-gray-900">{item.name}</h4>
-                          <p className="text-orange-600 font-medium">{item.price * item.quantity} ج.م</p>
-                        </div>
-                        <div className="flex items-center gap-3 bg-gray-50 p-1 rounded-xl">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 rounded-lg hover:bg-white hover:shadow-sm"
-                            onClick={() => removeFromCart(item.id)}
-                          >
-                            <Minus className="w-4 h-4" />
-                          </Button>
-                          <span className="font-bold w-4 text-center">{item.quantity}</span>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 rounded-lg hover:bg-white hover:shadow-sm"
-                            onClick={() => addToCart(item)}
-                          >
-                            <Plus className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-
-                    <div className="pt-6 border-t space-y-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-bold text-gray-900">عنوان التوصيل بالتفصيل</label>
-                        <div className="relative">
-                          <MapPin className="absolute right-3 top-3 w-5 h-5 text-gray-400" />
-                          <textarea
-                            value={address}
-                            onChange={(e) => setAddress(e.target.value)}
-                            placeholder="مثال: الحي الثالث، المجاورة الثانية، عمارة 10، شقة 5"
-                            className="w-full pr-10 pl-4 py-3 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-orange-500 min-h-[80px] resize-none"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-sm font-bold text-gray-900">ملاحظات إضافية (اختياري)</label>
-                        <textarea
-                          value={notes}
-                          onChange={(e) => setNotes(e.target.value)}
-                          placeholder="أي تعليمات خاصة للسائق أو المطعم..."
-                          className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-orange-500 min-h-[80px] resize-none"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-sm font-bold text-gray-900">كوبون الخصم</label>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={couponCode}
-                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                            placeholder="أدخل الكود هنا"
-                            className="flex-1 px-4 py-2 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-orange-500"
-                          />
-                          <Button 
-                            onClick={() => validateCoupon.mutate({ code: couponCode })}
-                            disabled={!couponCode || validateCoupon.isLoading}
-                            className="rounded-xl bg-gray-900 hover:bg-gray-800"
-                          >
-                            تطبيق
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {cart.length > 0 && (
-                <div className="p-6 bg-gray-50 rounded-t-[32px] space-y-4 shadow-[0_-8px_30px_rgb(0,0,0,0.04)]">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-gray-500">
-                      <span>المجموع الفرعي</span>
-                      <span>{subtotal} ج.م</span>
-                    </div>
-                    {discount > 0 && (
-                      <div className="flex justify-between text-green-600 font-medium">
-                        <span>الخصم</span>
-                        <span>-{discount} ج.م</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between text-xl font-bold text-gray-900 pt-2">
-                      <span>الإجمالي</span>
-                      <span>{total} ج.م</span>
-                    </div>
+              <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all rounded-2xl bg-white group">
+                <CardContent className="p-4 flex justify-between items-center">
+                  <div className="space-y-1">
+                    <h3 className="font-black text-slate-800 group-hover:text-orange-600 transition-colors">{item.name}</h3>
+                    <p className="text-orange-600 font-black text-lg">
+                      {item.price === 0 ? "سعر اليوم" : `ج.م ${item.price}`}
+                    </p>
                   </div>
                   <Button
-                    className="w-full h-14 rounded-2xl bg-orange-500 hover:bg-orange-600 text-lg font-bold shadow-lg shadow-orange-200"
-                    onClick={handleSubmitOrder}
-                    disabled={isSubmitting}
+                    size="icon"
+                    onClick={() => addToCart(item)}
+                    className="rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-500 hover:text-white transition-all shadow-none"
                   >
-                    {isSubmitting ? (
-                      <Loader2 className="w-6 h-6 animate-spin" />
+                    <Plus className="h-5 w-5" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
+      {cart.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 p-4 pointer-events-none">
+          <Card className={`max-w-2xl mx-auto border-none shadow-2xl bg-slate-900 text-white rounded-3xl overflow-hidden relative transition-all duration-300 pointer-events-auto ${isCartExpanded ? 'h-auto' : 'h-20'}`}>
+            {!isCartExpanded ? (
+              <div 
+                className="h-20 flex items-center justify-between px-6 cursor-pointer hover:bg-slate-800 transition-colors"
+                onClick={() => setIsCartExpanded(true)}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <div className="bg-orange-500 text-white text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center absolute -top-2 -right-2 border-2 border-slate-900">
+                      {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                    </div>
+                    <ShoppingCart className="h-6 w-6 text-orange-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-400">سلتك الحالية</p>
+                    <p className="text-lg font-black text-white">ج.م {totalPrice}</p>
+                  </div>
+                </div>
+                <Button className="bg-orange-500 hover:bg-orange-600 text-white font-black rounded-xl px-6">
+                  عرض السلة
+                </Button>
+              </div>
+            ) : (
+              <CardContent className="p-0">
+                <div className="flex items-center justify-between p-4 border-b border-slate-800">
+                  <h3 className="font-black text-lg">سلة الطلبات</h3>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full bg-slate-800 text-white hover:bg-slate-700"
+                      onClick={() => setCart([])}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full bg-slate-800 text-white hover:bg-slate-700"
+                      onClick={() => setIsCartExpanded(false)}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="p-4 max-h-60 overflow-y-auto border-b border-slate-800">
+                {cart.map((item) => (
+                  <div key={item.id} className="flex justify-between items-center py-3 border-b border-slate-800 last:border-0">
+                    <div className="flex-1">
+                      <p className="font-bold text-sm">{item.name}</p>
+                      <p className="text-orange-400 text-xs font-black">
+                        {item.price === 0 ? "سعر اليوم" : `ج.م ${item.price * item.quantity}`}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3 bg-slate-800 rounded-xl p-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 rounded-lg hover:bg-slate-700 text-white"
+                        onClick={() => updateQuantity(item.id, -1)}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="font-black text-sm w-4 text-center">{item.quantity}</span>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 rounded-lg hover:bg-slate-700 text-white"
+                        onClick={() => updateQuantity(item.id, 1)}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-4 space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <MapPin className="h-4 w-4 text-orange-500" />
+                    <span className="text-xs font-bold text-slate-400">عنوان التوصيل</span>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="رقم العمارة، الشقة، الدور، أو علامة مميزة..."
+                    value={addressDescription}
+                    onChange={(e) => setAddressDescription(e.target.value)}
+                    className="w-full bg-slate-700 border-2 border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all outline-none shadow-lg"
+                  />
+                  <textarea
+                    placeholder="ملاحظات إضافية للمطعم (اختياري)..."
+                    value={customerNotes}
+                    onChange={(e) => setCustomerNotes(e.target.value)}
+                    className="w-full bg-slate-700 border-2 border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all h-20 resize-none outline-none shadow-lg"
+                  />
+                </div>
+
+                <div className="space-y-4 mb-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Gift className="h-4 w-4 text-orange-500" />
+                    <span className="text-xs font-bold text-slate-400">كود الخصم</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="أدخل كود الخصم..."
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      disabled={!!appliedCoupon || isValidatingCoupon}
+                      className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-orange-500 outline-none disabled:opacity-50 transition-all"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={appliedCoupon ? () => { setAppliedCoupon(null); setCouponCode(""); } : handleValidateCoupon}
+                      disabled={isValidatingCoupon || (!couponCode && !appliedCoupon)}
+                      className={`rounded-xl font-black ${appliedCoupon ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20' : 'bg-orange-500 text-white hover:bg-orange-600'}`}
+                    >
+                      {isValidatingCoupon ? <Loader2 className="h-4 w-4 animate-spin" /> : (appliedCoupon ? "إلغاء" : "تطبيق")}
+                    </Button>
+                  </div>
+                  {appliedCoupon && (
+                    <p className="text-emerald-400 text-[10px] font-black flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3" />
+                      تم تطبيق خصم {appliedCoupon.discountType === 'percentage' ? `${appliedCoupon.discountValue}%` : `${appliedCoupon.discountValue} ج.م`}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between pt-2">
+                  <div>
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">الإجمالي</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className={`text-2xl font-black text-orange-500 ${appliedCoupon ? 'line-through text-slate-500 text-lg' : ''}`}>ج.م {totalPrice}</p>
+                      {appliedCoupon && (
+                        <p className="text-2xl font-black text-emerald-400">ج.م {finalTotalPrice}</p>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-1 mt-1">
+                      {hasGift && (
+                        <motion.div 
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="flex items-center gap-1 text-emerald-400 text-[10px] font-black"
+                        >
+                          <Gift className="h-3 w-3" />
+                          <span>تم تفعيل الهدية المجانية! 🎁</span>
+                        </motion.div>
+                      )}
+                      {hasFreeDelivery ? (
+                        <motion.div 
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="flex items-center gap-1 text-sky-400 text-[10px] font-black"
+                        >
+                          <Truck className="h-3 w-3" />
+                          <span>توصيل مجاني مفعل! 🚚</span>
+                        </motion.div>
+                      ) : (
+                        <p className="text-[9px] text-slate-400 font-bold">
+                          أضف {freeDeliveryThreshold - totalPrice} ج.م للحصول على توصيل مجاني 🚚
+                        </p>
+                      )}
+                    </div>
+                </div>
+                  <Button
+                    onClick={handleCheckout}
+                    disabled={isLoading || !addressDescription.trim()}
+                    className={`font-black px-8 py-7 rounded-2xl shadow-lg transition-all ${
+                      !addressDescription.trim() 
+                      ? "bg-slate-700 text-slate-400 cursor-not-allowed opacity-50" 
+                      : "bg-orange-500 hover:bg-orange-600 text-white shadow-orange-900/20"
+                    }`}
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
-                      "تأكيد الطلب الآن"
+                      <>
+                        <MessageCircle className="h-5 w-5 ml-2" />
+                        إرسال الطلب
+                      </>
                     )}
                   </Button>
                 </div>
-              )}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+              </div>
+            </CardContent>
+            )}
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
