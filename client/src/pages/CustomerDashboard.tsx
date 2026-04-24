@@ -57,9 +57,10 @@ export default function CustomerDashboard() {
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      return params.get('tab') || "active";
+      // جعل تبويب المطاعم هو الافتراضي دائماً إلا إذا تم تحديد غير ذلك
+      return params.get('tab') || "restaurants";
     }
-    return "active";
+    return "restaurants";
   });
   const { unreadCounts } = useChatContext();
 
