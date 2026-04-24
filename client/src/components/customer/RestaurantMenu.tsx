@@ -139,8 +139,11 @@ const AL_HOUT_RESTAURANT: Restaurant = {
 };
 
 // مطعم "رول وي" - البيانات
-A557564373",
-  whatsappPhone: "20124592580",
+const ROLL_WE_RESTAURANT: Restaurant = {
+  id: 1,
+  name: "مطعم وصلي",
+  phone: "01557564373",
+  whatsappPhone: "201557564373",
   address: "العبور الجديدة - مطعم وصلي",
   description: "أشهى المأكولات والبيتزا والكريب في العبور الجديدة",
   logoUrl: "https://ui-avatars.com/api/?name=WS&background=f97316&color=fff&size=128&bold=true",
@@ -148,11 +151,10 @@ A557564373",
   rating: "5.0",
   deliveryTime: "20-35 دقيقة",
   location: {
-    latitude: 30.2750994,
-    longitude: 31.5006526
+    latitude: 30.2750625,
+    longitude: 31.5256719
   }
 };
-
 const ROLL_WE_MENU: MenuItem[] = [
   {
     "id": 1001,
