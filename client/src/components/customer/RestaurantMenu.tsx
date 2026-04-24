@@ -141,49 +141,424 @@ const AL_HOUT_RESTAURANT: Restaurant = {
 // مطعم "رول وي" - البيانات
 const ROLL_WE_RESTAURANT: Restaurant = {
   id: 1,
-  name: "رول وي - مطعم وكافيه",
-  phone: "01032809502",
-  whatsappPhone: "201032809502",
-  address: "7GG2+462 ملعب حي الحرية, العبور، محافظة القليوبية 6363322",
-  description: "أشهى أنواع الكريب والرول والمكرونة والحواوشي في العبور",
-  logoUrl: "https://ui-avatars.com/api/?name=RW&background=f97316&color=fff&size=128&bold=true",
+  name: "مطعم وصلي",
+  phone: "0124592580",
+  whatsappPhone: "20124592580",
+  address: "العبور الجديدة - مطعم وصلي",
+  description: "أشهى المأكولات والبيتزا والكريب في العبور الجديدة",
+  logoUrl: "https://ui-avatars.com/api/?name=WS&background=f97316&color=fff&size=128&bold=true",
   coverUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format&fit=crop",
-  rating: "4.8",
-  deliveryTime: "30-45 دقيقة",
+  rating: "5.0",
+  deliveryTime: "20-35 دقيقة",
   location: {
-    latitude: 30.275262,
-    longitude: 31.5005241
+    latitude: 30.2750994,
+    longitude: 31.5006526
   }
 };
 
 const ROLL_WE_MENU: MenuItem[] = [
-  // كريب
-  { id: 1, name: "كريب موزاريلا 🧀", category: "كريب", price: 45 },
-  { id: 2, name: "كريب سجق 🌭", category: "كريب", price: 55 },
-  { id: 3, name: "كريب دجاج 🍗", category: "كريب", price: 50 },
-  { id: 4, name: "كريب جبن 🧀", category: "كريب", price: 40 },
-  { id: 5, name: "كريب شوكولاتة 🍫", category: "كريب", price: 35 },
-  { id: 6, name: "كريب فراولة 🍓", category: "كريب", price: 35 },
-  { id: 7, name: "كريب عسل 🍯", category: "كريب", price: 30 },
-  { id: 8, name: "كريب نوتيلا 🍫", category: "كريب", price: 40 },
-  // رول
-  { id: 9, name: "رول موزاريلا 🧀", category: "رول", price: 50 },
-  { id: 10, name: "رول دجاج 🍗", category: "رول", price: 55 },
-  { id: 11, name: "رول سجق 🌭", category: "رول", price: 60 },
-  { id: 12, name: "رول جبن 🧀", category: "رول", price: 45 },
-  { id: 13, name: "رول خضار 🥦", category: "رول", price: 40 },
-  { id: 14, name: "رول مختلط 🥙", category: "رول", price: 65 },
-  // مكرونة
-  { id: 15, name: "مكرونة كريمة 🥛", category: "مكرونة", price: 45 },
-  { id: 16, name: "مكرونة طماطم 🍅", category: "مكرونة", price: 40 },
-  { id: 17, name: "مكرونة بشاميل 🥘", category: "مكرونة", price: 50 },
-  { id: 18, name: "مكرونة جبن 🧀", category: "مكرونة", price: 45 },
-  { id: 19, name: "مكرونة دجاج 🍗", category: "مكرونة", price: 55 },
-  // حواوشي
-  { id: 20, name: "حواوشي دجاج 🍗", category: "حواوشي", price: 35 },
-  { id: 21, name: "حواوشي لحم 🥩", category: "حواوشي", price: 40 },
-  { id: 22, name: "حواوشي مختلط 🥙", category: "حواوشي", price: 45 },
-  { id: 23, name: "حواوشي جبن 🧀", category: "حواوشي", price: 30 },
+  {
+    "id": 1001,
+    "name": "بيتزا فراخ صغير 🍕",
+    "category": "البيتزا",
+    "price": 120
+  },
+  {
+    "id": 1002,
+    "name": "بيتزا فراخ كبير 🍕",
+    "category": "البيتزا",
+    "price": 170
+  },
+  {
+    "id": 1003,
+    "name": "بيتزا جبن صغير 🍕",
+    "category": "البيتزا",
+    "price": 110
+  },
+  {
+    "id": 1004,
+    "name": "بيتزا جبن كبير 🍕",
+    "category": "البيتزا",
+    "price": 130
+  },
+  {
+    "id": 1005,
+    "name": "بيتزا مارغريتا صغير 🍕",
+    "category": "البيتزا",
+    "price": 90
+  },
+  {
+    "id": 1006,
+    "name": "بيتزا مارغريتا كبير 🍕",
+    "category": "البيتزا",
+    "price": 130
+  },
+  {
+    "id": 1007,
+    "name": "بيتزا كفتة صغير 🍕",
+    "category": "البيتزا",
+    "price": 130
+  },
+  {
+    "id": 1008,
+    "name": "بيتزا كفتة كبير 🍕",
+    "category": "البيتزا",
+    "price": 150
+  },
+  {
+    "id": 1009,
+    "name": "بيتزا سجق صغير 🍕",
+    "category": "البيتزا",
+    "price": 120
+  },
+  {
+    "id": 1010,
+    "name": "بيتزا سجق كبير 🍕",
+    "category": "البيتزا",
+    "price": 160
+  },
+  {
+    "id": 1011,
+    "name": "بيتزا استربس صغير 🍕",
+    "category": "البيتزا",
+    "price": 120
+  },
+  {
+    "id": 1012,
+    "name": "بيتزا استربس كبير 🍕",
+    "category": "البيتزا",
+    "price": 170
+  },
+  {
+    "id": 1013,
+    "name": "بيتزا شيش صغير 🍕",
+    "category": "البيتزا",
+    "price": 150
+  },
+  {
+    "id": 1014,
+    "name": "بيتزا شيش كبير 🍕",
+    "category": "البيتزا",
+    "price": 200
+  },
+  {
+    "id": 1015,
+    "name": "بيتزا برجر صغير 🍕",
+    "category": "البيتزا",
+    "price": 120
+  },
+  {
+    "id": 1016,
+    "name": "بيتزا برجر كبير 🍕",
+    "category": "البيتزا",
+    "price": 150
+  },
+  {
+    "id": 1017,
+    "name": "بيتزا شاورما صغير 🍕",
+    "category": "البيتزا",
+    "price": 120
+  },
+  {
+    "id": 1018,
+    "name": "بيتزا شاورما كبير 🍕",
+    "category": "البيتزا",
+    "price": 200
+  },
+  {
+    "id": 1019,
+    "name": "بيتزا مكس فراخ صغير 🍕",
+    "category": "البيتزا",
+    "price": 120
+  },
+  {
+    "id": 1020,
+    "name": "بيتزا مكس فراخ كبير 🍕",
+    "category": "البيتزا",
+    "price": 160
+  },
+  {
+    "id": 1021,
+    "name": "بيتزا مكس جبن صغير 🍕",
+    "category": "البيتزا",
+    "price": 100
+  },
+  {
+    "id": 1022,
+    "name": "بيتزا مكس جبن كبير 🍕",
+    "category": "البيتزا",
+    "price": 130
+  },
+  {
+    "id": 1023,
+    "name": "بيتزا فراخ رانش صغير 🍕",
+    "category": "البيتزا",
+    "price": 120
+  },
+  {
+    "id": 1024,
+    "name": "بيتزا فراخ رانش كبير 🍕",
+    "category": "البيتزا",
+    "price": 170
+  },
+  {
+    "id": 1025,
+    "name": "كريب استربس عادي 🌯",
+    "category": "الكريب",
+    "price": 80
+  },
+  {
+    "id": 1026,
+    "name": "كريب استربس سوبر 🌯",
+    "category": "الكريب",
+    "price": 110
+  },
+  {
+    "id": 1027,
+    "name": "كريب بانيه عادي 🌯",
+    "category": "الكريب",
+    "price": 50
+  },
+  {
+    "id": 1028,
+    "name": "كريب بانيه سوبر 🌯",
+    "category": "الكريب",
+    "price": 70
+  },
+  {
+    "id": 1029,
+    "name": "كريب كفتة عادي 🌯",
+    "category": "الكريب",
+    "price": 70
+  },
+  {
+    "id": 1030,
+    "name": "كريب كفتة سوبر 🌯",
+    "category": "الكريب",
+    "price": 90
+  },
+  {
+    "id": 1031,
+    "name": "كريب برجر عادي 🌯",
+    "category": "الكريب",
+    "price": 80
+  },
+  {
+    "id": 1032,
+    "name": "كريب برجر سوبر 🌯",
+    "category": "الكريب",
+    "price": 100
+  },
+  {
+    "id": 1033,
+    "name": "كريب سجق عادي 🌯",
+    "category": "الكريب",
+    "price": 70
+  },
+  {
+    "id": 1034,
+    "name": "كريب سجق سوبر 🌯",
+    "category": "الكريب",
+    "price": 90
+  },
+  {
+    "id": 1035,
+    "name": "كريب بطاطس عادي 🌯",
+    "category": "الكريب",
+    "price": 40
+  },
+  {
+    "id": 1036,
+    "name": "كريب بطاطس سوبر 🌯",
+    "category": "الكريب",
+    "price": 60
+  },
+  {
+    "id": 1037,
+    "name": "كريب زنجر عادي 🌯",
+    "category": "الكريب",
+    "price": 100
+  },
+  {
+    "id": 1038,
+    "name": "كريب زنجر سوبر 🌯",
+    "category": "الكريب",
+    "price": 120
+  },
+  {
+    "id": 1039,
+    "name": "كريب جبن عادي 🌯",
+    "category": "الكريب",
+    "price": 40
+  },
+  {
+    "id": 1040,
+    "name": "كريب جبن سوبر 🌯",
+    "category": "الكريب",
+    "price": 70
+  },
+  {
+    "id": 1041,
+    "name": "كريب شيش سوبر 🌯",
+    "category": "الكريب",
+    "price": 110
+  },
+  {
+    "id": 1042,
+    "name": "وجبة كفتة 🍱",
+    "category": "الوجبات",
+    "price": 100
+  },
+  {
+    "id": 1043,
+    "name": "وجبة شيش 🍱",
+    "category": "الوجبات",
+    "price": 100
+  },
+  {
+    "id": 1044,
+    "name": "وجبة ميكس 🍱",
+    "category": "الوجبات",
+    "price": 150
+  },
+  {
+    "id": 1045,
+    "name": "استربس بانيه 🥗",
+    "category": "الميكسات",
+    "price": 100
+  },
+  {
+    "id": 1046,
+    "name": "استربس بطاطس 🥗",
+    "category": "الميكسات",
+    "price": 100
+  },
+  {
+    "id": 1047,
+    "name": "استربس شيش 🥗",
+    "category": "الميكسات",
+    "price": 120
+  },
+  {
+    "id": 1048,
+    "name": "بانيه بطاطس 🥗",
+    "category": "الميكسات",
+    "price": 70
+  },
+  {
+    "id": 1049,
+    "name": "شيش بطاطس 🥗",
+    "category": "الميكسات",
+    "price": 110
+  },
+  {
+    "id": 1050,
+    "name": "شيش شاورما 🥗",
+    "category": "الميكسات",
+    "price": 120
+  },
+  {
+    "id": 1051,
+    "name": "شيش برجر 🥗",
+    "category": "الميكسات",
+    "price": 100
+  },
+  {
+    "id": 1052,
+    "name": "نجرسكو فراخ ع الفحم 🍝",
+    "category": "المكرونات",
+    "price": 70
+  },
+  {
+    "id": 1053,
+    "name": "نجرسكو فراخ ع الفحم ك 🍝",
+    "category": "المكرونات",
+    "price": 80
+  },
+  {
+    "id": 1054,
+    "name": "نجرسكو لحوم 🍝",
+    "category": "المكرونات",
+    "price": 70
+  },
+  {
+    "id": 1055,
+    "name": "نجرسكو جبن 🍝",
+    "category": "المكرونات",
+    "price": 50
+  },
+  {
+    "id": 1056,
+    "name": "فرخة مشوية كاملة 🍗",
+    "category": "المشاوي",
+    "price": 380
+  },
+  {
+    "id": 1057,
+    "name": "نص فرخة 🍗",
+    "category": "المشاوي",
+    "price": 190
+  },
+  {
+    "id": 1058,
+    "name": "ربع فرخة ورك 🍗",
+    "category": "المشاوي",
+    "price": 85
+  },
+  {
+    "id": 1059,
+    "name": "ربع فرخة صدر 🍗",
+    "category": "المشاوي",
+    "price": 100
+  },
+  {
+    "id": 1060,
+    "name": "ساندوتش كفتة 🥖",
+    "category": "المشاوي",
+    "price": 40
+  },
+  {
+    "id": 1061,
+    "name": "ساندوتش شيش 🥖",
+    "category": "المشاوي",
+    "price": 50
+  },
+  {
+    "id": 1062,
+    "name": "ساندوتش حواوشي 🥙",
+    "category": "المشاوي",
+    "price": 30
+  },
+  {
+    "id": 1063,
+    "name": "ساندوتش برجر 🍔",
+    "category": "كيزر",
+    "price": 60
+  },
+  {
+    "id": 1064,
+    "name": "ساندوتش رانش 🍔",
+    "category": "كيزر",
+    "price": 60
+  },
+  {
+    "id": 1065,
+    "name": "ساندوتش زنجر 🍔",
+    "category": "كيزر",
+    "price": 70
+  },
+  {
+    "id": 1066,
+    "name": "باكت بطاطس 🍟",
+    "category": "إضافات",
+    "price": 20
+  },
+  {
+    "id": 1067,
+    "name": "سلطة 🥗",
+    "category": "إضافات",
+    "price": 15
+  }
 ];
 
 const AL_HOUT_MENU: MenuItem[] = [
