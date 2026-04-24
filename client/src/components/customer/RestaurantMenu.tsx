@@ -285,15 +285,14 @@ export default function RestaurantMenu() {
     }
   });
 
-  const validateCoupon = trpc.validateCoupon.useMutation({
+  const validateCoupon = trpc.coupons.validate.useMutation({
     onSuccess: (data) => {
-      if (data.valid) {
-        setAppliedCoupon(data.coupon);
-        toast.success("تم تطبيق الكوبون بنجاح!");
-      } else {
-        toast.error(data.message || "كوبون غير صالح");
-        setAppliedCoupon(null);
-      }
+      setAppliedCoupon(data);
+      toast.success("تم تطبيق الكوبون بنجاح!");
+    },
+    onError: (error) => {
+      toast.error(error.message || "كود الخصم غير صحيح");
+      setAppliedCoupon(null);
     }
   });
 
@@ -335,13 +334,13 @@ export default function RestaurantMenu() {
     }
 
     let discount = 0;
-    if (appliedCoupon.type === 'percentage') {
-      discount = (subtotal * appliedCoupon.value) / 100;
+    if (appliedCoupon.discountType === 'percentage') {
+      discount = (subtotal * appliedCoupon.discountValue) / 100;
       if (appliedCoupon.maxDiscount) {
         discount = Math.min(discount, appliedCoupon.maxDiscount);
       }
     } else {
-      discount = appliedCoupon.value;
+      discount = appliedCoupon.discountValue;
     }
     
     return discount;
