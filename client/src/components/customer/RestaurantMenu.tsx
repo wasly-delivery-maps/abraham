@@ -785,11 +785,16 @@ export function RestaurantMenu() {
 
   if (!selectedRestaurant) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" dir="rtl">
+      <div className="flex gap-4 overflow-x-auto pb-6 no-scrollbar snap-x">
         {RESTAURANTS.map((restaurant) => (
+          <motion.div
+            key={restaurant.id}
+            whileHover={{ y: -5 }}
+            whileTap={{ scale: 0.95 }}
+            className="min-w-[280px] snap-center"
+          >
           <Card 
-            key={restaurant.id} 
-            className="overflow-hidden hover:shadow-lg transition-all cursor-pointer group border-none bg-white/50 backdrop-blur-sm rounded-xl"
+            className="overflow-hidden border-none shadow-lg hover:shadow-xl transition-all rounded-[2rem] bg-white group cursor-pointer h-full"
             onClick={() => setSelectedRestaurant(restaurant)}
           >
             <div className="h-32 w-full relative overflow-hidden">
@@ -824,6 +829,7 @@ export function RestaurantMenu() {
               </div>
             </CardContent>
           </Card>
+          </motion.div>
         ))}
       </div>
     );
