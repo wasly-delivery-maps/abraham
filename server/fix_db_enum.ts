@@ -142,6 +142,57 @@ export async function runFixes() {
       console.error("Failed to ensure coupon tables:", couponTableError.message);
     }
 
+    console.log("Ensuring 'restaurants' and 'menu_items' tables exist...");
+    try {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS \`restaurants\` (
+          \`id\` int NOT NULL AUTO_INCREMENT,
+          \`name\` varchar(255) NOT NULL,
+          \`phone\` varchar(20) NOT NULL,
+          \`whatsappPhone\` varchar(20) DEFAULT NULL,
+          \`address\` varchar(500) NOT NULL,
+          \`latitude\` decimal(10,8) NOT NULL,
+          \`longitude\` decimal(11,8) NOT NULL,
+          \`description\` text,
+          \`imageUrl\` varchar(500) DEFAULT NULL,
+          \`isActive\` tinyint(1) DEFAULT '1' NOT NULL,
+          \`createdAt\` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
+          \`updatedAt\` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+          PRIMARY KEY (\`id\`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS \`menu_items\` (
+          \`id\` int NOT NULL AUTO_INCREMENT,
+          \`restaurantId\` int NOT NULL,
+          \`category\` varchar(100) NOT NULL,
+          \`name\` varchar(255) NOT NULL,
+          \`description\` text,
+          \`price\` decimal(10,2) NOT NULL,
+          \`imageUrl\` varchar(500) DEFAULT NULL,
+          \`isAvailable\` tinyint(1) DEFAULT '1' NOT NULL,
+          \`createdAt\` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
+          \`updatedAt\` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+          PRIMARY KEY (\`id\`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+
+      // Ensure "مطعم وصلي" exists
+      const existingRestaurant = await db.execute(sql`SELECT id FROM \`restaurants\` WHERE \`name\` = 'مطعم وصلي'`);
+      if (!existingRestaurant || (existingRestaurant as any)[0].length === 0) {
+        await db.execute(sql`
+          INSERT INTO \`restaurants\` (name, phone, address, latitude, longitude, description)
+          VALUES ('مطعم وصلي', '0124592580', 'العبور الجديدة', 30.2750994, 31.5006526, 'أشهى المأكولات في العبور')
+        `);
+        console.log("Created 'مطعم وصلي' restaurant entry.");
+      }
+      
+      console.log("Successfully ensured restaurant and menu tables exist.");
+    } catch (restaurantError: any) {
+      console.error("Failed to ensure restaurant tables:", restaurantError.message);
+    }
+
     console.log("All schema fixes applied successfully!");
   } catch (error) {
     console.error("Error applying schema fixes:", error);
