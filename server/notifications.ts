@@ -1,6 +1,5 @@
 import { Response } from "express";
 import webpush from "web-push";
-import * as admin from "firebase-admin";
 import { getDb, getAllUsers, getPushSubscriptionsByUserId, deletePushSubscription } from "./db";
 
 // Configure web push with VAPID keys
@@ -13,29 +12,6 @@ if (vapidPublicKey && vapidPrivateKey) {
     vapidPublicKey,
     vapidPrivateKey
   );
-}
-
-// Configure Firebase Admin SDK
-const firebaseConfig = process.env.FIREBASE_SERVICE_ACCOUNT_KEY || process.env.FIREBASE_SERVICE_ACCOUNT;
-if (firebaseConfig) {
-  try {
-    let serviceAccount;
-    if (firebaseConfig.startsWith('{')) {
-      serviceAccount = JSON.parse(firebaseConfig);
-    } else {
-      // Handle base64 encoded config if needed
-      serviceAccount = JSON.parse(Buffer.from(firebaseConfig, 'base64').toString());
-    }
-    
-    if (admin.apps.length === 0) {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-      });
-      console.log("[Notifications] Firebase Admin SDK initialized successfully");
-    }
-  } catch (error) {
-    console.error("[Notifications] Failed to initialize Firebase Admin SDK:", error);
-  }
 }
 
 // Store active SSE connections
@@ -58,7 +34,7 @@ export function registerSSEConnection(userId: number, res: Response) {
 }
 
 /**
- * Send notification to a specific user (Web Push & Firebase)
+ * Send notification to a specific user (Web Push & OneSignal)
  */
 export async function sendPushNotificationToUser(
   userId: number,
@@ -93,54 +69,10 @@ export async function sendPushNotificationToUser(
     console.error("[Notifications] Web Push error:", error);
   }
 
-  // 2. Firebase Push (Mobile App)
-  if (admin.apps.length > 0) {
-    try {
-      const message = {
-        notification: {
-          title: notification.title,
-          body: notification.body,
-        },
-        android: {
-          priority: "high" as any,
-          notification: {
-            channelId: "push_notifications_urgent",
-            priority: "max" as any,
-            visibility: "public" as any,
-            sound: "default",
-            clickAction: "FLUTTER_NOTIFICATION_CLICK",
-            sticky: false,
-            localOnly: false,
-            defaultSound: true,
-            defaultVibrateTimings: true,
-          },
-        },
-        apns: {
-          payload: {
-            aps: {
-              alert: {
-                title: notification.title,
-                body: notification.body,
-              },
-              sound: "default",
-              badge: 1,
-            },
-          },
-        },
-        data: {
-          orderId: notification.orderId?.toString() || "",
-          url: notification.url || "",
-          click_action: "FLUTTER_NOTIFICATION_CLICK",
-        },
-        topic: `user_${userId}`,
-      };
-
-      await admin.messaging().send(message);
-      console.log(`[Notifications] Firebase message sent to topic: user_${userId}`);
-    } catch (error) {
-      console.error("[Notifications] Firebase Push failed:", error);
-    }
-  }
+  // 2. OneSignal Push (Mobile & Web)
+  sendOneSignalNotification({ userId }, notification).catch(err => 
+    console.error("[Notifications] OneSignal fallback failed:", err)
+  );
 }
 
 /**

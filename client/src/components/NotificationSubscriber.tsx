@@ -3,7 +3,6 @@ import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { Button } from '@/components/ui/button';
 import { Bell, BellOff } from 'lucide-react';
 import { toast } from 'sonner';
-import { requestNotificationPermissionAndGetToken, saveFCMTokenToBackend } from '@/lib/firebase-messaging';
 
 interface NotificationSubscriberProps {
   vapidPublicKey: string;
@@ -34,20 +33,7 @@ export function NotificationSubscriber({
     try {
       setIsLoading(true);
       
-      // 1. Firebase FCM Integration (Added for reliable background notifications)
-      try {
-        console.log('[FCM] Attempting to get Firebase token...');
-        const fcmToken = await requestNotificationPermissionAndGetToken();
-        if (fcmToken) {
-          console.log('[FCM] Token obtained, saving to backend...');
-          await saveFCMTokenToBackend(fcmToken, userId.toString());
-        }
-      } catch (fcmError) {
-        console.error('[FCM] Failed to initialize Firebase:', fcmError);
-        // Continue with standard push even if FCM fails
-      }
-
-      // 2. Original Web Push Logic
+      // Original Web Push Logic (OneSignal is handled server-side via external_id)
       await subscribeToPushNotifications(vapidPublicKey, userId);
       toast.success('تم تفعيل الإشعارات بنجاح');
     } catch (error) {
