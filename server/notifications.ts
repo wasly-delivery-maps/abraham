@@ -221,6 +221,8 @@ export async function sendOneSignalNotification(
     // Apply filters or target all subscribed users
     if (filters.length > 0) {
       notificationPayload.filters = filters;
+    } else if (target.included_segments) {
+      notificationPayload.included_segments = target.included_segments;
     } else {
       notificationPayload.included_segments = ["Subscribed Users"];
     }

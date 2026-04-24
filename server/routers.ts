@@ -1555,6 +1555,50 @@ export const appRouter = router({
           },
         };
       }),
+
+    // Send manual notification (Admin only)
+    sendManualNotification: protectedProcedure
+      .input(
+        z.object({
+          target: z.enum(["all", "drivers", "customers"]),
+          title: z.string().min(1, "العنوان مطلوب"),
+          body: z.string().min(1, "نص الرسالة مطلوب"),
+          url: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+        }
+
+        console.log(`[AdminNotification] Sending manual notification to ${input.target}: ${input.title}`);
+        
+        try {
+          let targetParam: any = {};
+          if (input.target === "drivers") {
+            targetParam = { role: "driver" };
+          } else if (input.target === "customers") {
+            targetParam = { role: "customer" };
+          } else {
+            targetParam = { included_segments: ["Subscribed Users"] };
+          }
+
+          // إرسال الإشعار بشكل غير حاجب لضمان سرعة الاستجابة
+          sendOneSignalNotification(targetParam, {
+            title: input.title,
+            body: input.body,
+            url: input.url || "/",
+          }).catch(err => console.error("[AdminNotification] Background send failed:", err));
+
+          return { success: true, message: "تم بدء إرسال الإشعار بنجاح" };
+        } catch (error: any) {
+          console.error("[AdminNotification] Failed to initiate manual notification:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "فشل في إرسال الإشعار: " + (error.message || "خطأ غير معروف"),
+          });
+        }
+      }),
   }),
 });
 
