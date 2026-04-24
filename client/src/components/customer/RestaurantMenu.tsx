@@ -929,11 +929,15 @@ export function RestaurantMenu() {
                       {item.price === 0 ? "سعر اليوم" : `ج.م ${item.price}`}
                     </p>
                   </div>
-                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                  <motion.div 
+                    whileHover={{ scale: 1.2, rotate: 90 }} 
+                    whileTap={{ scale: 0.8 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  >
                     <Button
                       size="icon"
                       onClick={() => addToCart(item)}
-                      className="rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-500 hover:text-white transition-all shadow-none"
+                      className="rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-500 hover:text-white transition-all shadow-none border-2 border-orange-200"
                     >
                       <Plus className="h-5 w-5" />
                     </Button>
@@ -958,7 +962,16 @@ export function RestaurantMenu() {
                     <div className="bg-orange-500 text-white text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center absolute -top-2 -right-2 border-2 border-slate-900">
                       {cart.reduce((sum, item) => sum + item.quantity, 0)}
                     </div>
-                    <ShoppingCart className="h-6 w-6 text-orange-500" />
+                    <motion.div
+                      animate={cart.length > 0 ? { 
+                        scale: [1, 1.3, 1],
+                        rotate: [0, -10, 10, 0]
+                      } : {}}
+                      transition={{ duration: 0.4 }}
+                      key={cart.length}
+                    >
+                      <ShoppingCart className="h-6 w-6 text-orange-500" />
+                    </motion.div>
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-400">سلتك الحالية</p>
