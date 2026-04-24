@@ -49,7 +49,8 @@ export function NotificationsManagement() {
       await sendNotificationMutation.mutateAsync({
         title: title.trim(),
         body: message.trim(),
-        target: target.type === "specific" ? "all" : target.type as any, // Backend only supports all, drivers, customers
+        target: target.type === "specific" ? "all" : target.type as any,
+        userId: target.type === "specific" ? parseInt(specificUserId) : undefined,
         url: "/",
       });
     } catch (error) {
@@ -195,10 +196,10 @@ export function NotificationsManagement() {
                       <Bell className="h-5 w-5" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-black text-sm mb-1">
+                      <h3 className="font-black text-sm mb-1 break-words">
                         {title || "عنوان الإشعار"}
                       </h3>
-                      <p className="text-xs font-bold text-white/90 line-clamp-3">
+                      <p className="text-xs font-bold text-white/90 line-clamp-3 break-words">
                         {message || "نص الرسالة سيظهر هنا..."}
                       </p>
                     </div>

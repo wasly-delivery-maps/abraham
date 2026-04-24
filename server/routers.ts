@@ -1512,7 +1512,8 @@ export const appRouter = router({
     sendManualNotification: protectedProcedure
       .input(
         z.object({
-          target: z.enum(["all", "drivers", "customers"]),
+          target: z.enum(["all", "drivers", "customers", "specific"]),
+          userId: z.number().optional(),
           title: z.string().min(1, "العنوان مطلوب"),
           body: z.string().min(1, "نص الرسالة مطلوب"),
           url: z.string().optional(),
@@ -1527,7 +1528,9 @@ export const appRouter = router({
         
         try {
           let targetParam: any = {};
-          if (input.target === "drivers") {
+          if (input.target === "specific" && input.userId) {
+            targetParam = { userId: input.userId };
+          } else if (input.target === "drivers") {
             targetParam = { role: "driver" };
           } else if (input.target === "customers") {
             targetParam = { role: "customer" };
@@ -1535,14 +1538,14 @@ export const appRouter = router({
             targetParam = { included_segments: ["Subscribed Users"] };
           }
 
-          // إرسال الإشعار بشكل غير حاجب لضمان سرعة الاستجابة
-          sendOneSignalNotification(targetParam, {
+          // ننتظر الإرسال للتأكد من نجاحه
+          await sendOneSignalNotification(targetParam, {
             title: input.title,
             body: input.body,
             url: input.url || "/",
-          }).catch(err => console.error("[AdminNotification] Background send failed:", err));
+          });
 
-          return { success: true, message: "تم بدء إرسال الإشعار بنجاح" };
+          return { success: true, message: "تم إرسال الإشعار بنجاح" };
         } catch (error: any) {
           console.error("[AdminNotification] Failed to initiate manual notification:", error);
           throw new TRPCError({
