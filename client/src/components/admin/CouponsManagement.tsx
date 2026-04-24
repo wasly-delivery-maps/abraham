@@ -26,9 +26,9 @@ export function CouponsManagement({ coupons: initialCoupons }: { coupons: Coupon
   const [newCoupon, setNewCoupon] = useState({
     code: "",
     discountType: "percentage" as const,
-    discountValue: 0,
-    maxDiscount: 0,
-    minOrderValue: 0,
+    discountValue: "" as string | number,
+    maxDiscount: "" as string | number,
+    minOrderValue: "" as string | number,
     isFirstOrderOnly: false,
   });
 
@@ -40,19 +40,26 @@ export function CouponsManagement({ coupons: initialCoupons }: { coupons: Coupon
   const handleCreateCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const discountValue = Number(newCoupon.discountValue);
+      if (isNaN(discountValue) || discountValue <= 0) {
+        toast.error("يرجى إدخال قيمة خصم صحيحة");
+        return;
+      }
+
       await createCouponMutation.mutateAsync({
         ...newCoupon,
-        maxDiscount: newCoupon.maxDiscount || undefined,
-        minOrderValue: newCoupon.minOrderValue || undefined,
+        discountValue: discountValue,
+        maxDiscount: newCoupon.maxDiscount ? Number(newCoupon.maxDiscount) : undefined,
+        minOrderValue: newCoupon.minOrderValue ? Number(newCoupon.minOrderValue) : undefined,
       });
       toast.success("تم إنشاء الكوبون بنجاح");
       setIsAdding(false);
       setNewCoupon({
         code: "",
         discountType: "percentage",
-        discountValue: 0,
-        maxDiscount: 0,
-        minOrderValue: 0,
+        discountValue: "",
+        maxDiscount: "",
+        minOrderValue: "",
         isFirstOrderOnly: false,
       });
       const updatedCoupons = await utils.coupons.getAll.fetch();
@@ -128,27 +135,33 @@ export function CouponsManagement({ coupons: initialCoupons }: { coupons: Coupon
                 <input
                   required
                   type="number"
+                  step="any"
                   value={newCoupon.discountValue}
-                  onChange={e => setNewCoupon({ ...newCoupon, discountValue: Number(e.target.value) })}
+                  onChange={e => setNewCoupon({ ...newCoupon, discountValue: e.target.value })}
                   className="w-full p-2 border rounded-lg"
+                  placeholder="أدخل القيمة"
                 />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium">أقصى خصم (اختياري)</label>
                 <input
                   type="number"
+                  step="any"
                   value={newCoupon.maxDiscount}
-                  onChange={e => setNewCoupon({ ...newCoupon, maxDiscount: Number(e.target.value) })}
+                  onChange={e => setNewCoupon({ ...newCoupon, maxDiscount: e.target.value })}
                   className="w-full p-2 border rounded-lg"
+                  placeholder="مثال: 50"
                 />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium">أقل قيمة للطلب (اختياري)</label>
                 <input
                   type="number"
+                  step="any"
                   value={newCoupon.minOrderValue}
-                  onChange={e => setNewCoupon({ ...newCoupon, minOrderValue: Number(e.target.value) })}
+                  onChange={e => setNewCoupon({ ...newCoupon, minOrderValue: e.target.value })}
                   className="w-full p-2 border rounded-lg"
+                  placeholder="مثال: 100"
                 />
               </div>
               <div className="flex items-center gap-2 pt-6">
