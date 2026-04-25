@@ -142,7 +142,7 @@ export default function CustomerDashboard() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-2xl">
+      <main className="w-full px-4 py-6">
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-2xl font-black text-slate-900 mb-1">أهلاً بك، {user.name.split(' ')[0]} 👋</h1>
