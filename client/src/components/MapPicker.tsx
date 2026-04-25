@@ -92,12 +92,19 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     searchTimeoutRef.current = setTimeout(async () => {
       try {
         let cleanQuery = query;
+        
+        // إذا لم يكتب المستخدم "العبور"، نضيفها تلقائياً لتركيز البحث
+        if (!cleanQuery.includes('العبور')) {
+          cleanQuery = `${cleanQuery} العبور القليوبية مصر`;
+        }
+
         if (query.includes('،') || query.includes(',')) {
           const parts = query.split(/[،,]/);
           cleanQuery = parts.slice(0, 2).join(' ');
         }
 
-        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cleanQuery)}&limit=10&accept-language=ar`;
+        // استخدام viewbox لتركيز البحث جغرافياً على منطقة العبور
+        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cleanQuery)}&limit=10&accept-language=ar&viewbox=31.35,30.35,31.60,30.15&bounded=1`;
         const response = await fetch(searchUrl);
         const data = await response.json();
         
@@ -155,16 +162,16 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     <div className="space-y-4 w-full">
       {title && <h3 className="text-lg font-black text-slate-800 mr-2">{title}</h3>}
       
-      <div className="relative flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+      <div className="relative flex flex-col gap-2">
+        <div className="relative w-full">
+          <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-orange-500" />
           <Input
-            placeholder={placeholder || "ابحث عن موقع..."}
+            placeholder={placeholder || "ابحث عن الحي، الشارع، أو المعلم في العبور..."}
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             onFocus={() => searchQuery && setShowResults(true)}
-            className="h-14 pr-12 rounded-2xl border-slate-200 bg-white shadow-sm focus:ring-orange-500 font-bold"
+            className="h-16 pr-12 pl-12 rounded-2xl border-2 border-orange-100 bg-white shadow-lg focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 font-black text-lg transition-all"
           />
           {searchQuery && (
             <button
