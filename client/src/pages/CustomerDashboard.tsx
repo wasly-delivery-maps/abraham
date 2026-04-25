@@ -126,34 +126,18 @@ export default function CustomerDashboard() {
   const otherUserName = selectedOrder?.driver?.name || "السائق";
 
   return (
-    <div className="min-h-screen bg-[#F1F3F6] text-slate-900 font-sans pb-24" dir="rtl">
-      {/* Modern Header */}
-      <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="overflow-hidden">
-              <img src="/logo.jpg" alt="وصلي" className="h-10 w-10 object-contain" />
-            </div>
-            <span className="text-xl font-black tracking-tight text-slate-900">وصلي</span>
+    <div className="min-h-screen bg-[#F1F3F6] text-slate-900 font-sans pb-32" dir="rtl">
+      {/* Mobile-Style Header */}
+      <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-slate-100 px-6 py-4 flex items-center justify-between shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-2xl bg-orange-500 flex items-center justify-center shadow-lg shadow-orange-200">
+            <img src="/logo.jpg" alt="وصلي" className="h-7 w-7 object-contain brightness-0 invert" />
           </div>
-
-          <div className="flex items-center gap-4">
-            <Link href="/customer/stats">
-              <div className="flex flex-col items-center gap-1 cursor-pointer group">
-                <div className="h-10 w-10 rounded-xl bg-white shadow-sm border border-slate-200 flex items-center justify-center group-hover:bg-orange-50 transition-colors">
-                  <BarChart3 className="h-5 w-5 text-slate-600 group-hover:text-orange-600" />
-                </div>
-                <span className="text-[10px] font-black text-slate-500">الإحصائيات</span>
-              </div>
-            </Link>
-            <Link href="/customer/profile">
-              <div className="flex flex-col items-center gap-1 cursor-pointer group">
-                <div className="h-10 w-10 rounded-xl bg-white shadow-sm border border-slate-200 flex items-center justify-center group-hover:bg-orange-50 transition-colors">
-                  <User className="h-5 w-5 text-slate-600 group-hover:text-orange-600" />
-                </div>
-                <span className="text-[10px] font-black text-slate-500">الملف الشخصي</span>
-              </div>
-            </Link>
+          <h1 className="text-xl font-black text-slate-900">وصلي</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="h-10 w-10 rounded-2xl bg-slate-100 flex items-center justify-center">
+            <Zap className="h-5 w-5 text-orange-500" />
           </div>
         </div>
       </header>
@@ -551,6 +535,50 @@ export default function CustomerDashboard() {
           onClose={() => setIsChatOpen(false)}
         />
       )}
+
+      {/* Mobile Bottom Navigation Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-xl border-t border-slate-100 px-6 py-3 pb-8 flex justify-between items-center shadow-[0_-10px_25px_rgba(0,0,0,0.05)]">
+        <button 
+          onClick={() => setActiveTab("restaurants")}
+          className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'restaurants' ? 'text-orange-600 scale-110' : 'text-slate-400'}`}
+        >
+          <div className={`p-2 rounded-2xl ${activeTab === 'restaurants' ? 'bg-orange-100' : ''}`}>
+            <Sparkles className="h-6 w-6" />
+          </div>
+          <span className="text-[10px] font-black">المطاعم</span>
+        </button>
+
+        <button 
+          onClick={() => setActiveTab("active")}
+          className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'active' ? 'text-orange-600 scale-110' : 'text-slate-400'}`}
+        >
+          <div className={`p-2 rounded-2xl ${activeTab === 'active' ? 'bg-orange-100' : ''}`}>
+            <Truck className="h-6 w-6" />
+          </div>
+          <span className="text-[10px] font-black">طلباتي</span>
+        </button>
+
+        <Link href="/customer/create-order" className="flex flex-col items-center gap-1 text-slate-400">
+          <div className="p-3 bg-slate-900 text-white rounded-2xl shadow-lg shadow-slate-200 -translate-y-4 border-4 border-[#F1F3F6]">
+            <Plus className="h-6 w-6" />
+          </div>
+          <span className="text-[10px] font-black -translate-y-3">طلب مندوب</span>
+        </Link>
+
+        <Link href="/customer/stats" className="flex flex-col items-center gap-1 text-slate-400">
+          <div className="p-2 rounded-2xl">
+            <BarChart3 className="h-6 w-6" />
+          </div>
+          <span className="text-[10px] font-black">الإحصائيات</span>
+        </Link>
+
+        <Link href="/customer/profile" className="flex flex-col items-center gap-1 text-slate-400">
+          <div className="p-2 rounded-2xl">
+            <User className="h-6 w-6" />
+          </div>
+          <span className="text-[10px] font-black">حسابي</span>
+        </Link>
+      </nav>
     </div>
   );
 }
