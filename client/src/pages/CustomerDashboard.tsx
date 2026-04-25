@@ -577,6 +577,15 @@ export default function CustomerDashboard() {
         <button 
           onClick={() => {
             setActiveTab("restaurants");
+            // محاولة فتح السلة الأصلية عبر DOM لأنها أصبحت محلية مرة أخرى
+            setTimeout(() => {
+              const cartButton = document.querySelector('.bg-orange-500.hover\\:bg-orange-600.text-white.font-black.rounded-xl.px-6') as HTMLButtonElement;
+              if (cartButton) cartButton.click();
+              else {
+                const cartIcon = document.querySelector('.ShoppingCart') as HTMLElement;
+                if (cartIcon) cartIcon.click();
+              }
+            }, 100);
           }}
           className={`flex flex-col items-center gap-1 transition-all relative ${itemCount > 0 ? 'text-orange-600' : 'text-slate-400'}`}
         >
