@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ShoppingCart, Plus, Minus, X, MessageCircle, MapPin, Phone, Loader2, ChevronRight, Star, Clock, Coins, Gift, Truck, CheckCircle2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCart } from "@/contexts/CartContext";
 
 interface MenuItem {
   id: number;
@@ -603,6 +604,11 @@ export function RestaurantMenu({ isExternalCartOpen, onExternalCartClose }: Rest
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartExpanded, setIsCartExpanded] = useState(false);
+  const { setItems } = useCart();
+
+  useEffect(() => {
+    setItems(cart.map(item => ({ id: item.id, quantity: item.quantity })));
+  }, [cart, setItems]);
 
   useEffect(() => {
     if (isExternalCartOpen) {
