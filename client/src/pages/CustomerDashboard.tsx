@@ -128,12 +128,15 @@ export default function CustomerDashboard() {
   return (
     <div className="min-h-screen bg-[#F1F3F6] text-slate-900 font-sans pb-32" dir="rtl">
       {/* Mobile-Style Header */}
-      <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-slate-100 px-6 py-4 flex items-center justify-between shadow-sm">
+      <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-orange-500 flex items-center justify-center shadow-lg shadow-orange-200">
-            <img src="/logo.jpg" alt="وصلي" className="h-7 w-7 object-contain brightness-0 invert" />
+          <div className="h-12 w-12 rounded-2xl bg-white shadow-md border border-orange-100 flex items-center justify-center overflow-hidden p-1">
+            <img src="/logo.jpg" alt="وصلي" className="h-full w-full object-contain" />
           </div>
-          <h1 className="text-xl font-black text-slate-900">وصلي</h1>
+          <div className="flex flex-col">
+            <h1 className="text-xl font-black text-slate-900 leading-none">وصلي</h1>
+            <span className="text-[10px] font-bold text-orange-500">دليلك في العبور</span>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <div className="h-10 w-10 rounded-2xl bg-slate-100 flex items-center justify-center">
