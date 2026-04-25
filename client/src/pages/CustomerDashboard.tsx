@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { MapPin, Plus, User, Truck, Clock, X, Phone, ChevronRight, Package, MessageCircle, BarChart3, Zap, Timer, ChevronLeft, Info, Loader2, Sparkles, Map } from "lucide-react";
+import { MapPin, Plus, User, Truck, Clock, X, Phone, ChevronRight, Package, MessageCircle, BarChart3, Zap, Timer, ChevronLeft, Info, Loader2, Sparkles, Map, ShoppingCart } from "lucide-react";
 import { CountdownTimer } from "@/components/customer/CountdownTimer";
 import { RestaurantMenu } from "@/components/customer/RestaurantMenu";
 import { Link, useLocation } from "wouter";
@@ -15,6 +15,7 @@ import MapPicker from "@/components/MapPicker";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCart } from "@/contexts/CartContext";
 
 // Cancel Order Button Component
 function CancelOrderButton({ orderId, onSuccess }: { orderId: number; onSuccess: () => void }) {
@@ -55,6 +56,7 @@ export default function CustomerDashboard() {
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isExternalCartOpen, setIsExternalCartOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -64,6 +66,7 @@ export default function CustomerDashboard() {
     return "restaurants";
   });
   const { unreadCounts } = useChatContext();
+  const { itemCount } = useCart();
 
 
   const ordersQuery = trpc.orders.getCustomerOrders.useQuery(undefined, {
@@ -221,17 +224,17 @@ export default function CustomerDashboard() {
                         <h4 className="text-sm font-black text-slate-900 line-clamp-1">
                           {offer.title}
                         </h4>
-                        <p className="text-[11px] font-bold text-slate-400 line-clamp-2 leading-relaxed">
+                        <p className="text-[11px] font-bold text-slate-500 line-clamp-2 leading-relaxed">
                           {offer.description}
                         </p>
                       </div>
                       
                       <Button 
-                        size="sm" 
-                        className="w-full bg-orange-500 text-white hover:bg-orange-600 border-none shadow-md shadow-orange-100 h-9 text-xs font-black rounded-xl transition-all active:scale-95"
                         onClick={() => setActiveTab("restaurants")}
+                        className="w-full bg-slate-900 hover:bg-orange-600 text-white font-black rounded-2xl py-6 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-orange-200"
                       >
-                        اطلب الآن
+                        استخدم العرض الآن
+                        <ChevronLeft className="mr-2 h-4 w-4" />
                       </Button>
                     </div>
                   </Card>
@@ -241,263 +244,177 @@ export default function CustomerDashboard() {
           </div>
         )}
 
-        {/* Orders Section */}
+        {/* Tabs Section */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            >
-          <TabsList className="bg-slate-100 p-1.5 rounded-[1.5rem] mb-8 w-full grid grid-cols-3 h-14">
-            <TabsTrigger value="active" className="rounded-2xl font-black text-sm data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-sm transition-all">
-              النشطة
-              {activeOrders.length > 0 && <span className="mr-2 bg-orange-500 text-white px-2 py-0.5 rounded-lg text-[10px]">{activeOrders.length}</span>}
-            </TabsTrigger>
-            <TabsTrigger value="completed" className="rounded-2xl font-black text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm transition-all">السجل</TabsTrigger>
-            <TabsTrigger value="restaurants" className="rounded-2xl font-black text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm transition-all">المطاعم</TabsTrigger>
+          <TabsList className="hidden">
+            <TabsTrigger value="restaurants">المطاعم</TabsTrigger>
+            <TabsTrigger value="active">الطلبات النشطة</TabsTrigger>
+            <TabsTrigger value="completed">الطلبات السابقة</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="active" className="space-y-5">
-            {activeOrders.length > 0 ? (
-              activeOrders.map((order) => {
-                const status = getStatusInfo(order.status);
-                const unreadCount = unreadCounts[order.id] || 0;
-                const orderNotes = order.notes || order.description;
+          <TabsContent value="restaurants" className="mt-0 focus-visible:outline-none">
+            <div className="flex items-center justify-between mb-6 px-1">
+              <h3 className="text-xl font-black text-slate-900">المطاعم المتاحة</h3>
+              <Badge variant="outline" className="border-slate-200 text-slate-500 font-bold">
+                {3} مطاعم
+              </Badge>
+            </div>
+            <RestaurantMenu 
+              isExternalCartOpen={isExternalCartOpen} 
+              onExternalCartClose={() => setIsExternalCartOpen(false)} 
+            />
+          </TabsContent>
 
-                return (
-                  <motion.div key={order.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                    <Card className="border-none shadow-sm hover:shadow-md transition-all rounded-[2rem] bg-white overflow-hidden group">
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between mb-6">
-                          <div className="flex items-center gap-4">
-                            <div className={`${status.bgColor} p-3 rounded-2xl group-hover:scale-110 transition-transform`}>
-                              <status.icon className={`h-6 w-6 ${status.color}`} />
-                            </div>
-                            <div>
-                              <span className="text-base font-black text-slate-900 block">طلب #{order.id}</span>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge variant="secondary" className={`${status.bgColor} ${status.color} border-none font-black text-[10px] px-3 rounded-lg`}>
-                                  {status.label}
-                                </Badge>
-                                <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  {new Date(order.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
-                                </span>
+          <TabsContent value="active" className="mt-0 focus-visible:outline-none">
+            <div className="flex items-center justify-between mb-6 px-1">
+              <h3 className="text-xl font-black text-slate-900">طلباتك الحالية</h3>
+              {activeOrders.length > 0 && (
+                <Badge className="bg-orange-500 text-white border-none font-black">
+                  {activeOrders.length} نشط
+                </Badge>
+              )}
+            </div>
+            
+            {activeOrders.length === 0 ? (
+              <Card className="border-none shadow-sm rounded-[2rem] bg-white p-10 text-center">
+                <div className="bg-slate-50 h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Package className="h-10 w-10 text-slate-300" />
+                </div>
+                <h4 className="text-lg font-black text-slate-900 mb-2">لا توجد طلبات نشطة</h4>
+                <p className="text-slate-500 text-sm font-medium mb-6">ابدأ بطلب وجبتك المفضلة الآن!</p>
+                <Button 
+                  onClick={() => setActiveTab("restaurants")}
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-black rounded-2xl px-8"
+                >
+                  تصفح المطاعم
+                </Button>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {activeOrders.map((order) => {
+                  const status = getStatusInfo(order.status);
+                  return (
+                    <motion.div key={order.id} layout>
+                      <Card className="overflow-hidden border-none shadow-md rounded-[2rem] bg-white">
+                        <CardContent className="p-0">
+                          <div className="p-5 flex items-center justify-between border-b border-slate-50">
+                            <div className="flex items-center gap-3">
+                              <div className={`h-12 w-12 rounded-2xl ${status.bgColor} flex items-center justify-center`}>
+                                <status.icon className={`h-6 w-6 ${status.color}`} />
+                              </div>
+                              <div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">طلب #{order.id}</p>
+                                <h4 className="font-black text-slate-900">{status.label}</h4>
                               </div>
                             </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-xl font-black text-slate-900">ج.م {order.price}</div>
-                          </div>
-                        </div>
-
-                        {/* Order Notes for Customer List */}
-                        {orderNotes && (
-                          <div className="mb-4 bg-orange-50/50 p-3 rounded-xl border border-orange-100/50">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Info className="h-3 w-3 text-orange-500" />
-                              <p className="text-[10px] font-bold text-orange-600">ملاحظات الطلب:</p>
+                            <div className="text-left">
+                              <p className="text-lg font-black text-orange-600">ج.م {order.totalPrice || order.price}</p>
+                              <p className="text-[10px] font-bold text-slate-400">{new Date(order.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</p>
                             </div>
-                            <p className="text-[11px] font-bold text-slate-600 italic line-clamp-2 leading-relaxed">"{orderNotes}"</p>
                           </div>
-                        )}
-
-                        <div className="flex items-center justify-between pt-5 border-t border-slate-50">
-                          <div className="flex items-center gap-3">
-                            {order.driverId || order.driver ? (
-                              <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100 pr-4">
-                                <div className="h-10 w-10 rounded-xl bg-orange-500 flex items-center justify-center text-white font-black text-sm shadow-sm">
-                                  {(order.driver?.name || "كابتن").charAt(0)}
+                          
+                          <div className="p-5 bg-slate-50/50">
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center gap-2">
+                                <div className="h-8 w-8 rounded-full bg-white border border-slate-200 flex items-center justify-center overflow-hidden">
+                                  {order.driver?.avatarUrl ? (
+                                    <img src={order.driver.avatarUrl} alt="" className="h-full w-full object-cover" />
+                                  ) : (
+                                    <User className="h-4 w-4 text-slate-400" />
+                                  )}
                                 </div>
-                                <div className="flex flex-col">
-                                  <span className="text-xs font-black text-slate-700">{order.driver?.name || "كابتن وصلي"}</span>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    {order.driver?.phone && (
-                                      <a href={`tel:${order.driver.phone}`} className="text-orange-600 bg-orange-50 p-1.5 rounded-lg hover:bg-orange-100 transition-colors">
-                                        <Phone className="h-3.5 w-3.5" />
-                                      </a>
-                                    )}
-                                    <div 
-                                      onClick={() => handleOpenChat(order.id)}
-                                      className="relative text-blue-600 bg-blue-50 p-1.5 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
-                                    >
-                                      <MessageCircle className="h-3.5 w-3.5" />
-                                      {unreadCount > 0 && (
-                                        <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[8px] font-bold h-3.5 w-3.5 rounded-full flex items-center justify-center border border-white">
-                                          {unreadCount}
+                                <span className="text-xs font-black text-slate-700">{order.driver?.name || "جاري البحث عن سائق..."}</span>
+                              </div>
+                              <div className="flex gap-2">
+                                {order.status === 'pending' && (
+                                  <CancelOrderButton orderId={order.id} onSuccess={() => ordersQuery.refetch()} />
+                                )}
+                                {order.driver && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost"
+                                    className="h-9 w-9 rounded-xl bg-white shadow-sm text-orange-500 hover:text-orange-600 p-0"
+                                    onClick={() => handleOpenChat(order.id)}
+                                  >
+                                    <div className="relative">
+                                      <MessageCircle className="h-5 w-5" />
+                                      {unreadCounts[order.id] > 0 && (
+                                        <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-[8px] font-black h-4 w-4 rounded-full flex items-center justify-center border-2 border-white">
+                                          {unreadCounts[order.id]}
                                         </span>
                                       )}
                                     </div>
-                                  </div>
-                                </div>
+                                  </Button>
+                                )}
                               </div>
-                            ) : (
-                              <div className="flex items-center gap-2 text-slate-400">
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                <span className="text-[10px] font-bold">بحث عن سائق...</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {!["in_transit", "arrived", "delivered", "cancelled"].includes(order.status) && (
-                              <CancelOrderButton orderId={order.id} onSuccess={() => ordersQuery.refetch()} />
-                            )}
+                            </div>
+                            
                             <Button 
-                              variant="outline" 
-                              size="sm" 
+                              className="w-full bg-white hover:bg-slate-100 text-slate-900 font-black rounded-2xl py-6 border border-slate-200 shadow-sm"
                               onClick={() => handleShowDetails(order.id)}
-                              className="rounded-2xl border-slate-100 text-slate-600 font-black text-xs h-10 px-5 hover:bg-slate-50 transition-all"
                             >
-                              التفاصيل
+                              تتبع الطلب بالتفصيل
+                              <ChevronLeft className="mr-2 h-4 w-4" />
                             </Button>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })
-            ) : (
-              <div className="text-center py-16">
-                <div className="bg-slate-100 h-20 w-20 rounded-[2rem] flex items-center justify-center mx-auto mb-5">
-                  <Package className="h-10 w-10 text-slate-300" />
-                </div>
-                <p className="text-slate-400 font-black text-lg">لا توجد طلبات نشطة حالياً</p>
-                <p className="text-slate-300 text-sm font-bold mt-1">اطلب الآن وسنصلك في أسرع وقت</p>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
               </div>
             )}
           </TabsContent>
-
-          <TabsContent value="completed">
-            <div className="space-y-4">
-              {completedOrders.length > 0 ? (
-                completedOrders.map((order) => {
-                  const status = getStatusInfo(order.status);
-                  return (
-                    <Card key={order.id} className="border-none shadow-sm rounded-[1.5rem] bg-white opacity-90">
-                      <CardContent className="p-5 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className={`${status.bgColor} p-2.5 rounded-2xl`}>
-                            <Package className={`h-5 w-5 ${status.color}`} />
-                          </div>
-                          <div>
-                            <span className="text-sm font-black text-slate-900 block">طلب #{order.id}</span>
-                            <span className="text-[10px] font-bold text-slate-400">{new Date(order.createdAt).toLocaleDateString('ar-EG')}</span>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-base font-black text-slate-900">ج.م {order.price}</div>
-                          <span className={`text-[10px] font-black ${status.color}`}>{status.label}</span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })
-              ) : (
-                <div className="text-center py-16 text-slate-400 font-black">سجل الطلبات فارغ</div>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="restaurants">
-            <RestaurantMenu />
-          </TabsContent>
-            </motion.div>
-          </AnimatePresence>
         </Tabs>
       </main>
 
-      {/* Order Details Dialog - Full width on Mobile */}
+      {/* Order Details Dialog */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-md w-[95vw] sm:w-full rounded-[2rem] sm:rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white z-[9999]" dir="rtl">
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-6 sm:p-8 text-white relative">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <DialogTitle className="text-2xl font-black mb-2">تفاصيل الطلب #{selectedOrderId}</DialogTitle>
-                {orderDetailsQuery.data && (
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-white/20 text-white border-none font-black px-3 py-1 rounded-lg backdrop-blur-md">
-                      {getStatusInfo(orderDetailsQuery.data.status).label}
-                    </Badge>
-                  </div>
-                )}
+        <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden rounded-[2.5rem] border-none shadow-2xl">
+          <div className="bg-orange-500 p-8 text-white relative">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute top-4 right-4 text-white hover:bg-white/20 rounded-full"
+              onClick={() => setIsDetailsOpen(false)}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="h-16 w-16 rounded-3xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+                <Package className="h-8 w-8 text-white" />
               </div>
-              {/* Custom Close Button - Professional Positioning */}
-              <button 
-                onClick={() => setIsDetailsOpen(false)} 
-                className="text-white hover:bg-white/20 rounded-2xl h-10 w-10 shrink-0 flex items-center justify-center transition-colors z-[10000]"
-                aria-label="Close"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            <div className="absolute -left-6 -bottom-6 opacity-10">
-              <Package className="h-32 w-32" />
+              <div>
+                <h2 className="text-2xl font-black">تفاصيل الطلب</h2>
+                <p className="text-orange-100 font-bold opacity-80">طلب رقم #{selectedOrderId}</p>
+              </div>
             </div>
           </div>
 
-          <div className="p-6 space-y-6">
+          <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto bg-white">
             {orderDetailsQuery.isLoading ? (
-              <div className="flex flex-col items-center justify-center py-12 gap-4">
-                <Loader2 className="h-10 w-10 text-orange-500 animate-spin" />
-                <p className="text-slate-400 font-bold">جاري تحميل البيانات...</p>
+              <div className="py-20 text-center">
+                <Loader2 className="h-10 w-10 text-orange-500 animate-spin mx-auto mb-4" />
+                <p className="text-slate-500 font-black">جاري تحميل التفاصيل...</p>
               </div>
             ) : orderDetailsQuery.data ? (
               <>
-                {/* Driver Info Section - Priority Visibility Fixed Logic */}
-                {orderDetailsQuery.data.driverId || orderDetailsQuery.data.driver ? (
-                  <div className="flex items-center justify-between p-4 bg-orange-50 border border-orange-100 rounded-[1.5rem] shadow-sm">
-                    <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-2xl bg-orange-500 flex items-center justify-center text-white font-black text-lg shadow-md">
-                        {(orderDetailsQuery.data.driver?.name || "كابتن").charAt(0)}
-                      </div>
-                      <div>
-                        <p className="text-sm font-black text-slate-900">{orderDetailsQuery.data.driver?.name || "كابتن وصلي"}</p>
-                        <p className="text-[10px] font-black text-orange-600">كابتن وصلي</p>
-                      </div>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-4">
+                    <div className="h-10 w-10 rounded-2xl bg-orange-50 flex items-center justify-center shrink-0">
+                      <MapPin className="h-5 w-5 text-orange-500" />
                     </div>
-                    <div className="flex gap-2">
-                      {orderDetailsQuery.data.driver?.phone && (
-                        <a href={`tel:${orderDetailsQuery.data.driver.phone}`} className="bg-white p-2.5 rounded-xl text-orange-500 shadow-sm border border-orange-100 hover:bg-orange-500 hover:text-white transition-all active:scale-90" title="اتصال">
-                          <Phone className="h-5 w-5" />
-                        </a>
-                      )}
-                      <div 
-                        onClick={() => { setIsDetailsOpen(false); handleOpenChat(selectedOrderId!); }}
-                        className="bg-white p-2.5 rounded-xl text-blue-500 shadow-sm border border-blue-100 hover:bg-blue-500 hover:text-white transition-all active:scale-90 cursor-pointer"
-                        title="دردشة"
-                      >
-                        <MessageCircle className="h-5 w-5" />
-                      </div>
-                      <Link href={`/customer/track/${selectedOrderId}`}>
-                        <div className="bg-white p-2.5 rounded-xl text-emerald-500 shadow-sm border border-emerald-100 hover:bg-emerald-500 hover:text-white transition-all active:scale-90 cursor-pointer" title="تتبع المندوب">
-                          <Map className="h-5 w-5" />
-                        </div>
-                      </Link>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-center">
-                    <p className="text-xs font-bold text-slate-400">جاري البحث عن كابتن لتوصيل طلبك...</p>
-                  </div>
-                )}
-
-                <div className="space-y-5 relative px-2">
-                  <div className="absolute right-[15px] top-3 bottom-3 w-0.5 bg-slate-100" />
-                  <div className="flex items-start gap-4 relative z-10">
-                    <div className="h-4 w-4 rounded-full border-4 border-white bg-slate-300 shadow-sm mt-1" />
                     <div>
-                      <p className="text-[9px] font-black text-slate-400 uppercase mb-0.5">نقطة الاستلام</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1">نقطة الاستلام:</p>
                       <p className="text-xs font-black text-slate-700 leading-snug">{orderDetailsQuery.data.pickupLocation?.address}</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-4 relative z-10">
-                    <div className="h-4 w-4 rounded-full border-4 border-white bg-orange-500 shadow-sm mt-1" />
+                  <div className="flex items-start gap-4">
+                    <div className="h-10 w-10 rounded-2xl bg-blue-50 flex items-center justify-center shrink-0">
+                      <Truck className="h-5 w-5 text-blue-500" />
+                    </div>
                     <div>
-                      <p className="text-[9px] font-black text-slate-400 uppercase mb-0.5">وجهة التوصيل</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1">نقطة التسليم:</p>
                       <p className="text-xs font-black text-slate-700 leading-snug">{orderDetailsQuery.data.deliveryLocation?.address}</p>
                     </div>
                   </div>
@@ -570,14 +487,23 @@ export default function CustomerDashboard() {
           <span className="text-[10px] font-black -translate-y-3">اطلب الآن</span>
         </Link>
 
-
-
-        <Link href="/customer/stats" className="flex flex-col items-center gap-1 text-slate-400">
-          <div className="p-2 rounded-2xl">
-            <BarChart3 className="h-6 w-6" />
+        <button 
+          onClick={() => {
+            setActiveTab("restaurants");
+            setIsExternalCartOpen(true);
+          }}
+          className={`flex flex-col items-center gap-1 transition-all relative ${isExternalCartOpen ? 'text-orange-600 scale-110' : 'text-slate-400'}`}
+        >
+          <div className={`p-2 rounded-2xl ${isExternalCartOpen ? 'bg-orange-100' : ''}`}>
+            <ShoppingCart className="h-6 w-6" />
+            {itemCount > 0 && (
+              <span className="absolute top-1 right-1 bg-orange-500 text-white text-[8px] font-black h-4 w-4 rounded-full flex items-center justify-center border-2 border-white">
+                {itemCount}
+              </span>
+            )}
           </div>
-          <span className="text-[10px] font-black">الإحصائيات</span>
-        </Link>
+          <span className="text-[10px] font-black">السلة</span>
+        </button>
 
         <Link href="/customer/profile" className="flex flex-col items-center gap-1 text-slate-400">
           <div className="p-2 rounded-2xl">

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ShoppingCart, Plus, Minus, X, MessageCircle, MapPin, Phone, Loader2, ChevronRight, Star, Clock, Coins, Gift, Truck, CheckCircle2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCart } from "@/contexts/CartContext";
 
 interface MenuItem {
   id: number;
@@ -338,165 +339,165 @@ const ROLL_WE_MENU: MenuItem[] = [
   },
   {
     "id": 1031,
-    "name": "كريب برجر عادي 🌯",
-    "category": "الكريب",
-    "price": 80
-  },
-  {
-    "id": 1032,
-    "name": "كريب برجر سوبر 🌯",
-    "category": "الكريب",
-    "price": 100
-  },
-  {
-    "id": 1033,
     "name": "كريب سجق عادي 🌯",
     "category": "الكريب",
     "price": 70
   },
   {
-    "id": 1034,
+    "id": 1032,
     "name": "كريب سجق سوبر 🌯",
     "category": "الكريب",
     "price": 90
   },
   {
-    "id": 1035,
-    "name": "كريب بطاطس عادي 🌯",
+    "id": 1033,
+    "name": "كريب شيش عادي 🌯",
     "category": "الكريب",
-    "price": 40
+    "price": 90
   },
   {
-    "id": 1036,
-    "name": "كريب بطاطس سوبر 🌯",
-    "category": "الكريب",
-    "price": 60
-  },
-  {
-    "id": 1037,
-    "name": "كريب زنجر عادي 🌯",
-    "category": "الكريب",
-    "price": 100
-  },
-  {
-    "id": 1038,
-    "name": "كريب زنجر سوبر 🌯",
-    "category": "الكريب",
-    "price": 120
-  },
-  {
-    "id": 1039,
-    "name": "كريب جبن عادي 🌯",
-    "category": "الكريب",
-    "price": 40
-  },
-  {
-    "id": 1040,
-    "name": "كريب جبن سوبر 🌯",
-    "category": "الكريب",
-    "price": 70
-  },
-  {
-    "id": 1041,
+    "id": 1034,
     "name": "كريب شيش سوبر 🌯",
     "category": "الكريب",
     "price": 110
   },
   {
-    "id": 1042,
-    "name": "وجبة كفتة 🍱",
-    "category": "الوجبات",
-    "price": 100
-  },
-  {
-    "id": 1043,
-    "name": "وجبة شيش 🍱",
-    "category": "الوجبات",
-    "price": 100
-  },
-  {
-    "id": 1044,
-    "name": "وجبة ميكس 🍱",
-    "category": "الوجبات",
-    "price": 150
-  },
-  {
-    "id": 1045,
-    "name": "استربس بانيه 🥗",
-    "category": "الميكسات",
-    "price": 100
-  },
-  {
-    "id": 1046,
-    "name": "استربس بطاطس 🥗",
-    "category": "الميكسات",
-    "price": 100
-  },
-  {
-    "id": 1047,
-    "name": "استربس شيش 🥗",
-    "category": "الميكسات",
-    "price": 120
-  },
-  {
-    "id": 1048,
-    "name": "بانيه بطاطس 🥗",
-    "category": "الميكسات",
+    "id": 1035,
+    "name": "كريب برجر عادي 🌯",
+    "category": "الكريب",
     "price": 70
   },
   {
-    "id": 1049,
-    "name": "شيش بطاطس 🥗",
-    "category": "الميكسات",
+    "id": 1036,
+    "name": "كريب برجر سوبر 🌯",
+    "category": "الكريب",
+    "price": 90
+  },
+  {
+    "id": 1037,
+    "name": "كريب بطاطس عادي 🌯",
+    "category": "الكريب",
+    "price": 40
+  },
+  {
+    "id": 1038,
+    "name": "كريب بطاطس سوبر 🌯",
+    "category": "الكريب",
+    "price": 60
+  },
+  {
+    "id": 1039,
+    "name": "كريب مكس فراخ عادي 🌯",
+    "category": "الكريب",
+    "price": 90
+  },
+  {
+    "id": 1040,
+    "name": "كريب مكس فراخ سوبر 🌯",
+    "category": "الكريب",
     "price": 110
   },
   {
-    "id": 1050,
-    "name": "شيش شاورما 🥗",
-    "category": "الميكسات",
-    "price": 120
+    "id": 1041,
+    "name": "كريب مكس لحوم عادي 🌯",
+    "category": "الكريب",
+    "price": 90
   },
   {
-    "id": 1051,
-    "name": "شيش برجر 🥗",
-    "category": "الميكسات",
-    "price": 100
+    "id": 1042,
+    "name": "كريب مكس لحوم سوبر 🌯",
+    "category": "الكريب",
+    "price": 110
   },
   {
-    "id": 1052,
-    "name": "نجرسكو فراخ ع الفحم 🍝",
-    "category": "المكرونات",
-    "price": 70
+    "id": 1043,
+    "name": "كريب مكس جبن عادي 🌯",
+    "category": "الكريب",
+    "price": 60
   },
   {
-    "id": 1053,
-    "name": "نجرسكو فراخ ع الفحم ك 🍝",
-    "category": "المكرونات",
+    "id": 1044,
+    "name": "كريب مكس جبن سوبر 🌯",
+    "category": "الكريب",
     "price": 80
   },
   {
+    "id": 1045,
+    "name": "كريب شاورما فراخ عادي 🌯",
+    "category": "الكريب",
+    "price": 80
+  },
+  {
+    "id": 1046,
+    "name": "كريب شاورما فراخ سوبر 🌯",
+    "category": "الكريب",
+    "price": 110
+  },
+  {
+    "id": 1047,
+    "name": "كريب زنجر عادي 🌯",
+    "category": "الكريب",
+    "price": 90
+  },
+  {
+    "id": 1048,
+    "name": "كريب زنجر سوبر 🌯",
+    "category": "الكريب",
+    "price": 110
+  },
+  {
+    "id": 1049,
+    "name": "كريب كرانشي عادي 🌯",
+    "category": "الكريب",
+    "price": 90
+  },
+  {
+    "id": 1050,
+    "name": "كريب كرانشي سوبر 🌯",
+    "category": "الكريب",
+    "price": 110
+  },
+  {
+    "id": 1051,
+    "name": "كريب فراخ رانش عادي 🌯",
+    "category": "الكريب",
+    "price": 90
+  },
+  {
+    "id": 1052,
+    "name": "كريب فراخ رانش سوبر 🌯",
+    "category": "الكريب",
+    "price": 110
+  },
+  {
+    "id": 1053,
+    "name": "كريب فراخ باربيكيو عادي 🌯",
+    "category": "الكريب",
+    "price": 90
+  },
+  {
     "id": 1054,
-    "name": "نجرسكو لحوم 🍝",
-    "category": "المكرونات",
-    "price": 70
+    "name": "كريب فراخ باربيكيو سوبر 🌯",
+    "category": "الكريب",
+    "price": 110
   },
   {
     "id": 1055,
-    "name": "نجرسكو جبن 🍝",
-    "category": "المكرونات",
-    "price": 50
+    "name": "فرخة مشوية 🍗",
+    "category": "المشاوي",
+    "price": 320
   },
   {
     "id": 1056,
-    "name": "فرخة مشوية كاملة 🍗",
+    "name": "نص فرخة مشوية 🍗",
     "category": "المشاوي",
-    "price": 380
+    "price": 170
   },
   {
     "id": 1057,
-    "name": "نص فرخة 🍗",
+    "name": "نص فرخة شيش 🍗",
     "category": "المشاوي",
-    "price": 190
+    "price": 180
   },
   {
     "id": 1058,
@@ -593,10 +594,15 @@ const MENUS: Record<number, MenuItem[]> = {
   3: AL_HOUT_MENU,
 };
 
-export function RestaurantMenu() {
+interface RestaurantMenuProps {
+  isExternalCartOpen?: boolean;
+  onExternalCartClose?: () => void;
+}
+
+export function RestaurantMenu({ isExternalCartOpen, onExternalCartClose }: RestaurantMenuProps) {
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const { cart, addToCart, updateQuantity, clearCart, totalPrice, itemCount } = useCart();
   const [isCartExpanded, setIsCartExpanded] = useState(false);
   const [customerNotes, setCustomerNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -612,30 +618,17 @@ export function RestaurantMenu() {
   const createRestaurantOrderMutation = trpc.orders.createRestaurantOrder.useMutation();
   const validateCouponMutation = trpc.coupons.validate.useMutation();
 
-  const addToCart = (item: MenuItem) => {
-    setCart((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
-      if (existing) {
-        return prev.map((i) => (i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i));
-      }
-      return [...prev, { ...item, quantity: 1 }];
-    });
-    toast.success(`تم إضافة ${item.name} للسلة`);
-  };
+  useEffect(() => {
+    if (isExternalCartOpen) {
+      setIsCartExpanded(true);
+    }
+  }, [isExternalCartOpen]);
 
-  const updateQuantity = (id: number, delta: number) => {
-    setCart((prev) => {
-      return prev
-        .map((item) => {
-          if (item.id === id) {
-            const newQty = Math.max(0, item.quantity + delta);
-            return { ...item, quantity: newQty };
-          }
-          return item;
-        })
-        .filter((item) => item.quantity > 0);
-    });
-  };
+  useEffect(() => {
+    if (!isCartExpanded && onExternalCartClose) {
+      onExternalCartClose();
+    }
+  }, [isCartExpanded, onExternalCartClose]);
 
   useEffect(() => {
     if (selectedRestaurant) {
@@ -646,7 +639,6 @@ export function RestaurantMenu() {
     }
   }, [selectedRestaurant]);
 
-  const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountAmount = appliedCoupon ? (appliedCoupon.discountType === 'fixed' ? appliedCoupon.discountValue : Math.min(totalPrice * (appliedCoupon.discountValue / 100), appliedCoupon.maxDiscount || Infinity)) : 0;
   const finalTotalPrice = Math.max(0, totalPrice - discountAmount);
   
@@ -766,7 +758,7 @@ export function RestaurantMenu() {
       });
 
       toast.success("تم إرسال الطلب للمطعم وتم إنشاء طلب توصيل تلقائي!");
-      setCart([]);
+      clearCart();
       setCustomerNotes("");
       setAddressDescription("");
       setIsCartExpanded(false);
@@ -785,118 +777,101 @@ export function RestaurantMenu() {
 
   if (!selectedRestaurant) {
     return (
-      <div className="flex gap-4 overflow-x-auto pb-6 no-scrollbar snap-x">
-        {RESTAURANTS.map((restaurant) => (
-          <motion.div
-            key={restaurant.id}
-            whileHover={{ y: -5 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-w-[280px] snap-center"
-          >
-          <Card 
-            className="overflow-hidden border-none shadow-lg hover:shadow-xl transition-all rounded-[2rem] bg-white group cursor-pointer h-full"
-            onClick={() => setSelectedRestaurant(restaurant)}
-          >
-            <div className="h-32 w-full relative overflow-hidden">
-              <img 
-                src={restaurant.coverUrl} 
-                alt={restaurant.name} 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-              <div className="absolute bottom-2 right-2 flex items-center gap-1.5">
-                <div className="bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
-                  <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500" />
-                  <span className="text-[10px] font-black text-slate-800">{restaurant.rating}</span>
+      <div className="flex flex-col gap-6">
+        <div className="grid grid-cols-1 gap-6">
+          {RESTAURANTS.map((restaurant) => (
+            <motion.div
+              key={restaurant.id}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setSelectedRestaurant(restaurant)}
+              className="cursor-pointer"
+            >
+              <Card className="overflow-hidden border-none shadow-lg rounded-[2rem] bg-white group">
+                <div className="relative h-48 overflow-hidden">
+                  <img 
+                    src={restaurant.coverUrl} 
+                    alt={restaurant.name} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className="absolute bottom-4 right-4 flex items-center gap-3">
+                    <div className="h-14 w-14 rounded-2xl bg-white p-1 shadow-xl">
+                      <img src={restaurant.logoUrl} alt={restaurant.name} className="w-full h-full object-contain rounded-xl" />
+                    </div>
+                    <div>
+                      <h3 className="text-white font-black text-xl">{restaurant.name}</h3>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 bg-orange-500 px-2 py-0.5 rounded-lg">
+                          <Star className="h-3 w-3 text-white fill-white" />
+                          <span className="text-white text-[10px] font-black">{restaurant.rating}</span>
+                        </div>
+                        <span className="text-white/80 text-[10px] font-bold flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {restaurant.deliveryTime}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
-                  <Clock className="h-2.5 w-2.5 text-orange-500" />
-                  <span className="text-[10px] font-black text-slate-800">{restaurant.deliveryTime}</span>
-                </div>
-              </div>
-            </div>
-            <CardContent className="p-3 relative">
-              <div className="absolute -top-8 right-3 h-12 w-12 rounded-xl bg-white p-1 shadow-lg border border-slate-50 overflow-hidden">
-                <img src={restaurant.logoUrl} alt="Logo" className="w-full h-full object-contain rounded-lg" />
-              </div>
-              <div className="pt-2">
-                <h3 className="text-lg font-black text-slate-800 mb-0.5 group-hover:text-orange-600 transition-colors">{restaurant.name}</h3>
-                <p className="text-slate-500 text-[11px] font-medium line-clamp-1 mb-2">{restaurant.description}</p>
-                <div className="flex items-center gap-1.5 text-slate-400">
-                  <MapPin className="h-3 w-3" />
-                  <span className="text-[10px] font-bold line-clamp-1">{restaurant.address}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          </motion.div>
-        ))}
+                <CardContent className="p-4">
+                  <p className="text-slate-500 text-xs font-medium line-clamp-1 mb-3">{restaurant.description}</p>
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <MapPin className="h-3 w-3 text-orange-500" />
+                    <span className="text-[10px] font-bold truncate">{restaurant.address}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
       </div>
     );
   }
 
-  const currentMenu = MENUS[selectedRestaurant.id] || [];
-  const categories = Array.from(new Set(currentMenu.map((item) => item.category)));
-  const filteredMenu = currentMenu.filter((item) => item.category === selectedCategory);
+  const menu = MENUS[selectedRestaurant.id] || [];
+  const categories = Array.from(new Set(menu.map((item) => item.category)));
+  const filteredMenu = menu.filter((item) => item.category === selectedCategory);
 
   return (
-    <div className="space-y-6 pb-32" dir="rtl">
-      <Button 
-        variant="ghost" 
-        onClick={() => setSelectedRestaurant(null)}
-        className="mb-4 font-black text-slate-600 hover:text-orange-600 transition-all bg-white shadow-sm border border-slate-200 rounded-2xl px-6 py-6"
-      >
-        <ChevronRight className="h-6 w-6 ml-2" /> 
-        <div className="flex flex-col items-start">
-          <span className="text-lg">عودة</span>
-          <span className="text-[10px] text-slate-400">قائمة المطاعم</span>
-        </div>
-      </Button>
-
-      <div className="relative rounded-2xl overflow-hidden shadow-xl mb-6 group">
-        <div className="h-48 w-full relative">
-          {selectedRestaurant.id === 3 ? (
-            <motion.img 
-              src={selectedRestaurant.coverUrl} 
-              alt="Restaurant Cover" 
-              className="w-full h-full object-cover brightness-110"
-              animate={{ 
-                scale: [1, 1.1, 1],
-                x: [0, 10, -10, 0],
-                y: [0, -5, 5, 0]
-              }}
-              transition={{ 
-                duration: 20, 
-                repeat: Infinity, 
-                ease: "easeInOut" 
-              }}
-            />
-          ) : (
-            <img 
-              src={selectedRestaurant.coverUrl} 
-              alt="Restaurant Cover" 
-              className="w-full h-full object-cover brightness-100 group-hover:scale-105 transition-transform duration-700"
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
-        </div>
-
-        <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end gap-4">
-          <div className="h-20 w-20 rounded-2xl bg-white p-1.5 shadow-2xl flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-orange-400 z-20 transform -translate-y-2">
-             <img 
-              src={selectedRestaurant.logoUrl} 
-              alt="Logo" 
-              className="w-full h-full object-contain rounded-lg"
-            />
-          </div>
-          <div className="flex-1 pb-2 text-white z-20">
-            <h1 className="text-2xl font-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{selectedRestaurant.name}</h1>
-          </div>
-        </div>
+    <div className="space-y-6 pb-20">
+      <div className="relative -mx-4 -mt-6 h-64 overflow-hidden">
+        <img src={selectedRestaurant.coverUrl} alt={selectedRestaurant.name} className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#F1F3F6] via-black/20 to-transparent" />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-4 right-4 bg-white/20 backdrop-blur-md text-white hover:bg-white/40 rounded-2xl"
+          onClick={() => setSelectedRestaurant(null)}
+        >
+          <ChevronRight className="h-6 w-6" />
+        </Button>
       </div>
 
-      <div className="px-2 mb-4">
-        <p className="text-sm text-gray-600 font-medium leading-relaxed border-r-4 border-orange-500 pr-3">
+      <div className="relative z-10 -mt-20 bg-white rounded-[2.5rem] p-6 shadow-xl shadow-slate-200/50 border border-white">
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h2 className="text-3xl font-black text-slate-900 mb-2">{selectedRestaurant.name}</h2>
+            <div className="flex flex-wrap gap-3">
+              <Badge className="bg-orange-50 text-orange-600 border-none font-black px-3 py-1 rounded-xl flex items-center gap-1">
+                <Star className="h-3 w-3 fill-orange-600" />
+                {selectedRestaurant.rating}
+              </Badge>
+              <Badge className="bg-slate-50 text-slate-600 border-none font-black px-3 py-1 rounded-xl flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {selectedRestaurant.deliveryTime}
+              </Badge>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <a href={`tel:${selectedRestaurant.phone}`}>
+              <Button size="icon" className="rounded-2xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-none shadow-none">
+                <Phone className="h-5 w-5" />
+              </Button>
+            </a>
+          </div>
+        </div>
+        <p className="text-slate-500 text-sm font-medium leading-relaxed">
           {selectedRestaurant.description}
         </p>
       </div>
@@ -959,7 +934,7 @@ export function RestaurantMenu() {
         </AnimatePresence>
       </div>
 
-      {cart.length > 0 && (
+      {cart.length > 0 && !isExternalCartOpen && (
         <div className="fixed bottom-0 left-0 right-0 z-40 p-4 pointer-events-none">
           <Card className={`max-w-2xl mx-auto border-none shadow-2xl bg-slate-900 text-white rounded-3xl overflow-hidden relative transition-all duration-300 pointer-events-auto ${isCartExpanded ? 'h-auto' : 'h-20'}`}>
             {!isCartExpanded ? (
@@ -970,7 +945,7 @@ export function RestaurantMenu() {
                 <div className="flex items-center gap-4">
                   <div className="relative">
                     <div className="bg-orange-500 text-white text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center absolute -top-2 -right-2 border-2 border-slate-900">
-                      {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                      {itemCount}
                     </div>
                     <motion.div
                       animate={cart.length > 0 ? { 
@@ -1001,7 +976,7 @@ export function RestaurantMenu() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 rounded-full bg-slate-800 text-white hover:bg-slate-700"
-                      onClick={() => setCart([])}
+                      onClick={() => clearCart()}
                     >
                       <X className="h-4 w-4" />
                     </Button>
