@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { MapPin, Plus, User, Truck, Clock, X, Phone, ChevronRight, Package, MessageCircle, BarChart3, Zap, Timer, ChevronLeft, Info, Loader2, Sparkles, Map } from "lucide-react";
+import { MapPin, Plus, User, Truck, Clock, X, Phone, ChevronRight, Package, MessageCircle, BarChart3, Zap, Timer, ChevronLeft, Info, Loader2, Sparkles, Map, ShoppingCart } from "lucide-react";
 import { CountdownTimer } from "@/components/customer/CountdownTimer";
 import { RestaurantMenu } from "@/components/customer/RestaurantMenu";
 import { Link, useLocation } from "wouter";
@@ -55,6 +55,7 @@ export default function CustomerDashboard() {
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isExternalCartOpen, setIsExternalCartOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -403,7 +404,10 @@ export default function CustomerDashboard() {
           </TabsContent>
 
           <TabsContent value="restaurants">
-            <RestaurantMenu />
+            <RestaurantMenu 
+              isExternalCartOpen={isExternalCartOpen} 
+              onExternalCartClose={() => setIsExternalCartOpen(false)} 
+            />
           </TabsContent>
             </motion.div>
           </AnimatePresence>
@@ -571,6 +575,19 @@ export default function CustomerDashboard() {
         </Link>
 
 
+
+        <button 
+          onClick={() => {
+            setActiveTab("restaurants");
+            setIsExternalCartOpen(true);
+          }}
+          className={`flex flex-col items-center gap-1 transition-all ${isExternalCartOpen ? 'text-orange-600' : 'text-slate-400'}`}
+        >
+          <div className={`p-2 rounded-2xl ${isExternalCartOpen ? 'bg-orange-100' : ''}`}>
+            <ShoppingCart className="h-6 w-6" />
+          </div>
+          <span className="text-[10px] font-black">السلة</span>
+        </button>
 
         <Link href="/customer/stats" className="flex flex-col items-center gap-1 text-slate-400">
           <div className="p-2 rounded-2xl">
