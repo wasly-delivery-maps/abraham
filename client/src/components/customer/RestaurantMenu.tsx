@@ -593,11 +593,28 @@ const MENUS: Record<number, MenuItem[]> = {
   3: AL_HOUT_MENU,
 };
 
-export function RestaurantMenu() {
+interface RestaurantMenuProps {
+  isExternalCartOpen?: boolean;
+  onExternalCartClose?: () => void;
+}
+
+export function RestaurantMenu({ isExternalCartOpen, onExternalCartClose }: RestaurantMenuProps) {
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartExpanded, setIsCartExpanded] = useState(false);
+
+  useEffect(() => {
+    if (isExternalCartOpen) {
+      setIsCartExpanded(true);
+    }
+  }, [isExternalCartOpen]);
+
+  useEffect(() => {
+    if (!isCartExpanded && onExternalCartClose) {
+      onExternalCartClose();
+    }
+  }, [isCartExpanded, onExternalCartClose]);
   const [customerNotes, setCustomerNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
