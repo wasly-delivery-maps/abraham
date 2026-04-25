@@ -708,8 +708,23 @@ export default function CustomerDashboard() {
           <div className="p-3 bg-slate-900 text-white rounded-2xl shadow-lg shadow-slate-200 -translate-y-4 border-4 border-[#F1F3F6]">
             <Plus className="h-6 w-6" />
           </div>
-          <span className="text-[10px] font-black -translate-y-3">طلب مندوب</span>
+          <span className="text-[10px] font-black -translate-y-3">اطلب الآن</span>
         </Link>
+
+        <button 
+          onClick={() => setIsCartOpen(true)}
+          className={`flex flex-col items-center gap-1 transition-all ${itemCount > 0 ? 'text-orange-600' : 'text-slate-400'}`}
+        >
+          <div className={`p-2 rounded-2xl relative ${itemCount > 0 ? 'bg-orange-100' : ''}`}>
+            <ShoppingCart className="h-6 w-6" />
+            {itemCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-4 w-4 bg-rose-500 text-white text-[8px] font-black rounded-full flex items-center justify-center border border-white">
+                {itemCount}
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] font-black">السلة</span>
+        </button>
 
         <Link href="/customer/stats" className="flex flex-col items-center gap-1 text-slate-400">
           <div className="p-2 rounded-2xl">
