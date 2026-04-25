@@ -17,6 +17,30 @@ L.Icon.Default.mergeOptions({
 
 const OBUR_CENTER: [number, number] = [30.2350, 31.4650]; // مدينة العبور
 
+// قاعدة بيانات محلية لأشهر معالم وأحياء العبور لضمان سرعة ودقة البحث
+const OBUR_LANDMARKS = [
+  { name: "الحي الأول - العبور", lat: 30.2350, lon: 31.4650 },
+  { name: "الحي الثاني - العبور", lat: 30.2380, lon: 31.4750 },
+  { name: "الحي الثالث - العبور", lat: 30.2450, lon: 31.4850 },
+  { name: "الحي الرابع - العبور", lat: 30.2550, lon: 31.4750 },
+  { name: "الحي الخامس - العبور", lat: 30.2650, lon: 31.4650 },
+  { name: "الحي السادس - العبور", lat: 30.2750, lon: 31.4550 },
+  { name: "الحي السابع - العبور", lat: 30.2850, lon: 31.4450 },
+  { name: "الحي الثامن - العبور", lat: 30.2950, lon: 31.4350 },
+  { name: "الحي التاسع - العبور", lat: 30.2550, lon: 31.4450 },
+  { name: "سنتر الحجاز - العبور", lat: 30.2385, lon: 31.4680 },
+  { name: "سنتر الياسمين - العبور", lat: 30.2420, lon: 31.4720 },
+  { name: "سنتر الوجدي - العبور", lat: 30.2360, lon: 31.4620 },
+  { name: "إسكان الشباب - العبور", lat: 30.2520, lon: 31.4880 },
+  { name: "العبور الجديدة - حي المجد", lat: 30.2767, lon: 31.5299 },
+  { name: "مول ريتاج - العبور الجديدة", lat: 30.2765, lon: 31.5305 },
+  { name: "كارفور العبور", lat: 30.2150, lon: 31.4450 },
+  { name: "جولف سيتي - العبور", lat: 30.2120, lon: 31.4420 },
+  { name: "جامعة بنها - فرع العبور", lat: 30.2680, lon: 31.4520 },
+  { name: "مستشفى عين شمس التخصصي - العبور", lat: 30.2450, lon: 31.4550 },
+  { name: "سوق العبور", lat: 30.1850, lon: 31.4650 },
+];
+
 interface MapPickerProps {
   onLocationSelect: (location: { address: string; latitude: number; longitude: number }) => void;
   initialLocation?: { latitude: number; longitude: number };
@@ -91,35 +115,40 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     setIsSearching(true);
     searchTimeoutRef.current = setTimeout(async () => {
       try {
+        // 1. البحث أولاً في قاعدة البيانات المحلية (العبور)
+        const localMatches = OBUR_LANDMARKS.filter(landmark => 
+          landmark.name.includes(query) || query.includes(landmark.name.split(' ')[0])
+        ).map(m => ({
+          lat: m.lat,
+          lon: m.lon,
+          display_name: m.name,
+          type: 'local'
+        }));
+
         let cleanQuery = query;
-        
-        // إذا لم يكتب المستخدم "العبور"، نضيفها تلقائياً لتركيز البحث
         if (!cleanQuery.includes('العبور')) {
           cleanQuery = `${cleanQuery} العبور القليوبية مصر`;
         }
 
-        if (query.includes('،') || query.includes(',')) {
-          const parts = query.split(/[،,]/);
-          cleanQuery = parts.slice(0, 2).join(' ');
-        }
-
-        // استخدام viewbox لتركيز البحث جغرافياً على منطقة العبور
+        // 2. البحث في الخريطة العالمية
         const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cleanQuery)}&limit=10&accept-language=ar&viewbox=31.35,30.35,31.60,30.15&bounded=1`;
         const response = await fetch(searchUrl);
         const data = await response.json();
         
+        let globalResults: SearchResult[] = [];
         if (data && Array.isArray(data)) {
-          const results = data.map((item: any) => ({
+          globalResults = data.map((item: any) => ({
             lat: parseFloat(item.lat),
             lon: parseFloat(item.lon),
             display_name: item.display_name,
             type: item.type || item.class,
           }));
-          setSearchResults(results);
-          setShowResults(true);
-        } else {
-          setSearchResults([]);
         }
+
+        // دمج النتائج مع إعطاء الأولوية للمحلية
+        const combinedResults = [...localMatches, ...globalResults];
+        setSearchResults(combinedResults);
+        setShowResults(combinedResults.length > 0);
       } catch (error) {
         console.error('Search error:', error);
         setSearchResults([]);
