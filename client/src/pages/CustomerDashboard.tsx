@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { MapPin, Plus, User, Truck, Clock, X, Phone, ChevronRight, Package, MessageCircle, BarChart3, Zap, Timer, ChevronLeft, Info, Loader2, Sparkles, Map, ShoppingCart } from "lucide-react";
+import { MapPin, Plus, User, Truck, Clock, X, Phone, ChevronRight, Package, MessageCircle, BarChart3, Zap, Timer, ChevronLeft, Info, Loader2, Sparkles, Map } from "lucide-react";
 import { CountdownTimer } from "@/components/customer/CountdownTimer";
 import { RestaurantMenu } from "@/components/customer/RestaurantMenu";
 import { Link, useLocation } from "wouter";
@@ -15,7 +15,6 @@ import MapPicker from "@/components/MapPicker";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { useCart } from "@/contexts/CartContext";
 
 // Cancel Order Button Component
 function CancelOrderButton({ orderId, onSuccess }: { orderId: number; onSuccess: () => void }) {
@@ -56,7 +55,6 @@ export default function CustomerDashboard() {
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isExternalCartOpen, setIsExternalCartOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -66,7 +64,6 @@ export default function CustomerDashboard() {
     return "restaurants";
   });
   const { unreadCounts } = useChatContext();
-  const { itemCount } = useCart();
 
 
   const ordersQuery = trpc.orders.getCustomerOrders.useQuery(undefined, {
@@ -406,10 +403,7 @@ export default function CustomerDashboard() {
           </TabsContent>
 
           <TabsContent value="restaurants">
-            <RestaurantMenu 
-              isExternalCartOpen={isExternalCartOpen} 
-              onExternalCartClose={() => setIsExternalCartOpen(false)} 
-            />
+            <RestaurantMenu />
           </TabsContent>
             </motion.div>
           </AnimatePresence>
@@ -577,24 +571,6 @@ export default function CustomerDashboard() {
         </Link>
 
 
-
-        <button 
-          onClick={() => {
-            setActiveTab("restaurants");
-            setIsExternalCartOpen(true);
-          }}
-          className={`flex flex-col items-center gap-1 transition-all relative ${itemCount > 0 ? 'text-orange-600' : 'text-slate-400'}`}
-        >
-          <div className={`p-2 rounded-2xl ${itemCount > 0 ? 'bg-orange-100' : ''}`}>
-            <ShoppingCart className="h-6 w-6" />
-            {itemCount > 0 && (
-              <span className="absolute top-1 right-1 bg-orange-500 text-white text-[8px] font-black h-4 w-4 rounded-full flex items-center justify-center border-2 border-white">
-                {itemCount}
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] font-black">السلة</span>
-        </button>
 
         <Link href="/customer/stats" className="flex flex-col items-center gap-1 text-slate-400">
           <div className="p-2 rounded-2xl">
