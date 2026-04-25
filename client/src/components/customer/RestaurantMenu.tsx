@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ShoppingCart, Plus, Minus, X, MessageCircle, MapPin, Phone, Loader2, ChevronRight, Star, Clock, Coins, Gift, Truck, CheckCircle2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCart } from "@/contexts/CartContext";
 
 interface MenuItem {
   id: number;
@@ -596,46 +597,16 @@ const MENUS: Record<number, MenuItem[]> = {
 export function RestaurantMenu() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [isCartExpanded, setIsCartExpanded] = useState(false);
+  const { cart, addToCart, updateQuantity } = useCart();
   const [customerNotes, setCustomerNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
-  const [addressDescription, setAddressDescription] = useState("");
-  const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [showGiftAlert, setShowGiftAlert] = useState(false);
   const [usePoints, setUsePoints] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
-  const createRestaurantOrderMutation = trpc.orders.createRestaurantOrder.useMutation();
   const validateCouponMutation = trpc.coupons.validate.useMutation();
-
-  const addToCart = (item: MenuItem) => {
-    setCart((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
-      if (existing) {
-        return prev.map((i) => (i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i));
-      }
-      return [...prev, { ...item, quantity: 1 }];
-    });
-    toast.success(`تم إضافة ${item.name} للسلة`);
-  };
-
-  const updateQuantity = (id: number, delta: number) => {
-    setCart((prev) => {
-      return prev
-        .map((item) => {
-          if (item.id === id) {
-            const newQty = Math.max(0, item.quantity + delta);
-            return { ...item, quantity: newQty };
-          }
-          return item;
-        })
-        .filter((item) => item.quantity > 0);
-    });
-  };
 
   useEffect(() => {
     if (selectedRestaurant) {
@@ -1160,6 +1131,9 @@ export function RestaurantMenu() {
           </Card>
         </div>
       )}
+    </div>
+  );
+}
     </div>
   );
 }
