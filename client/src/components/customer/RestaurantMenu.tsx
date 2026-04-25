@@ -977,8 +977,8 @@ export function RestaurantMenu({ isExternalCartOpen, onExternalCartClose }: Rest
       </div>
 
       {cart.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 p-4 pointer-events-none">
-          <Card className={`max-w-2xl mx-auto border-none shadow-2xl bg-slate-900 text-white rounded-3xl overflow-hidden relative transition-all duration-300 pointer-events-auto ${isCartExpanded ? 'h-auto' : 'h-20'}`}>
+        <div className={`fixed left-0 right-0 p-4 pointer-events-none transition-all duration-300 ${isCartExpanded ? 'bottom-0 z-[200]' : 'bottom-24 z-[110]'}`}>
+          <Card className={`max-w-2xl mx-auto border-none shadow-2xl bg-slate-900 text-white rounded-3xl overflow-hidden relative transition-all duration-300 pointer-events-auto ${isCartExpanded ? 'h-auto max-h-[85vh] overflow-y-auto mb-4' : 'h-20'}`}>
             {!isCartExpanded ? (
               <div 
                 className="h-20 flex items-center justify-between px-6 cursor-pointer hover:bg-slate-800 transition-colors"
