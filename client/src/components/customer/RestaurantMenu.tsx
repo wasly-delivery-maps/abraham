@@ -976,39 +976,11 @@ export function RestaurantMenu({ isExternalCartOpen, onExternalCartClose }: Rest
         </AnimatePresence>
       </div>
 
-      {cart.length > 0 && (
-        <div className={`fixed left-0 right-0 p-4 pointer-events-none transition-all duration-300 ${isCartExpanded ? 'bottom-0 z-[200]' : 'bottom-24 z-[110]'}`}>
-          <Card className={`max-w-2xl mx-auto border-none shadow-2xl bg-slate-900 text-white rounded-3xl overflow-hidden relative transition-all duration-300 pointer-events-auto ${isCartExpanded ? 'h-auto' : 'h-20'}`}>
-            {!isCartExpanded ? (
-              <div 
-                className="h-20 flex items-center justify-between px-6 cursor-pointer hover:bg-slate-800 transition-colors"
-                onClick={() => setIsCartExpanded(true)}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <div className="bg-orange-500 text-white text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center absolute -top-2 -right-2 border-2 border-slate-900">
-                      {cart.reduce((sum, item) => sum + item.quantity, 0)}
-                    </div>
-                    <motion.div
-                      animate={cart.length > 0 ? { 
-                        scale: [1, 1.3, 1],
-                        rotate: [0, -10, 10, 0]
-                      } : {}}
-                      transition={{ duration: 0.4 }}
-                      key={cart.length}
-                    >
-                      <ShoppingCart className="h-6 w-6 text-orange-500" />
-                    </motion.div>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-400">سلتك الحالية</p>
-                    <p className="text-lg font-black text-white">ج.م {totalPrice}</p>
-                  </div>
-                </div>
-                <Button className="bg-orange-500 hover:bg-orange-600 text-white font-black rounded-xl px-6">
-                  عرض السلة
-                </Button>
-              </div>
+      {cart.length > 0 && isCartExpanded && (
+        <div className="fixed inset-0 z-[200] p-4 pointer-events-none flex items-end justify-center bg-black/20 backdrop-blur-sm">
+          <Card className="w-full max-w-2xl border-none shadow-2xl bg-slate-900 text-white rounded-3xl overflow-hidden relative pointer-events-auto h-auto max-h-[90vh] overflow-y-auto">
+            {false ? (
+              <div />
             ) : (
               <CardContent className="p-0">
                 <div className="flex items-center justify-between p-4 border-b border-slate-800">
