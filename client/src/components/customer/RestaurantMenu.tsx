@@ -593,11 +593,28 @@ const MENUS: Record<number, MenuItem[]> = {
   3: AL_HOUT_MENU,
 };
 
-export function RestaurantMenu() {
+interface RestaurantMenuProps {
+  isExternalCartOpen?: boolean;
+  onExternalCartClose?: () => void;
+}
+
+export function RestaurantMenu({ isExternalCartOpen, onExternalCartClose }: RestaurantMenuProps) {
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartExpanded, setIsCartExpanded] = useState(false);
+
+  useEffect(() => {
+    if (isExternalCartOpen) {
+      setIsCartExpanded(true);
+    }
+  }, [isExternalCartOpen]);
+
+  useEffect(() => {
+    if (!isCartExpanded && onExternalCartClose) {
+      onExternalCartClose();
+    }
+  }, [isCartExpanded, onExternalCartClose]);
   const [customerNotes, setCustomerNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
@@ -960,7 +977,7 @@ export function RestaurantMenu() {
       </div>
 
       {cart.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 p-4 pointer-events-none">
+        <div className={`fixed left-0 right-0 p-4 pointer-events-none transition-all duration-300 ${isCartExpanded ? 'bottom-0 z-[200]' : 'bottom-24 z-[110]'}`}>
           <Card className={`max-w-2xl mx-auto border-none shadow-2xl bg-slate-900 text-white rounded-3xl overflow-hidden relative transition-all duration-300 pointer-events-auto ${isCartExpanded ? 'h-auto' : 'h-20'}`}>
             {!isCartExpanded ? (
               <div 
