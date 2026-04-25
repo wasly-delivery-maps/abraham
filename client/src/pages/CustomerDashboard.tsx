@@ -576,18 +576,7 @@ export default function CustomerDashboard() {
 
 
 
-        <button 
-          onClick={() => {
-            setActiveTab("restaurants");
-            setIsExternalCartOpen(true);
-          }}
-          className={`flex flex-col items-center gap-1 transition-all ${isExternalCartOpen ? 'text-orange-600' : 'text-slate-400'}`}
-        >
-          <div className={`p-2 rounded-2xl ${isExternalCartOpen ? 'bg-orange-100' : ''}`}>
-            <ShoppingCart className="h-6 w-6" />
-          </div>
-          <span className="text-[10px] font-black">السلة</span>
-        </button>
+
 
         <Link href="/customer/stats" className="flex flex-col items-center gap-1 text-slate-400">
           <div className="p-2 rounded-2xl">
