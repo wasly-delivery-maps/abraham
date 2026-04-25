@@ -844,9 +844,13 @@ export function RestaurantMenu() {
       <Button 
         variant="ghost" 
         onClick={() => setSelectedRestaurant(null)}
-        className="mb-2 font-bold text-slate-600 hover:text-orange-600 transition-colors"
+        className="mb-4 font-black text-slate-600 hover:text-orange-600 transition-all bg-white shadow-sm border border-slate-200 rounded-2xl px-6 py-6"
       >
-        <ChevronRight className="h-5 w-5 ml-1" /> العودة للمطاعم
+        <ChevronRight className="h-6 w-6 ml-2" /> 
+        <div className="flex flex-col items-start">
+          <span className="text-lg">عودة</span>
+          <span className="text-[10px] text-slate-400">قائمة المطاعم</span>
+        </div>
       </Button>
 
       <div className="relative rounded-2xl overflow-hidden shadow-xl mb-6 group">

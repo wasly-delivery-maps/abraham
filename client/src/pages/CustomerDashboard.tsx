@@ -126,9 +126,9 @@ export default function CustomerDashboard() {
   const otherUserName = selectedOrder?.driver?.name || "السائق";
 
   return (
-    <div className="min-h-screen bg-[#F8F9FB] text-slate-900 font-sans pb-10" dir="rtl">
+    <div className="min-h-screen bg-[#F1F3F6] text-slate-900 font-sans pb-24" dir="rtl">
       {/* Modern Header */}
-      <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-slate-100">
+      <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="overflow-hidden">
@@ -137,15 +137,21 @@ export default function CustomerDashboard() {
             <span className="text-xl font-black tracking-tight text-slate-900">وصلي</span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <Link href="/customer/stats">
-              <Button variant="ghost" size="icon" className="rounded-xl hover:bg-slate-100">
-                <BarChart3 className="h-5 w-5 text-slate-600" />
-              </Button>
+              <div className="flex flex-col items-center gap-1 cursor-pointer group">
+                <div className="h-10 w-10 rounded-xl bg-white shadow-sm border border-slate-200 flex items-center justify-center group-hover:bg-orange-50 transition-colors">
+                  <BarChart3 className="h-5 w-5 text-slate-600 group-hover:text-orange-600" />
+                </div>
+                <span className="text-[10px] font-black text-slate-500">الإحصائيات</span>
+              </div>
             </Link>
             <Link href="/customer/profile">
-              <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center cursor-pointer hover:bg-slate-200 transition-colors">
-                <User className="h-5 w-5 text-slate-600" />
+              <div className="flex flex-col items-center gap-1 cursor-pointer group">
+                <div className="h-10 w-10 rounded-xl bg-white shadow-sm border border-slate-200 flex items-center justify-center group-hover:bg-orange-50 transition-colors">
+                  <User className="h-5 w-5 text-slate-600 group-hover:text-orange-600" />
+                </div>
+                <span className="text-[10px] font-black text-slate-500">الملف الشخصي</span>
               </div>
             </Link>
           </div>
