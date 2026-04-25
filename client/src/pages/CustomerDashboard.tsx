@@ -4,15 +4,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { MapPin, Plus, User, Truck, Clock, X, Phone, ChevronRight, Package, MessageCircle, BarChart3, Zap, Timer, ChevronLeft, Info, Loader2, Sparkles, Map, ShoppingCart, Minus } from "lucide-react";
+import { MapPin, Plus, User, Truck, Clock, X, Phone, ChevronRight, Package, MessageCircle, BarChart3, Zap, Timer, ChevronLeft, Info, Loader2, Sparkles, Map } from "lucide-react";
 import { CountdownTimer } from "@/components/customer/CountdownTimer";
 import { RestaurantMenu } from "@/components/customer/RestaurantMenu";
 import { Link, useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { useChatContext } from "@/contexts/ChatContext";
-import { useCart } from "@/contexts/CartContext";
 import { ChatBox } from "@/components/ChatBox";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import MapPicker from "@/components/MapPicker";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -66,12 +64,7 @@ export default function CustomerDashboard() {
     return "restaurants";
   });
   const { unreadCounts } = useChatContext();
-  const { cart, itemCount, totalPrice, updateQuantity, clearCart } = useCart();
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [addressDescription, setAddressDescription] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
-  const createRestaurantOrderMutation = trpc.orders.createRestaurantOrder.useMutation();
 
   const ordersQuery = trpc.orders.getCustomerOrders.useQuery(undefined, {
     refetchInterval: 5000,
@@ -148,143 +141,9 @@ export default function CustomerDashboard() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Drawer open={isCartOpen} onOpenChange={setIsCartOpen}>
-            <DrawerTrigger asChild>
-              <button className="relative h-12 w-12 rounded-2xl bg-orange-50 flex items-center justify-center border border-orange-100 shadow-sm active:scale-90 transition-all">
-                <ShoppingCart className="h-6 w-6 text-orange-600" />
-                {itemCount > 0 && (
-                  <motion.span 
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-1 -left-1 h-6 w-6 bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm"
-                  >
-                    {itemCount}
-                  </motion.span>
-                )}
-              </button>
-            </DrawerTrigger>
-            <DrawerContent className="max-h-[90vh] bg-slate-50">
-              <div className="mx-auto w-full max-w-md overflow-y-auto">
-                <DrawerHeader className="border-b border-slate-100 bg-white sticky top-0 z-10">
-                  <DrawerTitle className="text-xl font-black text-slate-900 flex items-center justify-between">
-                    <span>سلة الطلبات 🛒</span>
-                    <Button variant="ghost" size="sm" onClick={() => clearCart()} className="text-rose-500 font-bold text-xs">مسح الكل</Button>
-                  </DrawerTitle>
-                </DrawerHeader>
-                
-                <div className="p-6 space-y-8">
-                  {/* Cart Items */}
-                  <div className="space-y-4">
-                    {cart.length === 0 ? (
-                      <div className="text-center py-10">
-                        <ShoppingCart className="h-12 w-12 text-slate-200 mx-auto mb-4" />
-                        <p className="text-slate-400 font-bold">السلة فارغة حالياً</p>
-                      </div>
-                    ) : (
-                      cart.map((item) => (
-                        <div key={item.id} className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                          <div className="flex-1">
-                            <h4 className="font-black text-slate-900 text-sm">{item.name}</h4>
-                            <p className="text-orange-600 font-black text-xs mt-1">{item.price * item.quantity} ج.م</p>
-                          </div>
-                          <div className="flex items-center gap-3 bg-slate-50 p-1 rounded-xl border border-slate-100">
-                            <button onClick={() => updateQuantity(item.id, -1)} className="h-8 w-8 flex items-center justify-center bg-white rounded-lg shadow-sm text-slate-600"><Minus className="h-4 w-4" /></button>
-                            <span className="font-black text-sm w-4 text-center">{item.quantity}</span>
-                            <button onClick={() => updateQuantity(item.id, 1)} className="h-8 w-8 flex items-center justify-center bg-orange-500 rounded-lg shadow-sm text-white"><Plus className="h-4 w-4" /></button>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-
-                  {cart.length > 0 && (
-                    <>
-                      {/* Location Section */}
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                          <MapPin className="h-5 w-5 text-orange-500" />
-                          تأكيد موقع التوصيل
-                        </h3>
-                        <div className="bg-white p-2 rounded-[2rem] shadow-md border border-slate-100 overflow-hidden">
-                          <MapPicker 
-                            onLocationSelect={(loc) => setAddressDescription(loc.address)}
-                            placeholder="ابحث عن عنوانك في العبور..."
-                          />
-                        </div>
-                        <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100">
-                          <p className="text-[10px] font-black text-orange-400 uppercase mb-2">تفاصيل العنوان (اختياري)</p>
-                          <textarea 
-                            value={addressDescription}
-                            onChange={(e) => setAddressDescription(e.target.value)}
-                            placeholder="مثال: الحي الأول، عمارة 5، شقة 2، بجوار سنتر الحجاز"
-                            className="w-full bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-700 p-0 resize-none"
-                            rows={2}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Summary & Checkout */}
-                      <div className="bg-white p-6 rounded-[2rem] shadow-xl border border-slate-100 space-y-4">
-                        <div className="flex justify-between items-center">
-                          <span className="text-slate-400 font-black">إجمالي الطلبات</span>
-                          <span className="text-2xl font-black text-slate-900">{totalPrice} ج.م</span>
-                        </div>
-                        <Button 
-                          className="w-full py-8 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-black text-lg shadow-lg shadow-orange-200 transition-all active:scale-95"
-                          disabled={isLoading || !addressDescription}
-                          onClick={async () => {
-                            if (cart.length === 0) return;
-                            setIsLoading(true);
-                            
-                            try {
-                              // 1. الحصول على الموقع الدقيق (GPS)
-                              const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                                navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 });
-                              });
-
-                              const finalLocation = {
-                                latitude: position.coords.latitude,
-                                longitude: position.coords.longitude,
-                                address: addressDescription || "موقع العميل المكتشف",
-                              };
-
-                              // 2. تجهيز رسالة الواتساب (لأول مطعم في السلة كمثال)
-                              const orderItems = cart.map(item => `${item.name} × ${item.quantity}`).join("\n");
-                              const message = `طلب جديد من تطبيق وصلي 📱\n\n${orderItems}\n\nالإجمالي: ${totalPrice} ج.م\nالعنوان: ${addressDescription}`;
-                              
-                              // 3. إنشاء الطلب في قاعدة البيانات
-                              await createRestaurantOrderMutation.mutateAsync({
-                                restaurantId: 1, // يمكن تطويره ليأخذ ID المطعم من السلة
-                                items: cart.map(item => ({ menuItemId: item.id, quantity: item.quantity, price: item.price })),
-                                totalPrice: totalPrice,
-                                notes: addressDescription,
-                                pickupLocation: { address: "موقع المطعم", latitude: 30.2350, longitude: 31.4650, neighborhood: "العبور" },
-                                deliveryLocation: { address: addressDescription, latitude: finalLocation.latitude, longitude: finalLocation.longitude, neighborhood: "العبور" },
-                              });
-
-                              // 4. فتح واتساب
-                              window.open(`https://wa.me/201032809502?text=${encodeURIComponent(message)}`, "_blank");
-
-                              toast.success("تم إرسال الطلب بنجاح! 🎉");
-                              setIsCartOpen(false);
-                              clearCart();
-                              setAddressDescription("");
-                            } catch (error: any) {
-                              toast.error("يرجى تفعيل الـ GPS لإتمام الطلب");
-                            } finally {
-                              setIsLoading(false);
-                            }
-                          }}
-                        >
-                          {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : "تأكيد وإرسال الطلب 🚀"}
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </DrawerContent>
-          </Drawer>
+          <div className="h-10 w-10 rounded-2xl bg-slate-100 flex items-center justify-center">
+            <Zap className="h-5 w-5 text-orange-500" />
+          </div>
         </div>
       </header>
 
@@ -711,20 +570,7 @@ export default function CustomerDashboard() {
           <span className="text-[10px] font-black -translate-y-3">اطلب الآن</span>
         </Link>
 
-        <button 
-          onClick={() => setIsCartOpen(true)}
-          className={`flex flex-col items-center gap-1 transition-all ${itemCount > 0 ? 'text-orange-600' : 'text-slate-400'}`}
-        >
-          <div className={`p-2 rounded-2xl relative ${itemCount > 0 ? 'bg-orange-100' : ''}`}>
-            <ShoppingCart className="h-6 w-6" />
-            {itemCount > 0 && (
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-rose-500 text-white text-[8px] font-black rounded-full flex items-center justify-center border border-white">
-                {itemCount}
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] font-black">السلة</span>
-        </button>
+
 
         <Link href="/customer/stats" className="flex flex-col items-center gap-1 text-slate-400">
           <div className="p-2 rounded-2xl">

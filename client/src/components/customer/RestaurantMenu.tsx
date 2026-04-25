@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { ShoppingCart, Plus, Minus, X, MessageCircle, MapPin, Phone, Loader2, ChevronRight, Star, Clock, Coins, Gift, Truck, CheckCircle2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
-import { useCart } from "@/contexts/CartContext";
 
 interface MenuItem {
   id: number;
@@ -597,8 +596,46 @@ const MENUS: Record<number, MenuItem[]> = {
 export function RestaurantMenu() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const { addToCart } = useCart();
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [isCartExpanded, setIsCartExpanded] = useState(false);
+  const [customerNotes, setCustomerNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
+  const [addressDescription, setAddressDescription] = useState("");
+  const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [showGiftAlert, setShowGiftAlert] = useState(false);
+  const [usePoints, setUsePoints] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+
+  const createRestaurantOrderMutation = trpc.orders.createRestaurantOrder.useMutation();
+  const validateCouponMutation = trpc.coupons.validate.useMutation();
+
+  const addToCart = (item: MenuItem) => {
+    setCart((prev) => {
+      const existing = prev.find((i) => i.id === item.id);
+      if (existing) {
+        return prev.map((i) => (i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i));
+      }
+      return [...prev, { ...item, quantity: 1 }];
+    });
+    toast.success(`تم إضافة ${item.name} للسلة`);
+  };
+
+  const updateQuantity = (id: number, delta: number) => {
+    setCart((prev) => {
+      return prev
+        .map((item) => {
+          if (item.id === id) {
+            const newQty = Math.max(0, item.quantity + delta);
+            return { ...item, quantity: newQty };
+          }
+          return item;
+        })
+        .filter((item) => item.quantity > 0);
+    });
+  };
 
   useEffect(() => {
     if (selectedRestaurant) {
@@ -922,3 +959,207 @@ export function RestaurantMenu() {
         </AnimatePresence>
       </div>
 
+      {cart.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 p-4 pointer-events-none">
+          <Card className={`max-w-2xl mx-auto border-none shadow-2xl bg-slate-900 text-white rounded-3xl overflow-hidden relative transition-all duration-300 pointer-events-auto ${isCartExpanded ? 'h-auto' : 'h-20'}`}>
+            {!isCartExpanded ? (
+              <div 
+                className="h-20 flex items-center justify-between px-6 cursor-pointer hover:bg-slate-800 transition-colors"
+                onClick={() => setIsCartExpanded(true)}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <div className="bg-orange-500 text-white text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center absolute -top-2 -right-2 border-2 border-slate-900">
+                      {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                    </div>
+                    <motion.div
+                      animate={cart.length > 0 ? { 
+                        scale: [1, 1.3, 1],
+                        rotate: [0, -10, 10, 0]
+                      } : {}}
+                      transition={{ duration: 0.4 }}
+                      key={cart.length}
+                    >
+                      <ShoppingCart className="h-6 w-6 text-orange-500" />
+                    </motion.div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-400">سلتك الحالية</p>
+                    <p className="text-lg font-black text-white">ج.م {totalPrice}</p>
+                  </div>
+                </div>
+                <Button className="bg-orange-500 hover:bg-orange-600 text-white font-black rounded-xl px-6">
+                  عرض السلة
+                </Button>
+              </div>
+            ) : (
+              <CardContent className="p-0">
+                <div className="flex items-center justify-between p-4 border-b border-slate-800">
+                  <h3 className="font-black text-lg">سلة الطلبات</h3>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full bg-slate-800 text-white hover:bg-slate-700"
+                      onClick={() => setCart([])}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full bg-slate-800 text-white hover:bg-slate-700"
+                      onClick={() => setIsCartExpanded(false)}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="p-4 max-h-60 overflow-y-auto border-b border-slate-800">
+                {cart.map((item) => (
+                  <div key={item.id} className="flex justify-between items-center py-3 border-b border-slate-800 last:border-0">
+                    <div className="flex-1">
+                      <p className="font-bold text-sm">{item.name}</p>
+                      <p className="text-orange-400 text-xs font-black">
+                        {item.price === 0 ? "سعر اليوم" : `ج.م ${item.price * item.quantity}`}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3 bg-slate-800 rounded-xl p-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 rounded-lg hover:bg-slate-700 text-white"
+                        onClick={() => updateQuantity(item.id, -1)}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="font-black text-sm w-4 text-center">{item.quantity}</span>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 rounded-lg hover:bg-slate-700 text-white"
+                        onClick={() => updateQuantity(item.id, 1)}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-4 space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <MapPin className="h-4 w-4 text-orange-500" />
+                    <span className="text-xs font-bold text-slate-400">عنوان التوصيل</span>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="رقم العمارة، الشقة، الدور، أو علامة مميزة..."
+                    value={addressDescription}
+                    onChange={(e) => setAddressDescription(e.target.value)}
+                    className="w-full bg-slate-700 border-2 border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all outline-none shadow-lg"
+                  />
+                  <textarea
+                    placeholder="ملاحظات إضافية للمطعم (اختياري)..."
+                    value={customerNotes}
+                    onChange={(e) => setCustomerNotes(e.target.value)}
+                    className="w-full bg-slate-700 border-2 border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all h-20 resize-none outline-none shadow-lg"
+                  />
+                </div>
+
+                <div className="space-y-4 mb-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Gift className="h-4 w-4 text-orange-500" />
+                    <span className="text-xs font-bold text-slate-400">كود الخصم</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="أدخل كود الخصم..."
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      disabled={!!appliedCoupon || isValidatingCoupon}
+                      className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-orange-500 outline-none disabled:opacity-50 transition-all"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={appliedCoupon ? () => { setAppliedCoupon(null); setCouponCode(""); } : handleValidateCoupon}
+                      disabled={isValidatingCoupon || (!couponCode && !appliedCoupon)}
+                      className={`rounded-xl font-black ${appliedCoupon ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20' : 'bg-orange-500 text-white hover:bg-orange-600'}`}
+                    >
+                      {isValidatingCoupon ? <Loader2 className="h-4 w-4 animate-spin" /> : (appliedCoupon ? "إلغاء" : "تطبيق")}
+                    </Button>
+                  </div>
+                  {appliedCoupon && (
+                    <p className="text-emerald-400 text-[10px] font-black flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3" />
+                      تم تطبيق خصم {appliedCoupon.discountType === 'percentage' ? `${appliedCoupon.discountValue}%` : `${appliedCoupon.discountValue} ج.م`}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between pt-2">
+                  <div>
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">الإجمالي</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className={`text-2xl font-black text-orange-500 ${appliedCoupon ? 'line-through text-slate-500 text-lg' : ''}`}>ج.م {totalPrice}</p>
+                      {appliedCoupon && (
+                        <p className="text-2xl font-black text-emerald-400">ج.م {finalTotalPrice}</p>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-1 mt-1">
+                      {hasGift && (
+                        <motion.div 
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="flex items-center gap-1 text-emerald-400 text-[10px] font-black"
+                        >
+                          <Gift className="h-3 w-3" />
+                          <span>تم تفعيل الهدية المجانية! 🎁</span>
+                        </motion.div>
+                      )}
+                      {hasFreeDelivery ? (
+                        <motion.div 
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="flex items-center gap-1 text-sky-400 text-[10px] font-black"
+                        >
+                          <Truck className="h-3 w-3" />
+                          <span>توصيل مجاني مفعل! 🚚</span>
+                        </motion.div>
+                      ) : (
+                        <p className="text-[9px] text-slate-400 font-bold">
+                          أضف {freeDeliveryThreshold - totalPrice} ج.م للحصول على توصيل مجاني 🚚
+                        </p>
+                      )}
+                    </div>
+                </div>
+                  <Button
+                    onClick={handleCheckout}
+                    disabled={isLoading || !addressDescription.trim()}
+                    className={`font-black px-8 py-7 rounded-2xl shadow-lg transition-all ${
+                      !addressDescription.trim() 
+                      ? "bg-slate-700 text-slate-400 cursor-not-allowed opacity-50" 
+                      : "bg-orange-500 hover:bg-orange-600 text-white shadow-orange-900/20"
+                    }`}
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <>
+                        <MessageCircle className="h-5 w-5 ml-2" />
+                        إرسال الطلب
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+            )}
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+}
