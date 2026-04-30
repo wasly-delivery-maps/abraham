@@ -17,4 +17,5 @@ export const ENV = {
   whatsappApiUrl: process.env.WHATSAPP_API_URL ?? "https://api.ultramsg.com",
   whatsappToken: process.env.WHATSAPP_TOKEN ?? "",
   whatsappInstanceId: process.env.WHATSAPP_INSTANCE_ID ?? "",
+  callmebotApiKey: process.env.CALLMEBOT_API_KEY ?? "",
 };
