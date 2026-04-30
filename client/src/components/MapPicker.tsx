@@ -115,9 +115,12 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        // إذا كان البحث من الأزرار السريعة، نضيف "العبور" للبحث لضمان نتائج محلية
-        const finalQuery = forceLocal ? `${query} العبور` : query;
-        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(finalQuery)}&limit=10&accept-language=ar&countrycodes=eg&addressdetails=1`;
+        // تحسين البحث: نستخدم viewbox لتفضيل العبور بدلاً من تقييد البحث بكلمة "العبور" فقط
+        // هذا يسمح بظهور نتائج أكثر مع إعطاء الأولوية للمكان القريب
+        const viewbox = "31.3,30.1,31.6,30.4"; 
+        const finalQuery = forceLocal ? `${query}` : query;
+        // زيادة الـ limit إلى 40 نتيجة لضمان وفرة الخيارات
+        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(finalQuery)}&limit=40&accept-language=ar&countrycodes=eg&addressdetails=1&viewbox=${viewbox}&bounded=${forceLocal ? 0 : 0}`;
         
         const response = await fetch(searchUrl);
         const data = await response.json();
@@ -132,6 +135,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
             distance: calculateDistance(parseFloat(item.lat), parseFloat(item.lon))
           }));
           
+          // ترتيب النتائج: الأهمية أولاً ثم المسافة
           results.sort((a, b) => (b.importance || 0) - (a.importance || 0));
           setSearchResults(results);
         }
@@ -140,7 +144,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
       } finally {
         setIsSearching(false);
       }
-    }, 500);
+    }, 400);
   };
 
   const handleSelectResult = (result: SearchResult) => {
@@ -217,7 +221,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
             {isSearching ? <Loader2 className="h-5 w-5 animate-spin text-orange-500" /> : <Search className="h-5 w-5 text-slate-400 group-focus-within:text-orange-500 transition-colors" />}
           </div>
           <Input
-            placeholder={placeholder || "ابحث عن أي مكان في مصر..."}
+            placeholder={placeholder || "ابحث عن أي مكان..."}
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             onFocus={() => setShowResults(true)}
@@ -234,20 +238,20 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
           )}
         </div>
 
-        {/* أزرار سريعة - مقيدة بمدينة العبور */}
+        {/* أزرار سريعة - تفضل مدينة العبور */}
         {!showResults && (
           <div className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar flex-row-reverse">
             <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("مطعم", true)}>
-              🍽️ مطاعم العبور
+              🍽️ مطاعم
             </Button>
             <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("كافيه", true)}>
-              ☕ كافيهات العبور
+              ☕ كافيهات
             </Button>
             <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("صيدلية", true)}>
-              💊 صيدليات العبور
+              💊 صيدليات
             </Button>
             <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("سوبر ماركت", true)}>
-              🛒 تسوق العبور
+              🛒 تسوق
             </Button>
           </div>
         )}
