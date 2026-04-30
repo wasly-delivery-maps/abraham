@@ -5,81 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Search, Navigation, X, Loader2, MapPin } from 'lucide-react';
 import L from 'leaflet';
 
-// تحديث مركز الخريطة الافتراضي إلى العبور
+// مركز العبور كنقطة بداية افتراضية
 const OBUR_CENTER: [number, number] = [30.2350, 31.4650];
-const CAIRO_CENTER: [number, number] = [30.0444, 31.2357];
-
-// قائمة الأحياء والمناطق الشهيرة في القاهرة والجيزة
-const CAIRO_LANDMARKS = [
-  // أحياء القاهرة الشرقية
-  { name: "مدينة نصر", lat: 30.0809, lon: 31.3635 },
-  { name: "مصر الجديدة", lat: 30.0747, lon: 31.3458 },
-  { name: "المعادي", lat: 29.9742, lon: 31.2808 },
-  { name: "حلوان", lat: 29.8588, lon: 31.3405 },
-  { name: "القاهرة الجديدة", lat: 30.0081, lon: 31.4944 },
-  { name: "التجمع الخامس", lat: 30.0081, lon: 31.4944 },
-  { name: "الشروق", lat: 30.0544, lon: 31.5044 },
-  { name: "بدر", lat: 30.0261, lon: 31.6183 },
-  { name: "العبور", lat: 30.2350, lon: 31.4650 },
-  { name: "الزمالك", lat: 30.0667, lon: 31.2667 },
-  { name: "جزيرة الزمالك", lat: 30.0667, lon: 31.2667 },
-  { name: "الدقي", lat: 30.0433, lon: 31.2333 },
-  { name: "الجيزة", lat: 30.0131, lon: 31.2089 },
-  { name: "الهرم", lat: 29.9789, lon: 31.1346 },
-  { name: "أهرام الجيزة", lat: 29.9789, lon: 31.1346 },
-  { name: "الجيزة الجديدة", lat: 30.0131, lon: 31.2089 },
-  { name: "الشيخ زايد", lat: 30.0278, lon: 31.0156 },
-  { name: "6 أكتوبر", lat: 30.0131, lon: 30.8089 },
-  { name: "الشيخ زايد سيتي", lat: 30.0278, lon: 31.0156 },
-  { name: "الحي الأول - العبور", lat: 30.2350, lon: 31.4650 },
-  { name: "الحي الثاني - العبور", lat: 30.2380, lon: 31.4750 },
-  { name: "الحي الثالث - العبور", lat: 30.2450, lon: 31.4850 },
-  { name: "الحي الرابع - العبور", lat: 30.2550, lon: 31.4750 },
-  { name: "الحي الخامس - العبور", lat: 30.2650, lon: 31.4650 },
-  { name: "الحي السادس - العبور", lat: 30.2750, lon: 31.4550 },
-  { name: "الحي السابع - العبور", lat: 30.2850, lon: 31.4450 },
-  { name: "الحي الثامن - العبور", lat: 30.2950, lon: 31.4350 },
-  { name: "الحي التاسع - العبور", lat: 30.2550, lon: 31.4450 },
-  { name: "سنتر الحجاز - العبور", lat: 30.2385, lon: 31.4680 },
-  { name: "سنتر الياسمين - العبور", lat: 30.2420, lon: 31.4720 },
-  { name: "سنتر الوجدي - العبور", lat: 30.2360, lon: 31.4620 },
-  { name: "إسكان الشباب - العبور", lat: 30.2520, lon: 31.4880 },
-  { name: "العبور الجديدة - حي المجد", lat: 30.2767, lon: 31.5299 },
-  { name: "مول ريتاج - العبور الجديدة", lat: 30.2765, lon: 31.5305 },
-  { name: "كارفور العبور", lat: 30.2150, lon: 31.4450 },
-  { name: "جولف سيتي - العبور", lat: 30.2120, lon: 31.4420 },
-  { name: "جامعة بنها - فرع العبور", lat: 30.2680, lon: 31.4520 },
-  { name: "مستشفى عين شمس التخصصي - العبور", lat: 30.2450, lon: 31.4550 },
-  { name: "سوق العبور", lat: 30.1850, lon: 31.4650 },
-  // مناطق أخرى مهمة
-  { name: "عين شمس", lat: 30.1333, lon: 31.2667 },
-  { name: "مصر القديمة", lat: 30.0281, lon: 31.2453 },
-  { name: "القاهرة القديمة", lat: 30.0281, lon: 31.2453 },
-  { name: "الفسطاط", lat: 30.0281, lon: 31.2453 },
-  { name: "الإسلامية", lat: 30.0433, lon: 31.2667 },
-  { name: "القصر العيني", lat: 30.0433, lon: 31.2667 },
-  { name: "بولاق", lat: 30.0667, lon: 31.2333 },
-  { name: "الزاوية الحمراء", lat: 30.0833, lon: 31.2667 },
-  { name: "شبرا", lat: 30.1333, lon: 31.2333 },
-  { name: "الخليفة", lat: 30.0333, lon: 31.2667 },
-  { name: "السيدة زينب", lat: 30.0333, lon: 31.2667 },
-  { name: "الدرب الأحمر", lat: 30.0433, lon: 31.2667 },
-  { name: "الحسين", lat: 30.0567, lon: 31.2667 },
-  { name: "خان الخليلي", lat: 30.0567, lon: 31.2667 },
-  { name: "الموسكي", lat: 30.0567, lon: 31.2667 },
-  { name: "الحمام", lat: 30.0667, lon: 31.2667 },
-  { name: "الأزهر", lat: 30.0567, lon: 31.2667 },
-  { name: "باب الشرقية", lat: 30.0567, lon: 31.2667 },
-  { name: "الجمالية", lat: 30.0667, lon: 31.2667 },
-  { name: "الحنفي", lat: 30.0667, lon: 31.2667 },
-  { name: "الغورية", lat: 30.0567, lon: 31.2667 },
-  { name: "الروضة", lat: 30.0667, lon: 31.2667 },
-  { name: "الجزيرة", lat: 30.0667, lon: 31.2667 },
-  { name: "الرحاب", lat: 30.1667, lon: 31.4333 },
-  { name: "الرحاب سيتي", lat: 30.1667, lon: 31.4333 },
-  { name: "الشرقية", lat: 30.1667, lon: 31.4333 },
-  { name: "الشرقية الجديدة", lat: 30.1667, lon: 31.4333 },
-];
 
 interface MapPickerProps {
   onLocationSelect: (location: { address: string; latitude: number; longitude: number }) => void;
@@ -93,7 +20,7 @@ interface SearchResult {
   lon: number;
   display_name: string;
   type: string;
-  source?: 'local' | 'global';
+  icon?: string;
 }
 
 function MapUpdater({ center }: { center: [number, number] }) {
@@ -160,71 +87,74 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     setIsSearching(true);
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        // 1. البحث أولاً في قاعدة البيانات المحلية (القاهرة والمناطق المشهورة)
-        const localMatches = CAIRO_LANDMARKS.filter((landmark) => {
-          const queryWords = query.toLowerCase().trim().split(' ');
-          const landmarkWords = landmark.name.toLowerCase().split(' ');
-          
-          // البحث عن تطابق جزئي أو كامل
-          return queryWords.some(word => 
-            landmarkWords.some(lword => lword.includes(word) || word.includes(lword))
-          );
-        }).map((m) => ({
-          lat: m.lat,
-          lon: m.lon,
-          display_name: m.name,
-          type: 'local',
-          source: 'local' as const,
-        }));
-
-        // 2. البحث في الخريطة العالمية (مع تركيز على مصر والقاهرة)
+        // البحث الشامل عن كل شيء (مثل Google Maps)
+        // استخدام Nominatim مع معاملات متقدمة للحصول على نتائج أفضل
         let searchQuery = query;
         
-        // إضافة "مصر" إذا لم تكن موجودة لتحسين النتائج
-        if (!searchQuery.toLowerCase().includes('مصر') && !searchQuery.toLowerCase().includes('cairo')) {
-          searchQuery = `${searchQuery} القاهرة مصر`;
+        // إضافة "مصر" للبحث إذا لم تكن موجودة
+        if (!searchQuery.toLowerCase().includes('مصر') && !searchQuery.toLowerCase().includes('egypt')) {
+          searchQuery = `${searchQuery} مصر`;
         }
 
-        // استخدام viewbox لتركيز البحث على القاهرة والمناطق المحيطة
-        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=15&accept-language=ar&viewbox=30.5,29.8,31.8,30.5&bounded=0`;
+        // البحث مع تركيز على منطقة القاهرة والعبور
+        // viewbox: [min_lon, min_lat, max_lon, max_lat]
+        // هذا يغطي القاهرة والجيزة والقليوبية
+        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=20&accept-language=ar&viewbox=30.5,29.8,31.8,30.5&bounded=0&featuretype=settlement,amenity,shop,restaurant,cafe,building`;
         
         const response = await fetch(searchUrl);
         const data = await response.json();
 
-        let globalResults: SearchResult[] = [];
+        let results: SearchResult[] = [];
         if (data && Array.isArray(data)) {
-          globalResults = data
+          results = data
             .filter((item: any) => {
-              // تصفية النتائج لإظهار فقط المواقع في مصر
+              // تصفية النتائج لإظهار فقط المواقع في مصر أو القريبة من العبور
               const displayName = item.display_name.toLowerCase();
-              return displayName.includes('مصر') || 
-                     displayName.includes('cairo') || 
-                     displayName.includes('egypt') ||
-                     displayName.includes('القاهرة') ||
-                     displayName.includes('الجيزة') ||
-                     displayName.includes('القليوبية');
+              const lat = parseFloat(item.lat);
+              const lon = parseFloat(item.lon);
+              
+              // قبول النتائج في مصر أو القريبة من العبور (ضمن 50 كم تقريباً)
+              const isInEgypt = displayName.includes('مصر') || 
+                               displayName.includes('cairo') || 
+                               displayName.includes('egypt') ||
+                               displayName.includes('القاهرة') ||
+                               displayName.includes('الجيزة') ||
+                               displayName.includes('القليوبية');
+              
+              const distanceFromObur = Math.sqrt(
+                Math.pow(lat - OBUR_CENTER[0], 2) + Math.pow(lon - OBUR_CENTER[1], 2)
+              );
+              
+              return isInEgypt || distanceFromObur < 1; // ~1 درجة ≈ 111 كم
             })
             .map((item: any) => ({
               lat: parseFloat(item.lat),
               lon: parseFloat(item.lon),
               display_name: item.display_name,
-              type: item.type || item.class,
-              source: 'global' as const,
+              type: item.type || item.class || 'place',
+              icon: item.icon,
             }));
         }
 
-        // دمج النتائج مع إعطاء الأولوية للمحلية
-        const combinedResults = [...localMatches, ...globalResults];
-        
-        // إزالة التكرارات
-        const uniqueResults = combinedResults.filter((result, index, self) =>
-          index === self.findIndex((r) =>
-            Math.abs(r.lat - result.lat) < 0.001 && Math.abs(r.lon - result.lon) < 0.001
-          )
-        );
+        // إذا لم نجد نتائج، حاول بحثاً بديلاً بدون تصفية صارمة
+        if (results.length === 0) {
+          const alternativeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=15&accept-language=ar`;
+          const alternativeResponse = await fetch(alternativeUrl);
+          const alternativeData = await alternativeResponse.json();
+          
+          if (alternativeData && Array.isArray(alternativeData)) {
+            results = alternativeData.map((item: any) => ({
+              lat: parseFloat(item.lat),
+              lon: parseFloat(item.lon),
+              display_name: item.display_name,
+              type: item.type || item.class || 'place',
+              icon: item.icon,
+            }));
+          }
+        }
 
-        setSearchResults(uniqueResults);
-        setShowResults(uniqueResults.length > 0);
+        setSearchResults(results);
+        setShowResults(results.length > 0);
       } catch (error) {
         console.error('Search error:', error);
         setSearchResults([]);
@@ -284,6 +214,49 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     return position ? <Marker position={position} /> : null;
   }
 
+  // دالة لاستخراج اسم أقصر من العنوان الكامل
+  const getShortName = (fullName: string) => {
+    const parts = fullName.split(',');
+    return parts[0].trim();
+  };
+
+  // دالة لاستخراج نوع المكان من العنوان
+  const getPlaceType = (type: string) => {
+    const typeMap: { [key: string]: string } = {
+      'restaurant': '🍽️ مطعم',
+      'cafe': '☕ كافيه',
+      'fast_food': '🍔 وجبات سريعة',
+      'bar': '🍺 حانة',
+      'pub': '🍻 بار',
+      'shop': '🛍️ متجر',
+      'supermarket': '🏪 سوبر ماركت',
+      'pharmacy': '💊 صيدلية',
+      'hospital': '🏥 مستشفى',
+      'bank': '🏦 بنك',
+      'atm': '💰 صراف آلي',
+      'hotel': '🏨 فندق',
+      'parking': '🅿️ موقف سيارات',
+      'gas_station': '⛽ محطة وقود',
+      'school': '🏫 مدرسة',
+      'university': '🎓 جامعة',
+      'mosque': '🕌 مسجد',
+      'church': '⛪ كنيسة',
+      'park': '🌳 حديقة',
+      'cinema': '🎬 سينما',
+      'theatre': '🎭 مسرح',
+      'museum': '🏛️ متحف',
+      'library': '📚 مكتبة',
+      'office': '🏢 مكتب',
+      'building': '🏗️ مبنى',
+      'place': '📍 موقع',
+      'settlement': '🏘️ منطقة',
+      'village': '🏘️ قرية',
+      'town': '🏙️ مدينة',
+      'city': '🌆 مدينة',
+    };
+    return typeMap[type] || `📍 ${type}`;
+  };
+
   return (
     <div className="space-y-4 w-full">
       {title && <h3 className="text-lg font-black text-slate-800 mr-2">{title}</h3>}
@@ -292,7 +265,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
         <div className="relative w-full">
           <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-orange-500" />
           <Input
-            placeholder={placeholder || "ابحث عن أي عنوان في القاهرة... (مثل: مدينة نصر، مصر الجديدة، الهرم)"}
+            placeholder={placeholder || "ابحث عن أي شيء... (مطاعم، كافيهات، محلات، مناطق، إلخ)"}
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -342,13 +315,11 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
               <div className="flex items-start gap-3">
                 <MapPin className="h-5 w-5 text-orange-600 flex-shrink-0 mt-1" />
                 <div className="flex-1">
-                  <p className="font-bold text-slate-900 text-sm">{result.display_name.split(',')[0]}</p>
+                  <p className="font-bold text-slate-900 text-sm">{getShortName(result.display_name)}</p>
                   <p className="text-xs text-slate-500 mt-1 line-clamp-2">{result.display_name}</p>
-                  {result.source === 'local' && (
-                    <span className="inline-block mt-2 text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-semibold">
-                      موقع مشهور
-                    </span>
-                  )}
+                  <span className="inline-block mt-2 text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded-full font-semibold">
+                    {getPlaceType(result.type)}
+                  </span>
                 </div>
               </div>
             </button>
@@ -356,7 +327,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
         </div>
       )}
 
-      {/* تكبير حجم الخريطة لتشغل مساحة أكبر (600px بدلاً من 400px) */}
+      {/* تكبير حجم الخريطة لتشغل مساحة أكبر */}
       <div className="h-[600px] w-full rounded-[2rem] overflow-hidden border-4 border-white shadow-2xl relative z-10">
         <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }}>
           <TileLayer
