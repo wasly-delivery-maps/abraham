@@ -747,15 +747,24 @@ export const appRouter = router({
           const WHATSAPP_TOKEN = ENV.whatsappToken;
           const WHATSAPP_INSTANCE_ID = ENV.whatsappInstanceId;
 
+          const CALLMEBOT_API_KEY = process.env.CALLMEBOT_API_KEY;
+
           if (WHATSAPP_TOKEN && WHATSAPP_INSTANCE_ID) {
+            // Option 1: UltraMsg
             await axios.post(`${WHATSAPP_API_URL}/instance${WHATSAPP_INSTANCE_ID}/messages/chat`, {
               token: WHATSAPP_TOKEN,
               to: ownerPhone,
               body: message
             });
-            console.log(`[WhatsApp] Order #${result.id} sent successfully`);
+            console.log(`[WhatsApp] Order #${result.id} sent via UltraMsg`);
+          } else if (CALLMEBOT_API_KEY) {
+            // Option 2: CallMeBot (Free)
+            const encodedMessage = encodeURIComponent(message);
+            const url = `https://api.callmebot.com/whatsapp.php?phone=${ownerPhone}&text=${encodedMessage}&apikey=${CALLMEBOT_API_KEY}`;
+            await axios.get(url);
+            console.log(`[WhatsApp] Order #${result.id} sent via CallMeBot`);
           } else {
-            console.warn("[WhatsApp] API credentials not set, skipping WhatsApp notification");
+            console.warn("[WhatsApp] No WhatsApp API credentials set (UltraMsg or CallMeBot), skipping notification");
           }
         } catch (waError) {
           console.error("[WhatsApp] Failed to send notification:", waError);
