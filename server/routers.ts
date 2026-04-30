@@ -651,15 +651,23 @@ export const appRouter = router({
           const customerName = customer?.name || "عميل";
           const customerPhone = customer?.phone || "غير معروف";
           
-          const message = `*طلب مطعم جديد* 🍽️\n\n` +
-            `*رقم الطلب:* #${result.id}\n` +
-            `*المطعم:* ${restaurantName}\n` +
-            `*العميل:* ${customerName}\n` +
-            `*رقم الهاتف:* ${customerPhone}\n` +
-            `*إلى:* ${input.deliveryLocation.address}\n` +
-            `*قيمة الطعام:* ${input.totalPrice} ج.م\n` +
+          // Fetch item names for the WhatsApp message
+          const itemDetails = await Promise.all(
+            input.items.map(async (item) => {
+              const menuItem = await db.getMenuItemById(item.menuItemId);
+              const itemName = menuItem?.name || `صنف #${item.menuItemId}`;
+              return `${itemName} × ${item.quantity} = ${item.price * item.quantity} ج.م`;
+            })
+          );
+
+          const message = `طلب جديد من تطبيق وصلي 📱\n\n` +
+            `*المطعم:* ${restaurantName}\n\n` +
+            `${itemDetails.join("\n")}\n\n` +
+            `*الإجمالي الأصلي:* ${input.totalPrice} ج.م\n` +
             `*سعر التوصيل:* ${deliveryPrice} ج.م\n` +
-            `*الملاحظات:* [${restaurantName}] - ${input.notes || "لا يوجد"}`;
+            `*العميل:* ${customerName} (${customerPhone})\n` +
+            `*العنوان:* ${input.deliveryLocation.address}\n\n` +
+            `*الملاحظات:* ${input.notes || "بدون ملاحظات"}`;
 
           const WHATSAPP_API_URL = ENV.whatsappApiUrl;
           const WHATSAPP_TOKEN = ENV.whatsappToken;

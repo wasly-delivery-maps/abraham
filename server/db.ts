@@ -1167,3 +1167,13 @@ export async function getPushSubscriptionsByUserId(userId: number) {
     return [];
   }
 }
+
+/**
+ * Get menu item by ID
+ */
+export async function getMenuItemById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(menuItems).where(eq(menuItems.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
