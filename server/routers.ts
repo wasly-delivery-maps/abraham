@@ -644,6 +644,43 @@ export const appRouter = router({
           `طلب توصيل جديد من مطعم ${restaurantName}. سعر التوصيل: ج.م ${deliveryPrice}. اضغط للتفاصيل وقبول الطلب! 🍽️`
         );
 
+        // Send WhatsApp notification to owner (01557564373)
+        try {
+          const ownerPhone = "201557564373";
+          const customer = await db.getUserById(ctx.user.id);
+          const customerName = customer?.name || "عميل";
+          const customerPhone = customer?.phone || "غير معروف";
+          
+          const message = `*طلب مطعم جديد* 🍽️\n\n` +
+            `*رقم الطلب:* #${result.id}\n` +
+            `*المطعم:* ${restaurantName}\n` +
+            `*العميل:* ${customerName}\n` +
+            `*رقم الهاتف:* ${customerPhone}\n` +
+            `*إلى:* ${input.deliveryLocation.address}\n` +
+            `*قيمة الطعام:* ${input.totalPrice} ج.م\n` +
+            `*سعر التوصيل:* ${deliveryPrice} ج.م\n` +
+            `*الملاحظات:* ${input.notes || "لا يوجد"}`;
+
+          const WHATSAPP_API_URL = ENV.whatsappApiUrl;
+          const WHATSAPP_TOKEN = ENV.whatsappToken;
+          const WHATSAPP_INSTANCE_ID = ENV.whatsappInstanceId;
+          const CALLMEBOT_API_KEY = process.env.CALLMEBOT_API_KEY;
+
+          if (WHATSAPP_TOKEN && WHATSAPP_INSTANCE_ID) {
+            await axios.post(`${WHATSAPP_API_URL}/instance${WHATSAPP_INSTANCE_ID}/messages/chat`, {
+              token: WHATSAPP_TOKEN,
+              to: ownerPhone,
+              body: message
+            });
+          } else if (CALLMEBOT_API_KEY) {
+            const encodedMessage = encodeURIComponent(message);
+            const url = `https://api.callmebot.com/whatsapp.php?phone=${ownerPhone}&text=${encodedMessage}&apikey=${CALLMEBOT_API_KEY}`;
+            await axios.get(url);
+          }
+        } catch (waError) {
+          console.error("[WhatsApp Restaurant] Failed to send notification:", waError);
+        }
+
         return {
           success: true,
           orderId: result.id,
