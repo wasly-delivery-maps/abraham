@@ -181,17 +181,19 @@ export default function CustomerProfile() {
           <div className="flex justify-between items-center mb-12">
             <Button 
               variant="ghost" 
-              className="text-white/60 hover:text-white hover:bg-white/10 rounded-2xl h-12 w-12 p-0"
+              className="text-white hover:bg-white/10 rounded-2xl px-4 py-2 flex items-center gap-2"
               onClick={() => navigate("/customer/dashboard")}
             >
-              <ChevronLeft className="h-6 w-6 rotate-180" />
+              <ChevronLeft className="h-5 w-5 rotate-180" />
+              <span className="font-bold">رجوع</span>
             </Button>
             <h1 className="text-xl font-black tracking-widest uppercase">الملف الشخصي</h1>
             <Button 
               variant="ghost" 
-              className="text-white/60 hover:text-rose-500 hover:bg-rose-500/10 rounded-2xl h-12 w-12 p-0"
+              className="text-white hover:text-rose-500 hover:bg-rose-500/10 rounded-2xl px-4 py-2 flex items-center gap-2"
               onClick={handleLogout}
             >
+              <span className="font-bold">خروج</span>
               <LogOut className="h-5 w-5" />
             </Button>
           </div>

@@ -636,20 +636,46 @@ export const appRouter = router({
           couponId: input.couponId,
         });
 
-        // Notify drivers about new order
-        await notifyDriversOfNewOrder(
-          result.id,
-          `طلب توصيل جديد من مطعم ${restaurantName}. سعر التوصيل: ج.م ${deliveryPrice}. اضغط للتفاصيل وقبول الطلب! 🍽️`
-        );
+	        // Notify drivers about new order
+	        await notifyDriversOfNewOrder(
+	          result.id,
+	          `طلب توصيل جديد من مطعم ${restaurantName}. سعر التوصيل: ج.م ${deliveryPrice}. اضغط للتفاصيل وقبول الطلب! 🍽️`
+	        );
 
-        return {
-          success: true,
-          orderId: result.id,
-          price: input.totalPrice,
-          distance,
-          estimatedTime,
-        };
-      }),
+	        // Send WhatsApp notification to owner (01557564373)
+	        try {
+	          const ownerPhone = "201557564373";
+	          const customer = await db.getUserById(ctx.user.id);
+	          const customerName = customer?.name || "عميل";
+	          const customerPhone = customer?.phone || "غير معروف";
+	          const apikey = process.env.CALLMEBOT_API_KEY;
+	          
+	          if (apikey) {
+	            const message = `*طلب مطعم جديد من تطبيق وصلي* 🍽️\n\n` +
+	              `*المطعم:* ${restaurantName}\n` +
+	              `*رقم الطلب:* #${result.id}\n` +
+	              `*العميل:* ${customerName}\n` +
+	              `*رقم الهاتف:* ${customerPhone}\n` +
+	              `*العنوان:* ${input.deliveryLocation.address}\n` +
+	              `*قيمة الطعام:* ${input.totalPrice} ج.م\n` +
+	              `*سعر التوصيل:* ${deliveryPrice} ج.م\n` +
+	              `*ملاحظات:* ${input.notes || "لا يوجد"}`;
+	            
+	            const url = `https://api.callmebot.com/whatsapp.php?phone=${ownerPhone}&text=${encodeURIComponent(message)}&apikey=${apikey}`;
+	            axios.get(url).catch(e => console.error("[WhatsApp] Error:", e.message));
+	          }
+	        } catch (waError) {
+	          console.error("[WhatsApp] Failed to send notification:", waError);
+	        }
+	
+	        return {
+	          success: true,
+	          orderId: result.id,
+	          price: input.totalPrice,
+	          distance,
+	          estimatedTime,
+	        };
+	      }),
 
     createOrder: protectedProcedure
       .input(
@@ -712,17 +738,43 @@ export const appRouter = router({
           couponId: input.couponId,
         });
 
-        // Notify drivers about new order
-        await notifyDriversOfNewOrder(result.id, `يوجد طلب جديد متاح الآن بقيمة ج.م ${calculatedPrice}. اضغط للتفاصيل وقبول الطلب! 🚀`);
+	        // Notify drivers about new order
+	        await notifyDriversOfNewOrder(result.id, `يوجد طلب جديد متاح الآن بقيمة ج.م ${calculatedPrice}. اضغط للتفاصيل وقبول الطلب! 🚀`);
+	
+	        // Send WhatsApp notification to owner (01557564373)
+	        try {
+	          const ownerPhone = "201557564373";
+	          const customer = await db.getUserById(ctx.user.id);
+	          const customerName = customer?.name || "عميل";
+	          const customerPhone = customer?.phone || "غير معروف";
+	          const apikey = process.env.CALLMEBOT_API_KEY;
+	          
+	          if (apikey) {
+	            const message = `*طلب توصيل جديد من تطبيق وصلي* 🚀\n\n` +
+	              `*رقم الطلب:* #${result.id}\n` +
+	              `*العميل:* ${customerName}\n` +
+	              `*رقم الهاتف:* ${customerPhone}\n` +
+	              `*من:* ${input.pickupLocation.address}\n` +
+	              `*إلى:* ${input.deliveryLocation.address}\n` +
+	              `*التكلفة:* ${calculatedPrice} ج.م\n` +
+	              `*المسافة:* ${distance.toFixed(1)} كم\n` +
+	              `*ملاحظات:* ${input.notes || "لا يوجد"}`;
+	            
+	            const url = `https://api.callmebot.com/whatsapp.php?phone=${ownerPhone}&text=${encodeURIComponent(message)}&apikey=${apikey}`;
+	            axios.get(url).catch(e => console.error("[WhatsApp] Error:", e.message));
+	          }
+	        } catch (waError) {
+	          console.error("[WhatsApp] Failed to send notification:", waError);
+	        }
 
-        return {
-          success: true,
-          orderId: result.id,
-          price: calculatedPrice,
-          distance,
-          estimatedTime,
-        };
-      }),
+	        return {
+	          success: true,
+	          orderId: result.id,
+	          price: calculatedPrice,
+	          distance,
+	          estimatedTime,
+	        };
+	      }),
 
        // Get customer orders
     getCustomerOrders: protectedProcedure.query(async ({ ctx }) => {
