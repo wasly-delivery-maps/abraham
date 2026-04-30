@@ -22,7 +22,6 @@ interface SearchResult {
   type: string;
   importance?: number;
   distance?: string;
-  placeId?: string;
 }
 
 function MapUpdater({ center }: { center: [number, number] }) {
@@ -45,43 +44,11 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
   const [isLocating, setIsLocating] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
-  const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
-  const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null);
-  const geocoderRef = useRef<google.maps.Geocoder | null>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
 
   // تحميل عمليات البحث الأخيرة من LocalStorage
   useEffect(() => {
     const saved = localStorage.getItem('recent_searches');
     if (saved) setRecentSearches(JSON.parse(saved));
-  }, []);
-
-  // تهيئة Google Maps Services
-  useEffect(() => {
-    const initGoogleServices = async () => {
-      // انتظر قليلاً للتأكد من تحميل Google Maps
-      let attempts = 0;
-      const maxAttempts = 50;
-      
-      const tryInit = () => {
-        if (window.google && window.google.maps) {
-          try {
-            autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
-            geocoderRef.current = new window.google.maps.Geocoder();
-            console.log('[MapPicker] Google Maps services initialized successfully');
-          } catch (error) {
-            console.error('[MapPicker] Error initializing Google Maps services:', error);
-          }
-        } else if (attempts < maxAttempts) {
-          attempts++;
-          setTimeout(tryInit, 100);
-        }
-      };
-      
-      tryInit();
-    };
-    
-    initGoogleServices();
   }, []);
 
   const saveRecentSearch = (query: string) => {
@@ -92,33 +59,6 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
 
   const reverseGeocode = useCallback(async (lat: number, lon: number) => {
     try {
-      if (geocoderRef.current) {
-        // استخدام Google Geocoder
-        geocoderRef.current.geocode(
-          { location: { lat, lng: lon } },
-          (results, status) => {
-            if (status === 'OK' && results && results[0]) {
-              const addr = results[0].formatted_address || 'موقع غير معروف';
-              setAddress(addr);
-              onLocationSelect({ address: addr, latitude: lat, longitude: lon });
-            } else {
-              // fallback إلى Nominatim
-              fallbackReverseGeocode(lat, lon);
-            }
-          }
-        );
-      } else {
-        // fallback إلى Nominatim إذا لم تكن Google Maps متاحة
-        fallbackReverseGeocode(lat, lon);
-      }
-    } catch (error) {
-      console.error('Geocoding error:', error);
-      fallbackReverseGeocode(lat, lon);
-    }
-  }, [onLocationSelect]);
-
-  const fallbackReverseGeocode = async (lat: number, lon: number) => {
-    try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ar&zoom=18&addressdetails=1`
       );
@@ -127,10 +67,10 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
       setAddress(addr);
       onLocationSelect({ address: addr, latitude: lat, longitude: lon });
     } catch (error) {
-      console.error('Fallback geocoding error:', error);
+      console.error('Geocoding error:', error);
       setAddress('موقع غير معروف');
     }
-  };
+  }, [onLocationSelect]);
 
   useEffect(() => {
     if (initialLocation) {
@@ -171,90 +111,35 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        if (autocompleteServiceRef.current && window.google && window.google.maps) {
-          try {
-            // استخدام Google Places Autocomplete
-            const predictions = await autocompleteServiceRef.current.getPlacePredictions({
-              input: query,
-              componentRestrictions: { country: 'eg' },
-              language: 'ar',
-              radius: 50000,
-              location: new window.google.maps.LatLng(position[0], position[1]),
-            });
+        // تحسين البحث ليكون أسرع وأكثر دقة مع التركيز على مدينة العبور ومصر
+        // إضافة viewbox لتفضيل النتائج القريبة من العبور
+        const viewbox = "31.3,30.1,31.6,30.4"; 
+        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10&accept-language=ar&countrycodes=eg&addressdetails=1&extratags=1&viewbox=${viewbox}&bounded=0`;
+        
+        const response = await fetch(searchUrl);
+        const data = await response.json();
 
-            if (predictions.predictions && predictions.predictions.length > 0) {
-              const results: SearchResult[] = [];
-              let completedRequests = 0;
-              
-              predictions.predictions.slice(0, 10).forEach((prediction) => {
-                if (geocoderRef.current) {
-                  geocoderRef.current.geocode(
-                    { placeId: prediction.place_id },
-                    (geocodeResults, status) => {
-                      if (status === 'OK' && geocodeResults && geocodeResults[0]) {
-                        const result = geocodeResults[0];
-                        results.push({
-                          lat: result.geometry.location.lat(),
-                          lon: result.geometry.location.lng(),
-                          display_name: result.formatted_address,
-                          type: result.types[0] || 'place',
-                          importance: 1,
-                          distance: calculateDistance(result.geometry.location.lat(), result.geometry.location.lng()),
-                          placeId: prediction.place_id,
-                        });
-                      }
-                      completedRequests++;
-                      
-                      // تحديث النتائج عند اكتمال جميع الطلبات
-                      if (completedRequests === predictions.predictions.length) {
-                        setSearchResults(results.slice(0, 10));
-                        setIsSearching(false);
-                      }
-                    }
-                  );
-                }
-              });
-            } else {
-              // fallback إلى Nominatim
-              fallbackSearch(query);
-            }
-          } catch (error) {
-            console.error('Google Places error:', error);
-            fallbackSearch(query);
-          }
-        } else {
-          // fallback إلى Nominatim إذا لم تكن Google Places متاحة
-          fallbackSearch(query);
+        if (data && Array.isArray(data)) {
+          const results = data.map((item: any) => ({
+            lat: parseFloat(item.lat),
+            lon: parseFloat(item.lon),
+            display_name: item.display_name,
+            type: item.type || item.class || 'place',
+            importance: item.importance || 0,
+            distance: calculateDistance(parseFloat(item.lat), parseFloat(item.lon))
+          }));
+          
+          // ترتيب النتائج حسب الأهمية والمسافة
+          results.sort((a, b) => (b.importance || 0) - (a.importance || 0));
+          
+          setSearchResults(results);
         }
       } catch (error) {
         console.error('Search error:', error);
+      } finally {
         setIsSearching(false);
       }
-    }, 300);
-  };
-
-  const fallbackSearch = async (query: string) => {
-    try {
-      const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10&accept-language=ar&countrycodes=eg&addressdetails=1&extratags=1`;
-      const response = await fetch(searchUrl);
-      const data = await response.json();
-
-      if (data && Array.isArray(data)) {
-        const results = data.map((item: any) => ({
-          lat: parseFloat(item.lat),
-          lon: parseFloat(item.lon),
-          display_name: item.display_name,
-          type: item.type || item.class || 'place',
-          importance: item.importance || 0,
-          distance: calculateDistance(parseFloat(item.lat), parseFloat(item.lon))
-        }));
-        setSearchResults(results);
-      }
-    } catch (error) {
-      console.error('Fallback search error:', error);
-    } finally {
-      setIsSearching(false);
-    }
+    }, 400); // زيادة الـ debounce قليلاً لتقليل ضغط الطلبات على Nominatim
   };
 
   const handleSelectResult = (result: SearchResult) => {
@@ -284,13 +169,14 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
         (error) => {
           console.error('Geolocation error:', error);
           setIsLocating(false);
+          // تنبيه المستخدم في حال فشل تحديد الموقع
+          alert("تعذر تحديد موقعك الحالي. يرجى التأكد من تفعيل خدمة الموقع في متصفحك.");
         },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0,
-        }
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
       );
+    } else {
+      setIsLocating(false);
+      alert("متصفحك لا يدعم خاصية تحديد الموقع.");
     }
   };
 
@@ -315,8 +201,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     const iconMap: { [key: string]: string } = {
       'restaurant': '🍽️', 'cafe': '☕', 'fast_food': '🍔', 'shop': '🛍️',
       'pharmacy': '💊', 'hospital': '🏥', 'bank': '🏦', 'mosque': '🕌',
-      'school': '🏫', 'park': '🌳', 'hotel': '🏨', 'gas_station': '⛽',
-      'point_of_interest': '📍', 'establishment': '🏢', 'locality': '🏘️'
+      'school': '🏫', 'park': '🌳', 'hotel': '🏨', 'gas_station': '⛽'
     };
     return iconMap[type] || '📍';
   };
@@ -349,16 +234,16 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
         {/* أزرار الوصول السريع */}
         {!showResults && (
           <div className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar">
-            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap">
+            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("المنزل")}>
               🏠 المنزل
             </Button>
-            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap">
+            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("العمل")}>
               💼 العمل
             </Button>
-            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap">
+            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("مطعم")}>
               🍽️ مطاعم
             </Button>
-            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap">
+            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("كافيه")}>
               ☕ كافيهات
             </Button>
           </div>
@@ -399,7 +284,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
               </div>
             ) : !isSearching && recentSearches.length > 0 ? (
               <div>
-                <p className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">عمليات البحث الأخيرة</p>
+                <p className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">عمليات البحث الأخيرة</p>
                 {recentSearches.map((s, i) => (
                   <button
                     key={i}
@@ -452,12 +337,9 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-black text-slate-900 text-lg truncate">{getShortName(address)}</h4>
-                    <div className="flex items-center gap-0.5 bg-green-50 text-green-600 px-1.5 py-0.5 rounded-md text-[10px] font-black">
-                      <Star className="h-3 w-3 fill-current" /> 4.8
-                    </div>
+                    <h4 className="font-black text-slate-900 text-lg truncate text-right w-full">{getShortName(address)}</h4>
                   </div>
-                  <p className="text-xs font-bold text-slate-500 line-clamp-2 leading-relaxed mb-4">{address}</p>
+                  <p className="text-xs font-bold text-slate-500 line-clamp-2 leading-relaxed mb-4 text-right">{address}</p>
                   
                   <div className="flex gap-2">
                     <Button 
