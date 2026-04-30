@@ -11,6 +11,7 @@ import type { Request, Response } from "express";
 import { notifyDriversOfNewOrder, sendOneSignalNotification } from "./notifications";
 import { calculateOrderPrice, getCommissionPerOrder, shouldBlockDriver } from "../shared/pricing";
 import { updateChatRoomParticipants } from "./_core/chat";
+import axios from "axios";
 
 export const appRouter = router({
   system: systemRouter,
@@ -661,9 +662,15 @@ export const appRouter = router({
 		              `ملاحظات: ${input.notes || "لا يوجد"}`;
 		            
 		            const url = `https://api.callmebot.com/whatsapp.php?phone=${ownerPhone}&text=${encodeURIComponent(message)}&apikey=${apikey}`;
-		            axios.get(url)
-		              .then(() => console.log("[WhatsApp] Restaurant order notification sent successfully"))
-		              .catch(e => console.error("[WhatsApp] Error sending restaurant order:", e.message));
+axios.get(url)
+			              .then(() => console.log("[WhatsApp] Restaurant order notification sent successfully"))
+			              .catch(e => {
+			                console.error("[WhatsApp] Error sending restaurant order:", e.message);
+			                if (e.response) {
+			                  console.error("[WhatsApp] Response status:", e.response.status);
+			                  console.error("[WhatsApp] Response data:", e.response.data);
+			                }
+			              });
 		          } else {
 		            console.warn("[WhatsApp] CALLMEBOT_API_KEY is missing in environment variables");
 		          }
@@ -763,9 +770,15 @@ export const appRouter = router({
 		              `ملاحظات: ${input.notes || "لا يوجد"}`;
 		            
 		            const url = `https://api.callmebot.com/whatsapp.php?phone=${ownerPhone}&text=${encodeURIComponent(message)}&apikey=${apikey}`;
-		            axios.get(url)
-		              .then(() => console.log("[WhatsApp] Delivery order notification sent successfully"))
-		              .catch(e => console.error("[WhatsApp] Error sending delivery order:", e.message));
+axios.get(url)
+			              .then(() => console.log("[WhatsApp] Delivery order notification sent successfully"))
+			              .catch(e => {
+			                console.error("[WhatsApp] Error sending delivery order:", e.message);
+			                if (e.response) {
+			                  console.error("[WhatsApp] Response status:", e.response.status);
+			                  console.error("[WhatsApp] Response data:", e.response.data);
+			                }
+			              });
 		          } else {
 		            console.warn("[WhatsApp] CALLMEBOT_API_KEY is missing in environment variables");
 		          }
