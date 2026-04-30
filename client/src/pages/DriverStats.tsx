@@ -7,6 +7,7 @@ import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
+import { DriverBottomNav } from "@/components/DriverBottomNav";
 import { useMemo } from "react";
 
 export default function DriverStats() {
@@ -61,7 +62,7 @@ export default function DriverStats() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans" dir="rtl">
+    <div className="min-h-screen bg-slate-950 text-white font-sans pb-32" dir="rtl">
       {/* Header Section */}
       <div className="bg-gradient-to-b from-slate-900 to-slate-950 pt-12 pb-32 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-orange-600/10 rounded-full -mr-48 -mt-48 blur-3xl" />
@@ -194,6 +195,7 @@ export default function DriverStats() {
           </Button>
         </motion.div>
       </div>
+      <DriverBottomNav />
     </div>
   );
 }

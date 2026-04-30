@@ -7,6 +7,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { DriverBottomNav } from "@/components/DriverBottomNav";
 
 export default function DriverSupport() {
   const { user, loading, logout } = useAuth();
@@ -77,7 +78,7 @@ ${message}
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans" dir="rtl">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-32" dir="rtl">
       {/* Header Section */}
       <div className="bg-slate-900 text-white pt-12 pb-32 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-orange-600/20 rounded-full -mr-48 -mt-48 blur-3xl" />
@@ -254,6 +255,7 @@ ${message}
           </div>
         </div>
       </div>
+      <DriverBottomNav />
     </div>
   );
 }

@@ -12,6 +12,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CommissionCard } from "@/components/CommissionCard";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { DriverBottomNav } from "@/components/DriverBottomNav";
 
 export default function DriverProfile() {
   const { user, loading, logout } = useAuth();
@@ -148,7 +149,7 @@ export default function DriverProfile() {
   const totalEarnings = orders.filter((o) => o.status === "delivered").reduce((sum, o) => sum + (o.price || 0), 0);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans" dir="rtl">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-32" dir="rtl">
       {/* Header Section */}
       <div className="bg-slate-900 text-white pt-12 pb-32 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-orange-600/20 rounded-full -mr-48 -mt-48 blur-3xl" />
@@ -404,6 +405,7 @@ export default function DriverProfile() {
           </div>
         </div>
       </div>
+      <DriverBottomNav />
     </div>
   );
 }

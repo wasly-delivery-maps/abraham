@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { ChatBox } from "@/components/ChatBox";
 import { useChatContext } from "@/contexts/ChatContext";
+import { DriverBottomNav } from "@/components/DriverBottomNav";
 import { useCriticalAlerts } from "@/hooks/useCriticalAlerts";
 import { useFCM } from "@/hooks/useFCM";
 import { Link } from "wouter";
@@ -763,7 +764,7 @@ export default function DriverDashboard() {
   }, [showMapModal, mapModalData, driverLocation]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-24" dir="rtl">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-32" dir="rtl">
       {/* Header */}
       <div className="bg-slate-900 text-white pt-12 pb-32 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-orange-600/20 rounded-full -mr-48 -mt-48 blur-3xl" />
@@ -892,6 +893,8 @@ export default function DriverDashboard() {
       <AnimatePresence>
         {mapModal}
       </AnimatePresence>
+
+      <DriverBottomNav />
     </div>
   );
 }
