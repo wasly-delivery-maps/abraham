@@ -28,12 +28,12 @@ interface SearchResult {
 function MapUpdater({ center }: { center: [number, number] }) {
   const map = useMap();
   useEffect(() => {
-    map.setView(center, 16); // زووم أقرب عند الاختيار لمحاكاة جوجل ماب
+    map.setView(center, 16);
   }, [center, map]);
   return null;
 }
 
-export default function MapPicker({ onLocationSelect, initialLocation, title, placeholder }: MapPickerProps) {
+export default function MapPickerImproved({ onLocationSelect, initialLocation, title, placeholder }: MapPickerProps) {
   const [position, setPosition] = useState<[number, number]>(
     initialLocation ? [initialLocation.latitude, initialLocation.longitude] : OBUR_CENTER
   );
@@ -48,7 +48,6 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
   const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
   const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
 
   // تحميل عمليات البحث الأخيرة من LocalStorage
   useEffect(() => {
@@ -59,28 +58,11 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
   // تهيئة Google Maps Services
   useEffect(() => {
     const initGoogleServices = async () => {
-      // انتظر قليلاً للتأكد من تحميل Google Maps
-      let attempts = 0;
-      const maxAttempts = 50;
-      
-      const tryInit = () => {
-        if (window.google && window.google.maps) {
-          try {
-            autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
-            geocoderRef.current = new window.google.maps.Geocoder();
-            console.log('[MapPicker] Google Maps services initialized successfully');
-          } catch (error) {
-            console.error('[MapPicker] Error initializing Google Maps services:', error);
-          }
-        } else if (attempts < maxAttempts) {
-          attempts++;
-          setTimeout(tryInit, 100);
-        }
-      };
-      
-      tryInit();
+      if (window.google && window.google.maps) {
+        autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
+        geocoderRef.current = new window.google.maps.Geocoder();
+      }
     };
-    
     initGoogleServices();
   }, []);
 
@@ -103,34 +85,33 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
               onLocationSelect({ address: addr, latitude: lat, longitude: lon });
             } else {
               // fallback إلى Nominatim
-              fallbackReverseGeocode(lat, lon);
+              fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ar&zoom=18&addressdetails=1`
+              )
+                .then(r => r.json())
+                .then(data => {
+                  const addr = data.display_name || 'موقع غير معروف';
+                  setAddress(addr);
+                  onLocationSelect({ address: addr, latitude: lat, longitude: lon });
+                });
             }
           }
         );
       } else {
         // fallback إلى Nominatim إذا لم تكن Google Maps متاحة
-        fallbackReverseGeocode(lat, lon);
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ar&zoom=18&addressdetails=1`
+        );
+        const data = await response.json();
+        const addr = data.display_name || 'موقع غير معروف';
+        setAddress(addr);
+        onLocationSelect({ address: addr, latitude: lat, longitude: lon });
       }
     } catch (error) {
       console.error('Geocoding error:', error);
-      fallbackReverseGeocode(lat, lon);
-    }
-  }, [onLocationSelect]);
-
-  const fallbackReverseGeocode = async (lat: number, lon: number) => {
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ar&zoom=18&addressdetails=1`
-      );
-      const data = await response.json();
-      const addr = data.display_name || 'موقع غير معروف';
-      setAddress(addr);
-      onLocationSelect({ address: addr, latitude: lat, longitude: lon });
-    } catch (error) {
-      console.error('Fallback geocoding error:', error);
       setAddress('موقع غير معروف');
     }
-  };
+  }, [onLocationSelect]);
 
   useEffect(() => {
     if (initialLocation) {
@@ -141,7 +122,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
   }, []);
 
   const calculateDistance = (lat: number, lon: number) => {
-    const R = 6371; // نصف قطر الأرض بالكيلومترات
+    const R = 6371;
     const dLat = (lat - position[0]) * Math.PI / 180;
     const dLon = (lon - position[1]) * Math.PI / 180;
     const a = 
@@ -171,22 +152,21 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        if (autocompleteServiceRef.current && window.google && window.google.maps) {
-          try {
-            // استخدام Google Places Autocomplete
-            const predictions = await autocompleteServiceRef.current.getPlacePredictions({
-              input: query,
-              componentRestrictions: { country: 'eg' },
-              language: 'ar',
-              radius: 50000,
-              location: new window.google.maps.LatLng(position[0], position[1]),
-            });
+        if (autocompleteServiceRef.current) {
+          // استخدام Google Places Autocomplete
+          const predictions = await autocompleteServiceRef.current.getPlacePredictions({
+            input: query,
+            componentRestrictions: { country: 'eg' },
+            language: 'ar',
+            radius: 50000,
+            location: new window.google.maps.LatLng(position[0], position[1]),
+          });
 
-            if (predictions.predictions && predictions.predictions.length > 0) {
-              const results: SearchResult[] = [];
-              let completedRequests = 0;
-              
-              predictions.predictions.slice(0, 10).forEach((prediction) => {
+          if (predictions.predictions && predictions.predictions.length > 0) {
+            const results: SearchResult[] = [];
+            
+            for (const prediction of predictions.predictions.slice(0, 10)) {
+              try {
                 if (geocoderRef.current) {
                   geocoderRef.current.geocode(
                     { placeId: prediction.place_id },
@@ -203,58 +183,60 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
                           placeId: prediction.place_id,
                         });
                       }
-                      completedRequests++;
-                      
-                      // تحديث النتائج عند اكتمال جميع الطلبات
-                      if (completedRequests === predictions.predictions.length) {
-                        setSearchResults(results.slice(0, 10));
-                        setIsSearching(false);
-                      }
                     }
                   );
                 }
-              });
-            } else {
-              // fallback إلى Nominatim
-              fallbackSearch(query);
+              } catch (error) {
+                console.error('Geocoding prediction error:', error);
+              }
             }
-          } catch (error) {
-            console.error('Google Places error:', error);
-            fallbackSearch(query);
+
+            // انتظر قليلاً لتجميع النتائج
+            setTimeout(() => {
+              setSearchResults(results.slice(0, 10));
+            }, 100);
+          } else {
+            // fallback إلى Nominatim
+            const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10&accept-language=ar&countrycodes=eg&addressdetails=1&extratags=1`;
+            const response = await fetch(searchUrl);
+            const data = await response.json();
+
+            if (data && Array.isArray(data)) {
+              const results = data.map((item: any) => ({
+                lat: parseFloat(item.lat),
+                lon: parseFloat(item.lon),
+                display_name: item.display_name,
+                type: item.type || item.class || 'place',
+                importance: item.importance || 0,
+                distance: calculateDistance(parseFloat(item.lat), parseFloat(item.lon))
+              }));
+              setSearchResults(results);
+            }
           }
         } else {
           // fallback إلى Nominatim إذا لم تكن Google Places متاحة
-          fallbackSearch(query);
+          const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10&accept-language=ar&countrycodes=eg&addressdetails=1&extratags=1`;
+          const response = await fetch(searchUrl);
+          const data = await response.json();
+
+          if (data && Array.isArray(data)) {
+            const results = data.map((item: any) => ({
+              lat: parseFloat(item.lat),
+              lon: parseFloat(item.lon),
+              display_name: item.display_name,
+              type: item.type || item.class || 'place',
+              importance: item.importance || 0,
+              distance: calculateDistance(parseFloat(item.lat), parseFloat(item.lon))
+            }));
+            setSearchResults(results);
+          }
         }
       } catch (error) {
         console.error('Search error:', error);
+      } finally {
         setIsSearching(false);
       }
     }, 300);
-  };
-
-  const fallbackSearch = async (query: string) => {
-    try {
-      const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10&accept-language=ar&countrycodes=eg&addressdetails=1&extratags=1`;
-      const response = await fetch(searchUrl);
-      const data = await response.json();
-
-      if (data && Array.isArray(data)) {
-        const results = data.map((item: any) => ({
-          lat: parseFloat(item.lat),
-          lon: parseFloat(item.lon),
-          display_name: item.display_name,
-          type: item.type || item.class || 'place',
-          importance: item.importance || 0,
-          distance: calculateDistance(parseFloat(item.lat), parseFloat(item.lon))
-        }));
-        setSearchResults(results);
-      }
-    } catch (error) {
-      console.error('Fallback search error:', error);
-    } finally {
-      setIsSearching(false);
-    }
   };
 
   const handleSelectResult = (result: SearchResult) => {
