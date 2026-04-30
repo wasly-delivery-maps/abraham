@@ -78,9 +78,9 @@ export function ChatBox({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.3 }}
-      className="fixed bottom-4 right-4 z-50 w-96 max-w-[calc(100vw-2rem)]"
+      className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[150] w-96 max-w-[calc(100vw-2rem)]"
     >
-      <Card className="shadow-2xl border-2 border-blue-200 bg-white dark:bg-slate-900">
+      <Card className="shadow-2xl border-2 border-blue-200 bg-white dark:bg-slate-900 overflow-hidden">
         {/* Header */}
         <CardHeader className="pb-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
           <div className="flex items-center justify-between">
