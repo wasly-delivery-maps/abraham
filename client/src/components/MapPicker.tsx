@@ -1,15 +1,25 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Navigation, X, Loader2, MapPin, Clock, Star, Map as MapIcon, ChevronLeft } from 'lucide-react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
-// توكن Mapbox العام
-const MAPBOX_TOKEN = 'pk.eyJ1IjoibWFudXMtZGV2IiwiYSI6ImNtN2x4eHh4eDAwNHkyanB4eHh4eHh4eHgifQ.x-x-x-x-x-x-x-x-x-x-x'; 
-const MAPBOX_STYLE = 'mapbox://styles/mapbox/streets-v12';
+// أيقونة الدبوس الافتراضية لـ Leaflet
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
-const EGYPT_CENTER: [number, number] = [31.2357, 30.0444]; // [lng, lat] لـ Mapbox
+// @ts-ignore
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
+
+const EGYPT_CENTER: [number, number] = [30.0444, 31.2357];
 
 interface MapPickerProps {
   onLocationSelect: (location: { address: string; latitude: number; longitude: number }) => void;
@@ -27,13 +37,17 @@ interface SearchResult {
   distance?: string;
 }
 
+function MapUpdater({ center }: { center: [number, number] }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center, map.getZoom() < 13 ? 16 : map.getZoom());
+  }, [center, map]);
+  return null;
+}
+
 export default function MapPicker({ onLocationSelect, initialLocation, title, placeholder }: MapPickerProps) {
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
-  
   const [position, setPosition] = useState<[number, number]>(
-    initialLocation ? [initialLocation.longitude, initialLocation.latitude] : EGYPT_CENTER
+    initialLocation ? [initialLocation.latitude, initialLocation.longitude] : EGYPT_CENTER
   );
   const [address, setAddress] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -44,43 +58,16 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // تهيئة الخريطة
   useEffect(() => {
-    if (!mapContainerRef.current) return;
-
-    mapboxgl.accessToken = MAPBOX_TOKEN;
+    const saved = localStorage.getItem('recent_searches');
+    if (saved) setRecentSearches(JSON.parse(saved));
     
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: MAPBOX_STYLE,
-      center: position,
-      zoom: 13,
-      attributionControl: false
-    });
-
-    const marker = new mapboxgl.Marker({ color: '#f97316' })
-      .setLngLat(position)
-      .addTo(map);
-
-    mapRef.current = map;
-    markerRef.current = marker;
-
-    map.on('click', (e) => {
-      const { lng, lat } = e.lngLat;
-      updatePosition(lng, lat);
-    });
-
-    return () => map.remove();
-  }, []);
-
-  const updatePosition = (lng: number, lat: number, zoom?: number) => {
-    setPosition([lng, lat]);
-    if (markerRef.current) markerRef.current.setLngLat([lng, lat]);
-    if (mapRef.current) {
-      mapRef.current.flyTo({ center: [lng, lat], zoom: zoom || mapRef.current.getZoom() });
+    if (initialLocation) {
+      reverseGeocode(initialLocation.latitude, initialLocation.longitude);
+    } else {
+      reverseGeocode(EGYPT_CENTER[0], EGYPT_CENTER[1]);
     }
-    reverseGeocode(lat, lng);
-  };
+  }, []);
 
   const reverseGeocode = useCallback(async (lat: number, lon: number) => {
     try {
@@ -112,7 +99,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     searchTimeoutRef.current = setTimeout(async () => {
       try {
         const finalQuery = forceLocal ? `${query} العبور` : query;
-        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(finalQuery)}&limit=20&accept-language=ar&countrycodes=eg`;
+        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(finalQuery)}&limit=40&accept-language=ar&countrycodes=eg`;
         const response = await fetch(searchUrl);
         const data = await response.json();
 
@@ -133,9 +120,12 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
   };
 
   const handleSelectResult = (result: SearchResult) => {
-    updatePosition(result.lon, result.lat, 16);
+    const newPos: [number, number] = [result.lat, result.lon];
+    setPosition(newPos);
+    setAddress(result.display_name);
     setSearchQuery('');
     setShowResults(false);
+    onLocationSelect({ address: result.display_name, latitude: result.lat, longitude: result.lon });
   };
 
   const handleGetCurrentLocation = () => {
@@ -143,7 +133,9 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          updatePosition(pos.coords.longitude, pos.coords.latitude, 16);
+          const { latitude, longitude } = pos.coords;
+          setPosition([latitude, longitude]);
+          reverseGeocode(latitude, longitude);
           setIsLocating(false);
         },
         () => setIsLocating(false),
@@ -152,9 +144,21 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     }
   };
 
+  function MapEvents() {
+    useMapEvents({
+      click(e) {
+        const newPos: [number, number] = [e.latlng.lat, e.latlng.lng];
+        setPosition(newPos);
+        setShowResults(false);
+        reverseGeocode(newPos[0], newPos[1]);
+      },
+    });
+    return position ? <Marker position={position} /> : null;
+  }
+
   return (
     <div className="flex flex-col h-full w-full bg-slate-50 overflow-hidden rounded-3xl shadow-2xl border border-slate-200 relative">
-      <div className="p-4 bg-white/90 backdrop-blur-md shadow-sm z-50 absolute top-0 left-0 right-0">
+      <div className="p-4 bg-white/90 backdrop-blur-md shadow-sm z-[1000] absolute top-0 left-0 right-0">
         <div className="relative group">
           <Input
             placeholder={placeholder || "ابحث عن أي مكان..."}
@@ -170,7 +174,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
         </div>
       </div>
 
-      {showResults && (
+      {showResults && (searchResults.length > 0 || isSearching) && (
         <div className="absolute inset-0 z-[1001] bg-white overflow-y-auto pt-24">
           {searchResults.map((result, index) => (
             <button key={index} onClick={() => handleSelectResult(result)} className="w-full flex items-center gap-4 p-4 hover:bg-slate-50 border-b text-right flex-row-reverse">
@@ -184,16 +188,24 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
         </div>
       )}
 
-      <div className="flex-1 relative">
-        <div ref={mapContainerRef} className="w-full h-full" />
+      <div className="flex-1 relative z-10">
+        <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
+          {/* استخدام تصميم CartoDB Voyager الاحترافي والنظيف */}
+          <TileLayer
+            attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          />
+          <MapEvents />
+          <MapUpdater center={position} />
+        </MapContainer>
         
-        <div className="absolute bottom-6 left-4 z-10">
+        <div className="absolute bottom-6 left-4 z-[1000]">
           <Button onClick={handleGetCurrentLocation} disabled={isLocating} className="w-14 h-14 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 shadow-2xl border p-0">
             {isLocating ? <Loader2 className="h-6 w-6 animate-spin text-orange-500" /> : <Navigation className="h-6 w-6" />}
           </Button>
         </div>
 
-        <div className="absolute bottom-6 right-4 left-20 z-10 pointer-events-none">
+        <div className="absolute bottom-6 right-4 left-20 z-[1000] pointer-events-none">
           <div className="bg-white/95 backdrop-blur-sm p-3 rounded-2xl shadow-xl border text-right">
             <p className="text-[10px] font-black text-orange-500 uppercase mb-1">الموقع المحدد</p>
             <p className="text-xs font-bold text-slate-700 truncate">{address || "جاري تحديد العنوان..."}</p>
