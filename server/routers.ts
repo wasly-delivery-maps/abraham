@@ -659,7 +659,7 @@ export const appRouter = router({
             `*إلى:* ${input.deliveryLocation.address}\n` +
             `*قيمة الطعام:* ${input.totalPrice} ج.م\n` +
             `*سعر التوصيل:* ${deliveryPrice} ج.م\n` +
-            `*الملاحظات:* ${input.notes || "لا يوجد"}`;
+            `*الملاحظات:* [${restaurantName}] - ${input.notes || "لا يوجد"}`;
 
           const WHATSAPP_API_URL = ENV.whatsappApiUrl;
           const WHATSAPP_TOKEN = ENV.whatsappToken;
