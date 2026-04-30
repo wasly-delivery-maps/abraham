@@ -9,6 +9,8 @@ import bcryptjs from "bcryptjs";
 import { sdk } from "./_core/sdk";
 import type { Request, Response } from "express";
 import { notifyDriversOfNewOrder, sendOneSignalNotification } from "./notifications";
+import axios from "axios";
+import { ENV } from "./_core/env";
 import { calculateOrderPrice, getCommissionPerOrder, shouldBlockDriver } from "../shared/pricing";
 import { updateChatRoomParticipants } from "./_core/chat";
 
@@ -714,6 +716,50 @@ export const appRouter = router({
 
         // Notify drivers about new order
         await notifyDriversOfNewOrder(result.id, `يوجد طلب جديد متاح الآن بقيمة ج.م ${calculatedPrice}. اضغط للتفاصيل وقبول الطلب! 🚀`);
+
+        // Send WhatsApp notification to owner (01557564373)
+        try {
+          const ownerPhone = "201557564373";
+          const customer = await db.getUserById(ctx.user.id);
+          const customerName = customer?.name || "عميل";
+          const customerPhone = customer?.phone || "غير معروف";
+          
+          const message = `*طلب جديد من تطبيق وصلي* 🚀\n\n` +
+            `*رقم الطلب:* #${result.id}\n` +
+            `*العميل:* ${customerName}\n` +
+            `*رقم الهاتف:* ${customerPhone}\n` +
+            `*من:* ${input.pickupLocation.address}\n` +
+            `*إلى:* ${input.deliveryLocation.address}\n` +
+            `*التكلفة:* ${calculatedPrice} ج.م\n` +
+            `*المسافة:* ${distance.toFixed(1)} كم\n` +
+            `*ملاحظات:* ${input.notes || "لا يوجد"}`;
+
+          // Using UltraMsg or similar API if available, but since we don't have keys, 
+          // we'll use a generic approach or just log it if no provider is set.
+          // For now, we'll use a public WhatsApp API if possible, or just a placeholder.
+          // The user asked for it to be sent to 01557564373.
+          
+          console.log(`[WhatsApp] Sending order #${result.id} to ${ownerPhone}`);
+          
+          // Note: In a real production environment, you'd use a service like Twilio, UltraMsg, or FoneApi.
+          // Since I don't have the API keys for those, I will implement the logic and the user can add the key to ENV.
+          const WHATSAPP_API_URL = ENV.whatsappApiUrl;
+          const WHATSAPP_TOKEN = ENV.whatsappToken;
+          const WHATSAPP_INSTANCE_ID = ENV.whatsappInstanceId;
+
+          if (WHATSAPP_TOKEN && WHATSAPP_INSTANCE_ID) {
+            await axios.post(`${WHATSAPP_API_URL}/instance${WHATSAPP_INSTANCE_ID}/messages/chat`, {
+              token: WHATSAPP_TOKEN,
+              to: ownerPhone,
+              body: message
+            });
+            console.log(`[WhatsApp] Order #${result.id} sent successfully`);
+          } else {
+            console.warn("[WhatsApp] API credentials not set, skipping WhatsApp notification");
+          }
+        } catch (waError) {
+          console.error("[WhatsApp] Failed to send notification:", waError);
+        }
 
         return {
           success: true,

@@ -14,4 +14,7 @@ export const ENV = {
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
+  whatsappApiUrl: process.env.WHATSAPP_API_URL ?? "https://api.ultramsg.com",
+  whatsappToken: process.env.WHATSAPP_TOKEN ?? "",
+  whatsappInstanceId: process.env.WHATSAPP_INSTANCE_ID ?? "",
 };
