@@ -111,8 +111,6 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        // تحسين البحث ليكون أسرع وأكثر دقة مع التركيز على مدينة العبور ومصر
-        // إضافة viewbox لتفضيل النتائج القريبة من العبور
         const viewbox = "31.3,30.1,31.6,30.4"; 
         const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10&accept-language=ar&countrycodes=eg&addressdetails=1&extratags=1&viewbox=${viewbox}&bounded=0`;
         
@@ -129,9 +127,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
             distance: calculateDistance(parseFloat(item.lat), parseFloat(item.lon))
           }));
           
-          // ترتيب النتائج حسب الأهمية والمسافة
           results.sort((a, b) => (b.importance || 0) - (a.importance || 0));
-          
           setSearchResults(results);
         }
       } catch (error) {
@@ -139,7 +135,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
       } finally {
         setIsSearching(false);
       }
-    }, 400); // زيادة الـ debounce قليلاً لتقليل ضغط الطلبات على Nominatim
+    }, 400);
   };
 
   const handleSelectResult = (result: SearchResult) => {
@@ -169,7 +165,6 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
         (error) => {
           console.error('Geolocation error:', error);
           setIsLocating(false);
-          // تنبيه المستخدم في حال فشل تحديد الموقع
           alert("تعذر تحديد موقعك الحالي. يرجى التأكد من تفعيل خدمة الموقع في متصفحك.");
         },
         { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
@@ -317,7 +312,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
           </MapContainer>
 
           {/* أزرار التحكم على الخريطة */}
-          <div className="absolute bottom-32 left-4 z-[1000] flex flex-col gap-2">
+          <div className="absolute bottom-6 left-4 z-[1000] flex flex-col gap-2">
             <Button
               onClick={handleGetCurrentLocation}
               disabled={isLocating}
@@ -325,36 +320,6 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
             >
               {isLocating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Navigation className="h-5 w-5" />}
             </Button>
-          </div>
-
-          {/* بطاقة المعلومات السفلية (Bottom Sheet) */}
-          <div className="absolute bottom-0 left-0 right-0 z-[1000] p-4">
-            <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 p-5 animate-in slide-in-from-bottom duration-300">
-              <div className="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-4" />
-              <div className="flex items-start gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-orange-500 flex items-center justify-center text-2xl text-white shadow-lg shadow-orange-200 flex-shrink-0">
-                  📍
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-black text-slate-900 text-lg truncate text-right w-full">{getShortName(address)}</h4>
-                  </div>
-                  <p className="text-xs font-bold text-slate-500 line-clamp-2 leading-relaxed mb-4 text-right">{address}</p>
-                  
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={() => onLocationSelect({ address, latitude: position[0], longitude: position[1] })}
-                      className="flex-1 h-12 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black shadow-lg shadow-orange-100"
-                    >
-                      تأكيد هذا الموقع
-                    </Button>
-                    <Button variant="outline" className="h-12 w-12 rounded-xl border-slate-200 p-0">
-                      ⭐
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
