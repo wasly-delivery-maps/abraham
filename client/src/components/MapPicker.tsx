@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Search, Navigation, X, Loader2, MapPin } from 'lucide-react';
 import L from 'leaflet';
 
-// تحديث مركز الخريطة الافتراضي إلى القاهرة
+// تحديث مركز الخريطة الافتراضي إلى العبور
+const OBUR_CENTER: [number, number] = [30.2350, 31.4650];
 const CAIRO_CENTER: [number, number] = [30.0444, 31.2357];
 
 // قائمة الأحياء والمناطق الشهيرة في القاهرة والجيزة
@@ -105,7 +106,7 @@ function MapUpdater({ center }: { center: [number, number] }) {
 
 export default function MapPicker({ onLocationSelect, initialLocation, title, placeholder }: MapPickerProps) {
   const [position, setPosition] = useState<[number, number]>(
-    initialLocation ? [initialLocation.latitude, initialLocation.longitude] : CAIRO_CENTER
+    initialLocation ? [initialLocation.latitude, initialLocation.longitude] : OBUR_CENTER
   );
   const [address, setAddress] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -139,7 +140,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     if (initialLocation) {
       reverseGeocode(initialLocation.latitude, initialLocation.longitude);
     } else {
-      reverseGeocode(CAIRO_CENTER[0], CAIRO_CENTER[1]);
+      reverseGeocode(OBUR_CENTER[0], OBUR_CENTER[1]);
     }
   }, []);
 
