@@ -748,13 +748,9 @@ export function RestaurantMenu({ isExternalCartOpen, onExternalCartClose }: Rest
         .map((item) => `${item.name} × ${item.quantity} = ${item.price * item.quantity} ج.م`)
         .join("\n");
 
-      const message = `طلب جديد من تطبيق وصلي 📱\n\nالمطعم: ${selectedRestaurant.name}\n\n${orderItems}\n\nالإجمالي الأصلي: ${totalPrice} ج.م\n${appliedCoupon ? `الخصم: ${discountAmount} ج.م (${appliedCoupon.code})\nالإجمالي بعد الخصم: ${finalTotalPrice} ج.م\n` : ''}\nالعنوان: ${addressDescription || "موقع GPS"}\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
-
-      const encodedMessage = encodeURIComponent(message);
-      const directWhatsappUrl = `https://wa.me/${selectedRestaurant.whatsappPhone}?text=${encodedMessage}`;
-
-      window.open(directWhatsappUrl, "_blank");
-
+      // We no longer open WhatsApp for the customer. 
+      // The server will handle sending the WhatsApp notification to the owner in the background.
+      
       const cartItemsData = cart.map((item) => ({
         menuItemId: item.id,
         quantity: item.quantity,
