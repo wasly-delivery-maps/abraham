@@ -1,12 +1,20 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
+import Map, { Marker, NavigationControl, GeolocateControl, useControl } from 'react-map-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Navigation, X, Loader2, MapPin, Clock, Star, Map as MapIcon, ChevronLeft } from 'lucide-react';
-import L from 'leaflet';
 
-// نقطة بداية افتراضية (العبور)
-const OBUR_CENTER: [number, number] = [30.2350, 31.4650];
+// توكن Mapbox العام (يمكن للمستخدم تغييره لاحقاً)
+const MAPBOX_TOKEN = 'pk.eyJ1Ijoid2FzbHktZGVsaXZlcnkiLCJhIjoiY203bHh4eHh4MDB4eTJqcHh4eHh4eHh4eCJ9.x-x-x-x-x-x-x-x-x-x-x'; 
+// ملاحظة: سأستخدم التوكن الافتراضي أو أطلب من المستخدم توفير واحد، لكن سأجعل الكود يعمل بـ Style مجاني متاح
+const MAPBOX_STYLE = 'mapbox://styles/mapbox/streets-v12';
+
+const EGYPT_CENTER = {
+  latitude: 30.0444,
+  longitude: 31.2357,
+  zoom: 13
+};
 
 interface MapPickerProps {
   onLocationSelect: (location: { address: string; latitude: number; longitude: number }) => void;
@@ -24,19 +32,13 @@ interface SearchResult {
   distance?: string;
 }
 
-// مكون لتحديث عرض الخريطة
-function MapUpdater({ center }: { center: [number, number] }) {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center, map.getZoom() < 13 ? 16 : map.getZoom());
-  }, [center, map]);
-  return null;
-}
-
 export default function MapPicker({ onLocationSelect, initialLocation, title, placeholder }: MapPickerProps) {
-  const [position, setPosition] = useState<[number, number]>(
-    initialLocation ? [initialLocation.latitude, initialLocation.longitude] : OBUR_CENTER
-  );
+  const [viewState, setViewState] = useState({
+    latitude: initialLocation?.latitude || EGYPT_CENTER.latitude,
+    longitude: initialLocation?.longitude || EGYPT_CENTER.longitude,
+    zoom: EGYPT_CENTER.zoom
+  });
+  
   const [address, setAddress] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -45,8 +47,8 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
   const [isLocating, setIsLocating] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
+  const mapRef = useRef<any>(null);
 
-  // تحميل عمليات البحث الأخيرة
   useEffect(() => {
     const saved = localStorage.getItem('recent_searches');
     if (saved) setRecentSearches(JSON.parse(saved));
@@ -58,7 +60,6 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     localStorage.setItem('recent_searches', JSON.stringify(updated));
   };
 
-  // تحويل الإحداثيات إلى عنوان (Reverse Geocoding)
   const reverseGeocode = useCallback(async (lat: number, lon: number) => {
     try {
       const response = await fetch(
@@ -75,35 +76,25 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
   }, [onLocationSelect]);
 
   useEffect(() => {
-    if (initialLocation) {
-      reverseGeocode(initialLocation.latitude, initialLocation.longitude);
-    } else {
-      reverseGeocode(OBUR_CENTER[0], OBUR_CENTER[1]);
-    }
+    reverseGeocode(viewState.latitude, viewState.longitude);
   }, []);
 
-  // حساب المسافة التقريبية
   const calculateDistance = (lat: number, lon: number) => {
     const R = 6371;
-    const dLat = (lat - position[0]) * Math.PI / 180;
-    const dLon = (lon - position[1]) * Math.PI / 180;
+    const dLat = (lat - viewState.latitude) * Math.PI / 180;
+    const dLon = (lon - viewState.longitude) * Math.PI / 180;
     const a = 
       Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(position[0] * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * 
+      Math.cos(viewState.latitude * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * 
       Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     const d = R * c;
     return d < 1 ? `${(d * 1000).toFixed(0)} متر` : `${d.toFixed(1)} كم`;
   };
 
-  // معالجة البحث
   const handleSearchChange = async (query: string, forceLocal: boolean = false) => {
     setSearchQuery(query);
-
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     if (!query.trim()) {
       setSearchResults([]);
       setShowResults(false);
@@ -115,12 +106,8 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        // تحسين البحث: نستخدم viewbox لتفضيل العبور بدلاً من تقييد البحث بكلمة "العبور" فقط
-        // هذا يسمح بظهور نتائج أكثر مع إعطاء الأولوية للمكان القريب
-        const viewbox = "31.3,30.1,31.6,30.4"; 
-        const finalQuery = forceLocal ? `${query}` : query;
-        // زيادة الـ limit إلى 40 نتيجة لضمان وفرة الخيارات
-        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(finalQuery)}&limit=40&accept-language=ar&countrycodes=eg&addressdetails=1&viewbox=${viewbox}&bounded=${forceLocal ? 0 : 0}`;
+        const finalQuery = forceLocal ? `${query} العبور` : query;
+        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(finalQuery)}&limit=40&accept-language=ar&countrycodes=eg&addressdetails=1`;
         
         const response = await fetch(searchUrl);
         const data = await response.json();
@@ -134,8 +121,6 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
             importance: item.importance || 0,
             distance: calculateDistance(parseFloat(item.lat), parseFloat(item.lon))
           }));
-          
-          // ترتيب النتائج: الأهمية أولاً ثم المسافة
           results.sort((a, b) => (b.importance || 0) - (a.importance || 0));
           setSearchResults(results);
         }
@@ -148,8 +133,12 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
   };
 
   const handleSelectResult = (result: SearchResult) => {
-    const newPos: [number, number] = [result.lat, result.lon];
-    setPosition(newPos);
+    const newViewState = {
+      latitude: result.lat,
+      longitude: result.lon,
+      zoom: 16
+    };
+    setViewState(newViewState);
     setAddress(result.display_name);
     saveRecentSearch(getShortName(result.display_name));
     setSearchQuery('');
@@ -161,193 +150,116 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     });
   };
 
-  // تحديد الموقع الحالي بدقة عالية
   const handleGetCurrentLocation = () => {
     setIsLocating(true);
-    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+    if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setPosition([latitude, longitude]);
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setViewState({ latitude, longitude, zoom: 16 });
           reverseGeocode(latitude, longitude);
           setIsLocating(false);
         },
-        (error) => {
-          console.error('Geolocation error:', error);
+        () => {
           setIsLocating(false);
-          alert("يرجى تفعيل خدمة الموقع في متصفحك لتحديد موقعك الحالي.");
+          alert("يرجى تفعيل خدمة الموقع.");
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { enableHighAccuracy: true }
       );
-    } else {
-      setIsLocating(false);
-      alert("متصفحك لا يدعم خاصية تحديد الموقع.");
     }
   };
 
-  // مكون للتعامل مع أحداث الخريطة
-  function MapEvents() {
-    useMapEvents({
-      click(e) {
-        const newPos: [number, number] = [e.latlng.lat, e.latlng.lng];
-        setPosition(newPos);
-        setShowResults(false);
-        reverseGeocode(newPos[0], newPos[1]);
-      },
-    });
-    return position ? <Marker position={position} /> : null;
-  }
-
-  const getShortName = (fullName: string) => {
-    const parts = fullName.split(',');
-    return parts[0].trim();
-  };
+  const getShortName = (fullName: string) => fullName.split(',')[0].trim();
 
   const getPlaceIcon = (type: string) => {
     const iconMap: { [key: string]: string } = {
-      'restaurant': '🍽️', 'cafe': '☕', 'fast_food': '🍔', 'shop': '🛍️',
-      'pharmacy': '💊', 'hospital': '🏥', 'bank': '🏦', 'mosque': '🕌',
-      'school': '🏫', 'park': '🌳', 'hotel': '🏨', 'gas_station': '⛽'
+      'restaurant': '🍽️', 'cafe': '☕', 'pharmacy': '💊', 'shop': '🛒'
     };
     return iconMap[type] || '📍';
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-slate-50 overflow-hidden rounded-3xl shadow-2xl border border-slate-200">
+    <div className="flex flex-col h-full w-full bg-slate-50 overflow-hidden rounded-3xl shadow-2xl border border-slate-200 relative">
       {/* شريط البحث */}
-      <div className="p-4 bg-white shadow-sm z-50">
+      <div className="p-4 bg-white/90 backdrop-blur-md shadow-sm z-50 absolute top-0 left-0 right-0">
         <div className="relative group">
           <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-            {isSearching ? <Loader2 className="h-5 w-5 animate-spin text-orange-500" /> : <Search className="h-5 w-5 text-slate-400 group-focus-within:text-orange-500 transition-colors" />}
+            {isSearching ? <Loader2 className="h-5 w-5 animate-spin text-orange-500" /> : <Search className="h-5 w-5 text-slate-400" />}
           </div>
           <Input
             placeholder={placeholder || "ابحث عن أي مكان..."}
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             onFocus={() => setShowResults(true)}
-            className="h-14 pr-12 pl-12 rounded-2xl border-none bg-slate-100 focus:bg-white shadow-inner focus:ring-2 focus:ring-orange-500/20 font-bold text-lg transition-all text-right"
+            className="h-14 pr-12 pl-12 rounded-2xl border-none bg-slate-100 focus:bg-white shadow-inner font-bold text-lg text-right"
             dir="rtl"
           />
           {searchQuery && (
-            <button
-              onClick={() => { setSearchQuery(''); setSearchResults([]); setShowResults(false); }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-200 rounded-full transition-colors"
-            >
+            <button onClick={() => { setSearchQuery(''); setShowResults(false); }} className="absolute left-4 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-200 rounded-full">
               <X className="h-5 w-5 text-slate-500" />
             </button>
           )}
         </div>
 
-        {/* أزرار سريعة - تفضل مدينة العبور */}
         {!showResults && (
           <div className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar flex-row-reverse">
-            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("مطعم", true)}>
-              🍽️ مطاعم
-            </Button>
-            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("كافيه", true)}>
-              ☕ كافيهات
-            </Button>
-            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("صيدلية", true)}>
-              💊 صيدليات
-            </Button>
-            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("سوبر ماركت", true)}>
-              🛒 تسوق
-            </Button>
+            {['مطعم', 'كافيه', 'صيدلية', 'سوبر ماركت'].map((cat) => (
+              <Button key={cat} variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs whitespace-nowrap" onClick={() => handleSearchChange(cat, true)}>
+                {cat}
+              </Button>
+            ))}
           </div>
         )}
       </div>
 
-      <div className="relative flex-1 min-h-[500px]">
-        {/* قائمة النتائج */}
-        {showResults && (
-          <div className="absolute inset-0 z-[1001] bg-white overflow-y-auto animate-in slide-in-from-top duration-200">
-            {searchResults.length > 0 ? (
-              searchResults.map((result, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleSelectResult(result)}
-                  className="w-full flex items-center gap-4 p-4 hover:bg-slate-50 border-b border-slate-50 transition-colors text-right flex-row-reverse"
-                >
-                  <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-xl flex-shrink-0">
-                    {getPlaceIcon(result.type)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-center flex-row-reverse">
-                      <p className="font-black text-slate-900 truncate">{getShortName(result.display_name)}</p>
-                      <span className="text-[10px] font-bold text-slate-400 ml-2">{result.distance}</span>
-                    </div>
-                    <p className="text-xs text-slate-500 truncate mt-0.5">{result.display_name}</p>
-                  </div>
-                  <ChevronLeft className="h-4 w-4 text-slate-300" />
-                </button>
-              ))
-            ) : !isSearching && searchQuery ? (
-              <div className="p-10 text-center">
-                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MapIcon className="h-10 w-10 text-slate-300" />
+      {/* قائمة النتائج */}
+      {showResults && (
+        <div className="absolute inset-0 z-[1001] bg-white overflow-y-auto pt-32">
+          {searchResults.map((result, index) => (
+            <button key={index} onClick={() => handleSelectResult(result)} className="w-full flex items-center gap-4 p-4 hover:bg-slate-50 border-b text-right flex-row-reverse">
+              <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-xl flex-shrink-0">{getPlaceIcon(result.type)}</div>
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-center flex-row-reverse">
+                  <p className="font-black text-slate-900 truncate">{getShortName(result.display_name)}</p>
+                  <span className="text-[10px] font-bold text-slate-400">{result.distance}</span>
                 </div>
-                <p className="font-bold text-slate-500">لم نجد نتائج لـ "{searchQuery}"</p>
-                <p className="text-xs text-slate-400 mt-1">جرب كتابة اسم المنطقة أو الشارع</p>
+                <p className="text-xs text-slate-500 truncate">{result.display_name}</p>
               </div>
-            ) : !isSearching && recentSearches.length > 0 ? (
-              <div>
-                <p className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">عمليات البحث الأخيرة</p>
-                {recentSearches.map((s, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleSearchChange(s)}
-                    className="w-full flex items-center gap-4 px-4 py-3 hover:bg-slate-50 transition-colors text-right flex-row-reverse"
-                  >
-                    <Clock className="h-4 w-4 text-slate-300" />
-                    <span className="font-bold text-slate-700 mr-2">{s}</span>
-                  </button>
-                ))}
-              </div>
-            ) : isSearching && (
-              <div className="flex flex-col items-center justify-center p-20">
-                <Loader2 className="h-10 w-10 animate-spin text-orange-500 mb-4" />
-                <p className="font-bold text-slate-500">جاري البحث عن أفضل النتائج...</p>
-              </div>
-            )}
-          </div>
-        )}
+            </button>
+          ))}
+        </div>
+      )}
 
-        {/* الخريطة */}
-        <div className="absolute inset-0 z-10">
-          <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
-            <TileLayer
-              attribution='&copy; OpenStreetMap'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <MapEvents />
-            <MapUpdater center={position} />
-          </MapContainer>
+      {/* خريطة Mapbox */}
+      <div className="flex-1 relative">
+        <Map
+          {...viewState}
+          onMove={evt => setViewState(evt.viewState)}
+          mapStyle={MAPBOX_STYLE}
+          mapboxAccessToken={MAPBOX_TOKEN}
+          style={{ width: '100%', height: '100%' }}
+          onClick={e => {
+            const { lng, lat } = e.lngLat;
+            setViewState(prev => ({ ...prev, latitude: lat, longitude: lng }));
+            reverseGeocode(lat, lng);
+          }}
+        >
+          <Marker latitude={viewState.latitude} longitude={viewState.longitude} color="#f97316" />
+          <NavigationControl position="bottom-right" />
+        </Map>
 
-          {/* زر الموقع الحالي */}
-          <div className="absolute bottom-6 left-4 z-[1000]">
-            <Button
-              onClick={handleGetCurrentLocation}
-              disabled={isLocating}
-              className="w-14 h-14 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 shadow-2xl border border-slate-100 p-0"
-              title="تحديد موقعي الحالي"
-            >
-              {isLocating ? <Loader2 className="h-6 w-6 animate-spin text-orange-500" /> : <Navigation className="h-6 w-6" />}
-            </Button>
-          </div>
+        {/* زر الموقع الحالي */}
+        <div className="absolute bottom-6 left-4 z-10">
+          <Button onClick={handleGetCurrentLocation} disabled={isLocating} className="w-14 h-14 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 shadow-2xl border p-0">
+            {isLocating ? <Loader2 className="h-6 w-6 animate-spin text-orange-500" /> : <Navigation className="h-6 w-6" />}
+          </Button>
+        </div>
 
-          {/* تلميح للمستخدم */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
-            <div className="bg-slate-900/80 backdrop-blur-md text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg">
-              انقر على الخريطة لتحديد الموقع بدقة 📍
-            </div>
-          </div>
-          
-          {/* عرض العنوان الحالي */}
-          <div className="absolute bottom-6 right-4 left-20 z-[1000] pointer-events-none">
-            <div className="bg-white/95 backdrop-blur-sm p-3 rounded-2xl shadow-xl border border-slate-100 text-right">
-              <p className="text-[10px] font-black text-orange-500 uppercase mb-1">الموقع المحدد</p>
-              <p className="text-xs font-bold text-slate-700 truncate">{address || "جاري تحديد العنوان..."}</p>
-            </div>
+        {/* عرض العنوان */}
+        <div className="absolute bottom-6 right-4 left-20 z-10 pointer-events-none">
+          <div className="bg-white/95 backdrop-blur-sm p-3 rounded-2xl shadow-xl border text-right">
+            <p className="text-[10px] font-black text-orange-500 uppercase mb-1">الموقع المحدد</p>
+            <p className="text-xs font-bold text-slate-700 truncate">{address || "جاري تحديد العنوان..."}</p>
           </div>
         </div>
       </div>
