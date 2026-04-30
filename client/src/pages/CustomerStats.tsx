@@ -64,13 +64,14 @@ export default function CustomerStats() {
           <div className="flex justify-between items-center mb-12">
             <Button 
               variant="ghost" 
-              className="text-white/60 hover:text-white hover:bg-white/10 rounded-2xl h-12 w-12 p-0"
+              className="text-white hover:bg-white/10 rounded-2xl px-4 py-2 flex items-center gap-2 transition-all"
               onClick={() => navigate("/customer/dashboard")}
             >
               <ChevronLeft className="h-6 w-6 rotate-180" />
+              <span className="font-bold">رجوع</span>
             </Button>
             <h1 className="text-xl font-black tracking-widest uppercase">إحصائياتي</h1>
-            <div className="w-12" /> {/* Spacer */}
+            <div className="w-20" /> {/* Spacer */}
           </div>
 
           <div className="text-center">
