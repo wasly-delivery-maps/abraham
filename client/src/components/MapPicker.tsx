@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Search, Navigation, X, Loader2, MapPin, Clock, Star, Map as MapIcon, ChevronLeft } from 'lucide-react';
 import L from 'leaflet';
 
-// نقطة بداية افتراضية (القاهرة)
-const EGYPT_CENTER: [number, number] = [30.0444, 31.2357];
+// نقطة بداية افتراضية (العبور)
+const OBUR_CENTER: [number, number] = [30.2350, 31.4650];
 
 interface MapPickerProps {
   onLocationSelect: (location: { address: string; latitude: number; longitude: number }) => void;
@@ -35,7 +35,7 @@ function MapUpdater({ center }: { center: [number, number] }) {
 
 export default function MapPicker({ onLocationSelect, initialLocation, title, placeholder }: MapPickerProps) {
   const [position, setPosition] = useState<[number, number]>(
-    initialLocation ? [initialLocation.latitude, initialLocation.longitude] : EGYPT_CENTER
+    initialLocation ? [initialLocation.latitude, initialLocation.longitude] : OBUR_CENTER
   );
   const [address, setAddress] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,7 +78,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     if (initialLocation) {
       reverseGeocode(initialLocation.latitude, initialLocation.longitude);
     } else {
-      reverseGeocode(EGYPT_CENTER[0], EGYPT_CENTER[1]);
+      reverseGeocode(OBUR_CENTER[0], OBUR_CENTER[1]);
     }
   }, []);
 
@@ -97,7 +97,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
   };
 
   // معالجة البحث
-  const handleSearchChange = async (query: string) => {
+  const handleSearchChange = async (query: string, forceLocal: boolean = false) => {
     setSearchQuery(query);
 
     if (searchTimeoutRef.current) {
@@ -115,8 +115,9 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        // البحث في مصر بالكامل مع تحسين النتائج
-        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10&accept-language=ar&countrycodes=eg&addressdetails=1`;
+        // إذا كان البحث من الأزرار السريعة، نضيف "العبور" للبحث لضمان نتائج محلية
+        const finalQuery = forceLocal ? `${query} العبور` : query;
+        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(finalQuery)}&limit=10&accept-language=ar&countrycodes=eg&addressdetails=1`;
         
         const response = await fetch(searchUrl);
         const data = await response.json();
@@ -180,19 +181,15 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     }
   };
 
-  // مكون للتعامل مع أحداث الخريطة (النقر والتحريك)
+  // مكون للتعامل مع أحداث الخريطة
   function MapEvents() {
-    const map = useMapEvents({
+    useMapEvents({
       click(e) {
         const newPos: [number, number] = [e.latlng.lat, e.latlng.lng];
         setPosition(newPos);
         setShowResults(false);
         reverseGeocode(newPos[0], newPos[1]);
       },
-      moveend() {
-        // تحديث الموقع عند انتهاء تحريك الخريطة (اختياري، لكن النقر أدق)
-        // إذا أردت تفعيل الاختيار بالتحريك، يمكنك استخدام map.getCenter() هنا
-      }
     });
     return position ? <Marker position={position} /> : null;
   }
@@ -237,20 +234,20 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
           )}
         </div>
 
-        {/* أزرار سريعة */}
+        {/* أزرار سريعة - مقيدة بمدينة العبور */}
         {!showResults && (
           <div className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar flex-row-reverse">
-            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("مطعم")}>
-              🍽️ مطاعم
+            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("مطعم", true)}>
+              🍽️ مطاعم العبور
             </Button>
-            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("كافيه")}>
-              ☕ كافيهات
+            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("كافيه", true)}>
+              ☕ كافيهات العبور
             </Button>
-            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("صيدلية")}>
-              💊 صيدليات
+            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("صيدلية", true)}>
+              💊 صيدليات العبور
             </Button>
-            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("سوبر ماركت")}>
-              🛒 تسوق
+            <Button variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs gap-1 whitespace-nowrap" onClick={() => handleSearchChange("سوبر ماركت", true)}>
+              🛒 تسوق العبور
             </Button>
           </div>
         )}
@@ -341,7 +338,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
             </div>
           </div>
           
-          {/* عرض العنوان الحالي بشكل بسيط */}
+          {/* عرض العنوان الحالي */}
           <div className="absolute bottom-6 right-4 left-20 z-[1000] pointer-events-none">
             <div className="bg-white/95 backdrop-blur-sm p-3 rounded-2xl shadow-xl border border-slate-100 text-right">
               <p className="text-[10px] font-black text-orange-500 uppercase mb-1">الموقع المحدد</p>
