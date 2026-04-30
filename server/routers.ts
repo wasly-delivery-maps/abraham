@@ -653,7 +653,7 @@ export const appRouter = router({
           input.items.map(async (item) => {
             const menuItem = await db.getMenuItemById(item.menuItemId);
             const itemName = menuItem?.name || fallbackMenu[item.menuItemId] || "صنف غير معروف";
-            return `${itemName} (x${item.quantity})`;
+            return `${itemName} (x${item.quantity}) - ${item.price} ج.م`;
           })
         );
         const itemsSummary = itemDetails.join("\n- ");
