@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Search, MapPin, Loader2, X } from 'lucide-react';
+import { Search, MapPin, Loader2, X, Navigation } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 // Fix Leaflet icon issue
 // @ts-ignore
@@ -72,6 +73,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
   const reverseGeocode = useCallback(async (lat: number, lon: number) => {
@@ -167,6 +169,29 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     reverseGeocode(result.lat, result.lon);
   };
 
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("متصفحك لا يدعم تحديد الموقع");
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const newPos: [number, number] = [position.coords.latitude, position.coords.longitude];
+        setPosition(newPos);
+        reverseGeocode(newPos[0], newPos[1]);
+        setIsLocating(false);
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        toast.error("فشل تحديد الموقع، يرجى التأكد من تفعيل الـ GPS");
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
     if (searchResults.length > 0) {
@@ -215,13 +240,23 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
             </button>
           )}
         </div>
-        <Button 
-          onClick={handleSearch} 
-          disabled={isSearching || searchResults.length === 0}
-          className="h-14 px-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black transition-all disabled:opacity-50"
-        >
-          {isSearching ? <Loader2 className="h-5 w-5 animate-spin" /> : "بحث"}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleSearch} 
+            disabled={isSearching || !searchQuery.trim()}
+            className="flex-1 h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black transition-all disabled:opacity-50"
+          >
+            {isSearching ? <Loader2 className="h-5 w-5 animate-spin" /> : "بحث"}
+          </Button>
+          <Button 
+            onClick={handleGetCurrentLocation}
+            disabled={isLocating}
+            className="h-14 px-6 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-black transition-all shadow-lg shadow-orange-200"
+            title="تحديد موقعي الحالي"
+          >
+            {isLocating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Navigation className="h-5 w-5" />}
+          </Button>
+        </div>
       </div>
 
       {showResults && searchResults.length > 0 && (
