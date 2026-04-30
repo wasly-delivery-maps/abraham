@@ -597,15 +597,25 @@ export const appRouter = router({
         };
 
         let restaurantName = "رول وي";
-        if (input.restaurantId === 2) {
+        const restaurant = await db.getRestaurantById(input.restaurantId);
+        if (restaurant) {
+          restaurantName = restaurant.name;
+        } else if (input.restaurantId === 2) {
           restaurantName = "كشري الخديوي";
         } else if (input.restaurantId === 3) {
           restaurantName = "مطعم الحوت";
         } else if (input.pickupLocation?.address) {
-          // If address is provided in pickupLocation, use it as restaurant name if it contains specific keywords
-          // or just use the provided address
           restaurantName = input.pickupLocation.address.split(',')[0].split('-')[0].trim();
         }
+
+        // Get item names for the notification
+        const itemDetails = await Promise.all(
+          input.items.map(async (item) => {
+            const menuItem = await db.getMenuItemById(item.menuItemId);
+            return `${menuItem?.name || "صنف غير معروف"} (x${item.quantity})`;
+          })
+        );
+        const itemsSummary = itemDetails.join("\n- ");
 
         // Calculate distance
         const distance = calculateDistance(
@@ -633,7 +643,7 @@ export const appRouter = router({
           price: deliveryPrice, // This is the delivery fee for the driver
           distance,
           estimatedTime,
-          notes: `المطعم: ${restaurantName}\nالعنوان: ${input.deliveryLocation.address}\nالملاحظات: ${input.notes || "بدون ملاحظات"}\nقيمة الطعام: ج.م ${input.totalPrice}`,
+          notes: `المطعم: ${restaurantName}\nالأصناف:\n- ${itemsSummary}\nالعنوان: ${input.deliveryLocation.address}\nالملاحظات: ${input.notes || "بدون ملاحظات"}\nقيمة الطعام: ج.م ${input.totalPrice}`,
           couponId: input.couponId,
         });
 
@@ -651,15 +661,16 @@ export const appRouter = router({
 	          const customerPhone = customer?.phone || "غير معروف";
 		          const apikey = process.env.CALLMEBOT_API_KEY;
 		          if (apikey) {
-		            const message = `طلب مطعم جديد من تطبيق وصلي 🍽️\n\n` +
-		              `المطعم: ${restaurantName}\n` +
-		              `رقم الطلب: #${result.id}\n` +
-		              `العميل: ${customerName}\n` +
-		              `رقم الهاتف: ${customerPhone}\n` +
-		              `العنوان: ${input.deliveryLocation.address}\n` +
-		              `قيمة الطعام: ${input.totalPrice} ج.م\n` +
-		              `سعر التوصيل: ${deliveryPrice} ج.م\n` +
-		              `ملاحظات: ${input.notes || "لا يوجد"}`;
+			            const message = `طلب مطعم جديد من تطبيق وصلي 🍽️\n\n` +
+			              `المطعم: ${restaurantName}\n` +
+			              `رقم الطلب: #${result.id}\n` +
+			              `العميل: ${customerName}\n` +
+			              `رقم الهاتف: ${customerPhone}\n` +
+			              `الأصناف:\n- ${itemsSummary}\n` +
+			              `العنوان: ${input.deliveryLocation.address}\n` +
+			              `قيمة الطعام: ${input.totalPrice} ج.م\n` +
+			              `سعر التوصيل: ${deliveryPrice} ج.م\n` +
+			              `ملاحظات: ${input.notes || "لا يوجد"}`;
 		            
 		            const url = `https://api.callmebot.com/whatsapp.php?phone=${ownerPhone}&text=${encodeURIComponent(message)}&apikey=${apikey}`;
 axios.get(url)

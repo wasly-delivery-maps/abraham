@@ -13,6 +13,8 @@ import {
   offers,
   coupons,
   userCoupons,
+  restaurants,
+  menuItems,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -1096,6 +1098,26 @@ export async function getCouponByCode(code: string) {
   const db = await getDb();
   if (!db) return undefined;
   const result = await db.select().from(coupons).where(eq(coupons.code, code)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+/**
+ * Get restaurant by ID
+ */
+export async function getRestaurantById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(restaurants).where(eq(restaurants.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+/**
+ * Get menu item by ID
+ */
+export async function getMenuItemById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(menuItems).where(eq(menuItems.id, id)).limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
