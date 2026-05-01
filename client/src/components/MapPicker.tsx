@@ -12,7 +12,7 @@ import 'leaflet/dist/leaflet.css';
 // إعداد أيقونة الدبوس لتكون مثل جوجل ماب (أحمر وأنيق)
 const customIcon = L.divIcon({
   className: "custom-google-pin",
-  iconAnchor: [12, 41],
+  iconAnchor: [15, 45],
   popupAnchor: [1, -34],
   html: `
     <div style="position: relative;">
@@ -47,7 +47,6 @@ function MapUpdater({ center }: { center: [number, number] }) {
   useEffect(() => {
     if (center) {
       map.setView(center, map.getZoom() < 13 ? 16 : map.getZoom());
-      // إجبار الخريطة على إعادة حساب الأبعاد لضمان عدم وجود مساحات رمادية
       setTimeout(() => map.invalidateSize(), 100);
     }
   }, [center, map]);
@@ -92,6 +91,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
   const handleSearchChange = async (query: string, forceLocal: boolean = false) => {
     setSearchQuery(query);
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    
     if (!query.trim()) {
       setSearchResults([]);
       setShowResults(false);
@@ -104,30 +104,19 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     searchTimeoutRef.current = setTimeout(async () => {
       try {
         const finalQuery = forceLocal ? `${query} العبور` : query;
-        const searchUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(finalQuery)}&limit=15&lang=ar&lat=30.21&lon=31.54`;
+        // استخدام Nominatim مباشرة كخيار أكثر استقراراً في مصر
+        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(finalQuery)}&limit=15&accept-language=ar&countrycodes=eg&addressdetails=1`;
         
         const response = await fetch(searchUrl);
         const data = await response.json();
 
-        if (data && data.features) {
-          const results = data.features.map((feature: any) => {
-            const props = feature.properties;
-            const coords = feature.geometry.coordinates;
-            const name = props.name || '';
-            const street = props.street || '';
-            const district = props.district || props.suburb || '';
-            const city = props.city || '';
-            const displayName = [name, street, district, city].filter(Boolean).join(', ');
-
-            return {
-              lat: coords[1],
-              lon: coords[0],
-              display_name: displayName || 'موقع غير معروف',
-              name: name,
-              city: city,
-              district: district
-            };
-          });
+        if (Array.isArray(data)) {
+          const results = data.map((item: any) => ({
+            lat: parseFloat(item.lat),
+            lon: parseFloat(item.lon),
+            display_name: item.display_name,
+            name: item.address?.name || item.display_name.split(',')[0]
+          }));
           setSearchResults(results);
         }
       } catch (error) {
@@ -135,7 +124,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
       } finally {
         setIsSearching(false);
       }
-    }, 400);
+    }, 500);
   };
 
   const handleSelectResult = (result: SearchResult) => {
@@ -204,8 +193,8 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
           </div>
           {isFullScreen && (
             <button 
-              onClick={() => setIsFullScreen(false)} 
-              className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full shadow-md"
+              onClick={(e) => { e.stopPropagation(); setIsFullScreen(false); setShowResults(false); }} 
+              className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full shadow-md z-[1002]"
             >
               <X className="h-5 w-5 text-slate-600" />
             </button>
@@ -226,17 +215,24 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
       {/* قائمة النتائج */}
       {showResults && (searchResults.length > 0 || isSearching) && (
         <div className="absolute inset-0 z-[1001] bg-white overflow-y-auto pt-32">
+          <div className="p-2 flex justify-between items-center border-b bg-slate-50">
+             <Button variant="ghost" size="sm" onClick={() => setShowResults(false)} className="text-slate-500">إغلاق</Button>
+             <span className="text-xs font-bold text-slate-400 px-4">نتائج البحث</span>
+          </div>
           {searchResults.map((result, index) => (
             <button key={index} onClick={() => handleSelectResult(result)} className="w-full flex items-center gap-4 p-4 hover:bg-slate-50 border-b text-right flex-row-reverse">
               <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-xl flex-shrink-0">
-                {result.name ? '🏢' : '📍'}
+                📍
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-black text-slate-900 truncate">{result.name || result.display_name.split(',')[0]}</p>
+                <p className="font-black text-slate-900 truncate">{result.name}</p>
                 <p className="text-xs text-slate-500 truncate">{result.display_name}</p>
               </div>
             </button>
           ))}
+          {searchResults.length === 0 && !isSearching && (
+            <div className="p-10 text-center text-slate-400 font-bold">لا توجد نتائج، حاول كتابة اسم المكان بشكل أوضح</div>
+          )}
         </div>
       )}
 
