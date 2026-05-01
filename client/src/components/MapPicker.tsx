@@ -68,24 +68,12 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
 
   const reverseGeocode = useCallback(async (lat: number, lon: number) => {
     try {
-      // استخدام Mapbox Reverse Geocoding API لأفضل دقة
+      // استخدام Nominatim للتحويل العكسي لضمان الاستقرار التام
       const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lon},${lat}.json?access_token=${MAPBOX_ACCESS_TOKEN}&language=ar&types=address,poi,neighborhood`
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ar&zoom=18&addressdetails=1`
       );
       const data = await response.json();
-      
-      let addr = 'موقع غير معروف';
-      if (data.features && data.features.length > 0) {
-        addr = data.features[0].place_name;
-      } else {
-        // Fallback to Nominatim if Mapbox fails or has no results
-        const fallbackRes = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ar&zoom=18`
-        );
-        const fallbackData = await fallbackRes.json();
-        addr = fallbackData.display_name || 'موقع غير معروف';
-      }
-      
+      const addr = data.display_name || 'موقع غير معروف';
       setAddress(addr);
       onLocationSelect({ address: addr, latitude: lat, longitude: lon });
     } catch (error) {
@@ -116,27 +104,20 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        // تحسين البحث ليكون أكثر شمولاً (Global Search within Egypt)
-        // إزالة القيد الجغرافي الصارم (proximity) للسماح بالبحث في أي مكان بالمنطقة والمدينة
-        // إضافة أنواع إضافية من النتائج مثل الأحياء والمدن والأماكن المشهورة
-        const searchUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_ACCESS_TOKEN}&language=ar&country=eg&types=poi,address,neighborhood,locality,place&limit=10&autocomplete=true`;
+        // استخدام Nominatim للبحث الشامل داخل مصر لضمان ظهور النتائج دائماً
+        // يدعم البحث بالاسم، الحي، المدينة، والمحافظة
+        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=15&accept-language=ar&countrycodes=eg&addressdetails=1`;
         
         const response = await fetch(searchUrl);
         const data = await response.json();
 
-        if (data.features) {
-          const results = data.features.map((item: any) => {
-            // استخراج اسم المكان والمنطقة بشكل أفضل للعرض
-            const name = item.text;
-            const fullName = item.place_name;
-            
-            return {
-              lat: item.center[1],
-              lon: item.center[0],
-              display_name: fullName,
-              name: name
-            };
-          });
+        if (Array.isArray(data)) {
+          const results = data.map((item: any) => ({
+            lat: parseFloat(item.lat),
+            lon: parseFloat(item.lon),
+            display_name: item.display_name,
+            name: item.address?.name || item.address?.amenity || item.address?.shop || item.address?.building || item.display_name.split(',')[0]
+          }));
           setSearchResults(results);
         }
       } catch (error) {
