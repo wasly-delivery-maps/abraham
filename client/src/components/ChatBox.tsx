@@ -78,9 +78,8 @@ export function ChatBox({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.3 }}
-      className="fixed inset-x-0 bottom-0 top-0 z-[10002] flex flex-col justify-end pointer-events-none p-4"
+      className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 w-96 max-w-[calc(100vw-2rem)]"
     >
-      <div className="w-full max-w-lg mx-auto pointer-events-auto mb-20 md:mb-24">
       <Card className="shadow-2xl border-2 border-blue-200 bg-white dark:bg-slate-900">
         {/* Header */}
         <CardHeader className="pb-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
@@ -189,7 +188,6 @@ export function ChatBox({
           </div>
         </div>
       </Card>
-      </div>
     </motion.div>
   );
 }
