@@ -1,14 +1,36 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Navigation, X, Loader2, MapPin, Clock, Star, Map as MapIcon, ChevronLeft } from 'lucide-react';
+import L from 'leaflet';
 
-// توكن Mapbox عام صالح للاستخدام
-const MAPBOX_TOKEN = 'pk.eyJ1IjoibWFudXMtZGV2IiwiYSI6ImNtN2x4eHh4eDAwNHkyanB4eHh4eHh4eHgifQ.x-x-x-x-x-x-x-x-x-x-x'; 
-const MAPBOX_STYLE = 'mapbox://styles/mapbox/streets-v12';
+// استيراد CSS الخاص بـ Leaflet بشكل مباشر
+import 'leaflet/dist/leaflet.css';
 
-const EGYPT_CENTER: [number, number] = [31.2357, 30.0444]; // [lng, lat]
+// إعداد أيقونة الدبوس باستخدام SVG مدمج لضمان الظهور 100% دون الاعتماد على ملفات خارجية
+const markerHtmlStyles = `
+  background-color: #f97316;
+  width: 3rem;
+  height: 3rem;
+  display: block;
+  left: -1.5rem;
+  top: -1.5rem;
+  position: relative;
+  border-radius: 3rem 3rem 0;
+  transform: rotate(45deg);
+  border: 3px solid #ffffff;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+`;
+
+const customIcon = L.divIcon({
+  className: "custom-pin-icon",
+  iconAnchor: [0, 24],
+  popupAnchor: [0, -36],
+  html: `<span style="${markerHtmlStyles}" />`
+});
+
+const EGYPT_CENTER: [number, number] = [30.0444, 31.2357];
 
 interface MapPickerProps {
   onLocationSelect: (location: { address: string; latitude: number; longitude: number }) => void;
@@ -24,13 +46,19 @@ interface SearchResult {
   type: string;
 }
 
+function MapUpdater({ center }: { center: [number, number] }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center) {
+      map.setView(center, map.getZoom() < 13 ? 16 : map.getZoom());
+    }
+  }, [center, map]);
+  return null;
+}
+
 export default function MapPicker({ onLocationSelect, initialLocation, title, placeholder }: MapPickerProps) {
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
-  
   const [position, setPosition] = useState<[number, number]>(
-    initialLocation ? [initialLocation.longitude, initialLocation.latitude] : EGYPT_CENTER
+    initialLocation ? [initialLocation.latitude, initialLocation.longitude] : EGYPT_CENTER
   );
   const [address, setAddress] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,71 +67,6 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
   const [showResults, setShowResults] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
-
-  // تهيئة الخريطة
-  useEffect(() => {
-    if (!mapContainerRef.current) return;
-
-    mapboxgl.accessToken = MAPBOX_TOKEN;
-    
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: MAPBOX_STYLE,
-      center: position,
-      zoom: 13,
-      attributionControl: false,
-      preserveDrawingBuffer: true // يساعد في تجنب الشاشة البيضاء في بعض المتصفحات
-    });
-
-    // إضافة أزرار التحكم
-    map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
-
-    const marker = new mapboxgl.Marker({ color: '#f97316', draggable: true })
-      .setLngLat(position)
-      .addTo(map);
-
-    mapRef.current = map;
-    markerRef.current = marker;
-
-    // تحديث الموقع عند سحب الدبوس
-    marker.on('dragend', () => {
-      const lngLat = marker.getLngLat();
-      updatePosition(lngLat.lng, lngLat.lat);
-    });
-
-    // تحديث الموقع عند النقر على الخريطة
-    map.on('click', (e) => {
-      const { lng, lat } = e.lngLat;
-      updatePosition(lng, lat);
-    });
-
-    // جلب العنوان الأولي
-    reverseGeocode(position[1], position[0]);
-
-    // التأكد من أن الخريطة تأخذ الأبعاد الصحيحة بعد التحميل
-    map.on('load', () => {
-      map.resize();
-    });
-
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.remove();
-      }
-    };
-  }, []);
-
-  const updatePosition = (lng: number, lat: number, zoom?: number) => {
-    setPosition([lng, lat]);
-    if (markerRef.current) markerRef.current.setLngLat([lng, lat]);
-    if (mapRef.current) {
-      mapRef.current.flyTo({ 
-        center: [lng, lat], 
-        zoom: zoom || mapRef.current.getZoom(),
-        essential: true 
-      });
-    }
-    reverseGeocode(lat, lng);
-  };
 
   const reverseGeocode = useCallback(async (lat: number, lon: number) => {
     try {
@@ -118,6 +81,14 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
       console.error('Geocoding error:', error);
     }
   }, [onLocationSelect]);
+
+  useEffect(() => {
+    if (initialLocation) {
+      reverseGeocode(initialLocation.latitude, initialLocation.longitude);
+    } else {
+      reverseGeocode(EGYPT_CENTER[0], EGYPT_CENTER[1]);
+    }
+  }, []);
 
   const handleSearchChange = async (query: string, forceLocal: boolean = false) => {
     setSearchQuery(query);
@@ -155,9 +126,12 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
   };
 
   const handleSelectResult = (result: SearchResult) => {
-    updatePosition(result.lon, result.lat, 16);
+    const newPos: [number, number] = [result.lat, result.lon];
+    setPosition(newPos);
+    setAddress(result.display_name);
     setSearchQuery('');
     setShowResults(false);
+    onLocationSelect({ address: result.display_name, latitude: result.lat, longitude: result.lon });
   };
 
   const handleGetCurrentLocation = () => {
@@ -165,7 +139,9 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          updatePosition(pos.coords.longitude, pos.coords.latitude, 16);
+          const { latitude, longitude } = pos.coords;
+          setPosition([latitude, longitude]);
+          reverseGeocode(latitude, longitude);
           setIsLocating(false);
         },
         () => setIsLocating(false),
@@ -174,10 +150,22 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     }
   };
 
+  function MapEvents() {
+    useMapEvents({
+      click(e) {
+        const newPos: [number, number] = [e.latlng.lat, e.latlng.lng];
+        setPosition(newPos);
+        setShowResults(false);
+        reverseGeocode(newPos[0], newPos[1]);
+      },
+    });
+    return position ? <Marker position={position} icon={customIcon} /> : null;
+  }
+
   return (
     <div className="flex flex-col h-full w-full bg-white overflow-hidden rounded-3xl shadow-2xl border border-slate-200 relative min-h-[500px]">
       {/* شريط البحث */}
-      <div className="p-4 bg-white/90 backdrop-blur-md shadow-sm z-50 absolute top-0 left-0 right-0">
+      <div className="p-4 bg-white/90 backdrop-blur-md shadow-sm z-[1000] absolute top-0 left-0 right-0">
         <div className="relative group">
           <Input
             placeholder={placeholder || "ابحث عن أي مكان..."}
@@ -190,11 +178,6 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
           <div className="absolute right-4 top-1/2 -translate-y-1/2">
             {isSearching ? <Loader2 className="h-5 w-5 animate-spin text-orange-500" /> : <Search className="h-5 w-5 text-slate-400" />}
           </div>
-          {searchQuery && (
-            <button onClick={() => { setSearchQuery(''); setShowResults(false); }} className="absolute left-4 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-200 rounded-full">
-              <X className="h-5 w-5 text-slate-500" />
-            </button>
-          )}
         </div>
 
         {!showResults && (
@@ -223,19 +206,27 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
         </div>
       )}
 
-      {/* حاوية الخريطة */}
-      <div className="flex-1 relative" style={{ minHeight: '500px' }}>
-        <div ref={mapContainerRef} className="absolute inset-0 w-full h-full" />
+      {/* الخريطة */}
+      <div className="flex-1 relative z-10">
+        <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%', minHeight: '500px' }} zoomControl={false}>
+          {/* استخدام تصميم Google Maps Streets المستقر والمجاني لضمان الظهور والجمال */}
+          <TileLayer
+            url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+            attribution='&copy; Google Maps'
+          />
+          <MapEvents />
+          <MapUpdater center={position} />
+        </MapContainer>
         
         {/* زر الموقع الحالي */}
-        <div className="absolute bottom-6 left-4 z-10">
+        <div className="absolute bottom-6 left-4 z-[1000]">
           <Button onClick={handleGetCurrentLocation} disabled={isLocating} className="w-14 h-14 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 shadow-2xl border p-0">
             {isLocating ? <Loader2 className="h-6 w-6 animate-spin text-orange-500" /> : <Navigation className="h-6 w-6" />}
           </Button>
         </div>
 
         {/* عرض العنوان */}
-        <div className="absolute bottom-6 right-4 left-20 z-10 pointer-events-none">
+        <div className="absolute bottom-6 right-4 left-20 z-[1000] pointer-events-none">
           <div className="bg-white/95 backdrop-blur-sm p-3 rounded-2xl shadow-xl border text-right">
             <p className="text-[10px] font-black text-orange-500 uppercase mb-1">الموقع المحدد</p>
             <p className="text-xs font-bold text-slate-700 truncate">{address || "جاري تحديد العنوان..."}</p>
