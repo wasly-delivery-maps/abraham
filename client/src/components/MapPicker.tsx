@@ -9,26 +9,19 @@ import { cn } from '@/lib/utils';
 // استيراد CSS الخاص بـ Leaflet
 import 'leaflet/dist/leaflet.css';
 
-// إعداد أيقونة الدبوس
-const markerHtmlStyles = `
-  background-color: #f97316;
-  width: 2rem;
-  height: 2rem;
-  display: block;
-  left: -1rem;
-  top: -1rem;
-  position: relative;
-  border-radius: 2rem 2rem 0;
-  transform: rotate(45deg);
-  border: 2px solid #ffffff;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-`;
-
+// إعداد أيقونة الدبوس لتكون مثل جوجل ماب (أحمر وأنيق)
 const customIcon = L.divIcon({
-  className: "custom-pin-icon",
-  iconAnchor: [0, 16],
-  popupAnchor: [0, -24],
-  html: `<span style="${markerHtmlStyles}" />`
+  className: "custom-google-pin",
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  html: `
+    <div style="position: relative;">
+      <svg width="30" height="45" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+        <path d="M12 0C7.58 0 4 3.58 4 8C4 13.54 12 24 12 24C12 24 20 13.54 20 8C20 3.58 16.42 0 12 0Z" fill="#EA4335"/>
+        <circle cx="12" cy="8" r="3" fill="white"/>
+      </svg>
+    </div>
+  `
 });
 
 const EGYPT_CENTER: [number, number] = [30.0444, 31.2357];
@@ -54,6 +47,8 @@ function MapUpdater({ center }: { center: [number, number] }) {
   useEffect(() => {
     if (center) {
       map.setView(center, map.getZoom() < 13 ? 16 : map.getZoom());
+      // إجبار الخريطة على إعادة حساب الأبعاد لضمان عدم وجود مساحات رمادية
+      setTimeout(() => map.invalidateSize(), 100);
     }
   }, [center, map]);
   return null;
@@ -108,9 +103,8 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        // استخدام محرك بحث Photon الذكي الذي يدعم POI (المحلات والمعالم) بشكل أفضل
         const finalQuery = forceLocal ? `${query} العبور` : query;
-        const searchUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(finalQuery)}&limit=15&lang=ar&lat=30.21&lon=31.54`; // تركيز البحث حول العبور
+        const searchUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(finalQuery)}&limit=15&lang=ar&lat=30.21&lon=31.54`;
         
         const response = await fetch(searchUrl);
         const data = await response.json();
@@ -119,16 +113,11 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
           const results = data.features.map((feature: any) => {
             const props = feature.properties;
             const coords = feature.geometry.coordinates;
-            
-            // بناء اسم عرض جميل
             const name = props.name || '';
             const street = props.street || '';
             const district = props.district || props.suburb || '';
             const city = props.city || '';
-            
-            const displayName = [name, street, district, city]
-              .filter(Boolean)
-              .join(', ');
+            const displayName = [name, street, district, city].filter(Boolean).join(', ');
 
             return {
               lat: coords[1],
@@ -143,19 +132,6 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
         }
       } catch (error) {
         console.error('Search error:', error);
-        // Fallback to Nominatim if Photon fails
-        try {
-          const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10&accept-language=ar&countrycodes=eg`;
-          const nomRes = await fetch(nominatimUrl);
-          const nomData = await nomRes.json();
-          setSearchResults(nomData.map((item: any) => ({
-            lat: parseFloat(item.lat),
-            lon: parseFloat(item.lon),
-            display_name: item.display_name
-          })));
-        } catch (e) {
-          console.error('Fallback search error:', e);
-        }
       } finally {
         setIsSearching(false);
       }
@@ -266,10 +242,10 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
 
       {/* الخريطة */}
       <div 
-        className="flex-1 relative z-10 cursor-pointer"
+        className="flex-1 relative z-10 cursor-pointer h-full w-full"
         onClick={() => !isFullScreen && setIsFullScreen(true)}
       >
-        <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
+        <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%', position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }} zoomControl={false}>
           <TileLayer
             url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
             attribution='&copy; Google Maps'
@@ -293,7 +269,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
           </Button>
         </div>
 
-        {/* عرض العنوان وزر التأكيد في وضع ملء الشاشة */}
+        {/* عرض العنوان وزر التأكيد */}
         <div className={cn(
           "absolute bottom-6 right-4 left-20 z-[1000] flex flex-col gap-3",
           isFullScreen && "left-4 right-4 bottom-10"
