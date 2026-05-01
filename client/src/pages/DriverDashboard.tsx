@@ -686,79 +686,78 @@ export default function DriverDashboard() {
     const bounds = L.latLngBounds([start, pickup, destination]);
 
     return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          className="bg-white rounded-3xl shadow-2xl w-full max-w-lg md:max-w-4xl h-[85vh] md:max-h-[90vh] overflow-hidden flex flex-col mx-auto"
-        >
-          <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-orange-50 to-blue-50">
-            <h2 className="text-2xl font-black text-gray-800">
+      <div className="fixed inset-0 z-[10000] bg-white overflow-hidden">
+        {/* Header - Transparent overlay to maximize map view */}
+        <div className="absolute top-6 left-6 right-6 z-[10001] flex justify-between items-start pointer-events-none">
+          <div className="bg-white/90 backdrop-blur-md p-4 rounded-3xl shadow-2xl border border-white/20 pointer-events-auto max-w-[70%]">
+            <h3 className="text-lg font-black text-slate-900 leading-tight">
               {type === "pickup" ? "📍 موقع الاستلام" : "🎯 المسار الكامل"}
-            </h2>
-            <button
-              onClick={() => setShowMapModal(false)}
-              className="text-gray-500 hover:text-gray-700 text-3xl font-bold transition-colors"
-            >
-              ✕
-            </button>
+            </h3>
+            <p className="text-[10px] text-orange-600 font-black uppercase tracking-wider mt-1">عرض حي للموقع والوجهة</p>
           </div>
-          
-          <div className="flex-1 overflow-hidden">
-            <MapContainer
-              center={start}
-              zoom={13}
-              style={{ height: "100%", width: "100%" }}
-            >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; OpenStreetMap contributors'
-              />
-              <ChangeView bounds={bounds} shouldFit={true} />
-              <Marker position={start} icon={iconDriver}>
-                <Popup>📍 موقعك الحالي (أنت هنا)</Popup>
-              </Marker>
-              <Marker position={pickup} icon={iconA}>
-                <Popup>📦 موقع الاستلام (A)</Popup>
-              </Marker>
-              {type === "delivery" && (
-                <>
-                  <Marker position={destination} icon={iconB}>
-                    <Popup>🎯 موقع التسليم (B)</Popup>
-                  </Marker>
-                  <RoutingPolyline start={start} end={pickup} />
-                  <RoutingPolyline start={pickup} end={destination} />
-                </>
-              )}
-              {type === "pickup" && (
+          <button 
+            onClick={() => setShowMapModal(false)}
+            className="h-14 w-14 bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl flex items-center justify-center text-slate-900 hover:bg-white transition-all active:scale-90 border border-white/20 pointer-events-auto"
+          >
+            <X className="h-7 w-7" />
+          </button>
+        </div>
+        
+        <div className="h-full w-full">
+          <MapContainer
+            center={start}
+            zoom={13}
+            style={{ height: "100%", width: "100%" }}
+            zoomControl={false}
+          >
+            <TileLayer
+              url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+              attribution='&copy; Google Maps'
+            />
+            <ChangeView bounds={bounds} shouldFit={true} />
+            <Marker position={start} icon={iconDriver}>
+              <Popup>📍 موقعك الحالي (أنت هنا)</Popup>
+            </Marker>
+            <Marker position={pickup} icon={iconA}>
+              <Popup>📦 موقع الاستلام (A)</Popup>
+            </Marker>
+            {type === "delivery" && (
+              <>
+                <Marker position={destination} icon={iconB}>
+                  <Popup>🎯 موقع التسليم (B)</Popup>
+                </Marker>
                 <RoutingPolyline start={start} end={pickup} />
-              )}
-            </MapContainer>
-          </div>
+                <RoutingPolyline start={pickup} end={destination} />
+              </>
+            )}
+            {type === "pickup" && (
+              <RoutingPolyline start={start} end={pickup} />
+            )}
+          </MapContainer>
+        </div>
 
-          <div className="p-6 border-t bg-gray-50 flex gap-3">
-            <Button
-              onClick={() => setShowMapModal(false)}
-              className="flex-1 bg-gray-600 hover:bg-gray-700 text-white h-12 font-bold rounded-2xl"
-            >
-              إغلاق الخريطة
+        {/* Bottom Actions - Floating above everything for better visibility */}
+        <div className="absolute bottom-10 left-6 right-6 z-[10001] flex gap-3 pointer-events-none">
+          <Button
+            onClick={() => setShowMapModal(false)}
+            className="flex-1 bg-slate-900/90 backdrop-blur-md hover:bg-slate-900 text-white h-16 font-black rounded-[2rem] shadow-2xl pointer-events-auto border border-white/10"
+          >
+            إغلاق
+          </Button>
+          <a
+            href={type === "pickup" 
+              ? `https://www.google.com/maps/dir/?api=1&origin=${start[0]},${start[1]}&destination=${pickup[0]},${pickup[1]}&travelmode=driving`
+              : `https://www.google.com/maps/dir/?api=1&origin=${start[0]},${start[1]}&destination=${destination[0]},${destination[1]}&waypoints=${pickup[0]},${pickup[1]}&travelmode=driving`
+            }
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 pointer-events-auto"
+          >
+            <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white h-16 font-black rounded-[2rem] shadow-2xl border border-white/10">
+              🗺️ خرائط جوجل
             </Button>
-            <a
-              href={type === "pickup" 
-                ? `https://www.google.com/maps/dir/?api=1&origin=${start[0]},${start[1]}&destination=${pickup[0]},${pickup[1]}&travelmode=driving`
-                : `https://www.google.com/maps/dir/?api=1&origin=${start[0]},${start[1]}&destination=${destination[0]},${destination[1]}&waypoints=${pickup[0]},${pickup[1]}&travelmode=driving`
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1"
-            >
-              <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white h-12 font-bold rounded-2xl">
-                🗺️ فتح في خرائط جوجل
-              </Button>
-            </a>
-          </div>
-        </motion.div>
+          </a>
+        </div>
       </div>
     );
   }, [showMapModal, mapModalData, driverLocation]);
