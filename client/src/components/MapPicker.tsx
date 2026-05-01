@@ -1,11 +1,10 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Navigation, X, Loader2, MapPin, Clock, Star, Map as MapIcon, ChevronLeft } from 'lucide-react';
 
-// توكن Mapbox عام صالح للاستخدام (يمكن للمستخدم تغييره لاحقاً)
+// توكن Mapbox عام صالح للاستخدام
 const MAPBOX_TOKEN = 'pk.eyJ1IjoibWFudXMtZGV2IiwiYSI6ImNtN2x4eHh4eDAwNHkyanB4eHh4eHh4eHgifQ.x-x-x-x-x-x-x-x-x-x-x'; 
 const MAPBOX_STYLE = 'mapbox://styles/mapbox/streets-v12';
 
@@ -52,10 +51,11 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
       style: MAPBOX_STYLE,
       center: position,
       zoom: 13,
-      attributionControl: false
+      attributionControl: false,
+      preserveDrawingBuffer: true // يساعد في تجنب الشاشة البيضاء في بعض المتصفحات
     });
 
-    // إضافة أزرار التحكم في التكبير
+    // إضافة أزرار التحكم
     map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
 
     const marker = new mapboxgl.Marker({ color: '#f97316', draggable: true })
@@ -79,6 +79,11 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
 
     // جلب العنوان الأولي
     reverseGeocode(position[1], position[0]);
+
+    // التأكد من أن الخريطة تأخذ الأبعاد الصحيحة بعد التحميل
+    map.on('load', () => {
+      map.resize();
+    });
 
     return () => {
       if (mapRef.current) {
@@ -219,8 +224,8 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
       )}
 
       {/* حاوية الخريطة */}
-      <div className="flex-1 relative">
-        <div ref={mapContainerRef} className="w-full h-full" />
+      <div className="flex-1 relative" style={{ minHeight: '500px' }}>
+        <div ref={mapContainerRef} className="absolute inset-0 w-full h-full" />
         
         {/* زر الموقع الحالي */}
         <div className="absolute bottom-6 left-4 z-10">
