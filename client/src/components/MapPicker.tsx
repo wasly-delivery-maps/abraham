@@ -11,22 +11,22 @@ import 'leaflet/dist/leaflet.css';
 // إعداد أيقونة الدبوس باستخدام SVG مدمج لضمان الظهور 100% دون الاعتماد على ملفات خارجية
 const markerHtmlStyles = `
   background-color: #f97316;
-  width: 3rem;
-  height: 3rem;
+  width: 2rem;
+  height: 2rem;
   display: block;
-  left: -1.5rem;
-  top: -1.5rem;
+  left: -1rem;
+  top: -1rem;
   position: relative;
-  border-radius: 3rem 3rem 0;
+  border-radius: 2rem 2rem 0;
   transform: rotate(45deg);
-  border: 3px solid #ffffff;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 `;
 
 const customIcon = L.divIcon({
   className: "custom-pin-icon",
-  iconAnchor: [0, 24],
-  popupAnchor: [0, -36],
+  iconAnchor: [0, 16],
+  popupAnchor: [0, -24],
   html: `<span style="${markerHtmlStyles}" />`
 });
 
