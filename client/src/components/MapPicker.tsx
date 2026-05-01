@@ -205,25 +205,35 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
 
       {/* قائمة النتائج */}
       {showResults && (searchResults.length > 0 || isSearching) && (
-        <div className="absolute inset-0 z-[1001] bg-white overflow-y-auto pt-32">
-          <div className="p-2 flex justify-between items-center border-b bg-slate-50">
-             <Button variant="ghost" size="sm" onClick={() => setShowResults(false)} className="text-slate-500">إغلاق</Button>
-             <span className="text-xs font-bold text-slate-400 px-4">نتائج بحث Mapbox الاحترافية</span>
+        <div className={cn(
+          "absolute z-[1001] bg-white overflow-y-auto shadow-2xl border-t border-slate-100",
+          isFullScreen 
+            ? "inset-x-0 bottom-0 top-[120px]" 
+            : "inset-x-0 top-[80px] bottom-0 rounded-b-3xl"
+        )}>
+          <div className="p-3 flex justify-between items-center border-b bg-slate-50 sticky top-0 z-[1002]">
+             <Button variant="ghost" size="sm" onClick={() => setShowResults(false)} className="text-slate-500 font-bold">إغلاق</Button>
+             <span className="text-xs font-bold text-slate-400 px-4">نتائج البحث</span>
           </div>
-          {searchResults.map((result, index) => (
-            <button key={index} onClick={() => handleSelectResult(result)} className="w-full flex items-center gap-4 p-4 hover:bg-slate-50 border-b text-right flex-row-reverse">
-              <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-xl flex-shrink-0">
-                📍
+          <div className="pb-20">
+            {searchResults.map((result, index) => (
+              <button key={index} onClick={() => handleSelectResult(result)} className="w-full flex items-center gap-4 p-5 hover:bg-slate-50 border-b text-right flex-row-reverse transition-colors">
+                <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-2xl flex-shrink-0 shadow-sm">
+                  📍
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-slate-900 text-lg mb-1">{result.name}</p>
+                  <p className="text-xs text-slate-500 leading-relaxed">{result.display_name}</p>
+                </div>
+              </button>
+            ))}
+            {searchResults.length === 0 && !isSearching && (
+              <div className="p-12 text-center text-slate-400 font-bold flex flex-col items-center gap-4">
+                <Search className="h-12 w-12 text-slate-200" />
+                لا توجد نتائج، حاول كتابة اسم المكان بشكل أوضح
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-black text-slate-900 truncate">{result.name}</p>
-                <p className="text-xs text-slate-500 truncate">{result.display_name}</p>
-              </div>
-            </button>
-          ))}
-          {searchResults.length === 0 && !isSearching && (
-            <div className="p-10 text-center text-slate-400 font-bold">لا توجد نتائج، حاول كتابة اسم المكان بشكل أوضح</div>
-          )}
+            )}
+          </div>
         </div>
       )}
 
