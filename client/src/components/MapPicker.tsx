@@ -183,15 +183,38 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
           : "h-full w-full rounded-3xl shadow-2xl border border-slate-200 min-h-[500px]"
       )}
     >
-      {/* إزالة خانة البحث بناءً على طلب المستخدم */}
-      {isFullScreen && (
-        <button 
-          onClick={(e) => { e.stopPropagation(); setIsFullScreen(false); }} 
-          className="absolute left-4 top-12 p-2 bg-white rounded-full shadow-xl z-[1002] border border-slate-100"
-        >
-          <X className="h-6 w-6 text-slate-600" />
-        </button>
-      )}
+      {/* زر اختيار الموقع الحالي في مكان خانة البحث */}
+      <div className={cn(
+        "p-4 z-[1000] absolute top-0 left-0 right-0 flex items-center justify-center gap-2",
+        isFullScreen && "pt-12"
+      )}>
+        <div className="flex items-center gap-2 w-full max-w-md">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleGetCurrentLocation();
+            }}
+            disabled={isLocating}
+            className="flex-1 h-14 bg-white hover:bg-slate-50 text-orange-600 font-bold rounded-2xl shadow-xl border-2 border-orange-100 flex items-center justify-center gap-3 transition-all active:scale-95 disabled:opacity-70"
+          >
+            {isLocating ? (
+              <Loader2 className="h-6 w-6 animate-spin" />
+            ) : (
+              <Navigation className="h-6 w-6" />
+            )}
+            <span className="text-lg">اختار موقعك الحالي</span>
+          </button>
+          
+          {isFullScreen && (
+            <button 
+              onClick={(e) => { e.stopPropagation(); setIsFullScreen(false); }} 
+              className="h-14 w-14 bg-white hover:bg-slate-50 text-slate-600 rounded-2xl shadow-xl border border-slate-100 flex items-center justify-center transition-all active:scale-95"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* الخريطة */}
       <div 
