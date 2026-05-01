@@ -104,20 +104,28 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        // استخدام Nominatim للبحث الشامل داخل مصر لضمان ظهور النتائج دائماً
-        // يدعم البحث بالاسم، الحي، المدينة، والمحافظة
-        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=15&accept-language=ar&countrycodes=eg&addressdetails=1`;
+        // تحسين البحث ليعطي الأولوية لمدينة العبور بالقليوبية (Viewbox)
+        // العبور تقع تقريباً بين خطي طول 31.4 و 31.6 وخطي عرض 30.1 و 30.3
+        const viewbox = '31.4,30.3,31.6,30.1';
+        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=15&accept-language=ar&countrycodes=eg&addressdetails=1&viewbox=${viewbox}&bounded=0`;
         
         const response = await fetch(searchUrl);
         const data = await response.json();
 
         if (Array.isArray(data)) {
+          // ترتيب النتائج برمجياً للتأكد من أن نتائج "العبور" تظهر أولاً
           const results = data.map((item: any) => ({
             lat: parseFloat(item.lat),
             lon: parseFloat(item.lon),
             display_name: item.display_name,
             name: item.address?.name || item.address?.amenity || item.address?.shop || item.address?.building || item.display_name.split(',')[0]
-          }));
+          })).sort((a, b) => {
+            const aInObur = a.display_name.includes('العبور') || a.display_name.includes('Obour');
+            const bInObur = b.display_name.includes('العبور') || b.display_name.includes('Obour');
+            if (aInObur && !bInObur) return -1;
+            if (!aInObur && bInObur) return 1;
+            return 0;
+          });
           setSearchResults(results);
         }
       } catch (error) {
