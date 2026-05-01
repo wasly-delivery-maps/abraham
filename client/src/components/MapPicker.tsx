@@ -188,15 +188,15 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
       {/* شريط البحث */}
       <div className={cn(
         "p-4 bg-white/90 backdrop-blur-md shadow-sm z-[1000] absolute top-0 left-0 right-0",
-        isFullScreen && "pt-10"
+        isFullScreen && "pt-12"
       )}>
-        <div className="relative group">
+        <div className="relative group w-full max-w-4xl mx-auto">
           <Input
             placeholder={placeholder || "ابحث عن مطعم، محل، أو حي..."}
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             onFocus={() => setShowResults(true)}
-            className="h-14 pr-12 pl-12 rounded-2xl border-none bg-slate-100 focus:bg-white shadow-inner font-bold text-lg text-right"
+            className="h-16 pr-14 pl-14 rounded-2xl border-none bg-slate-100 focus:bg-white shadow-lg font-bold text-xl text-right w-full transition-all duration-300"
             dir="rtl"
           />
           <div className="absolute right-4 top-1/2 -translate-y-1/2">
