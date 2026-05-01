@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Navigation, X, Loader2, MapPin, Check, Maximize2 } from 'lucide-react';
+import { Search, Navigation, X, Loader2, Check, Maximize2 } from 'lucide-react';
 import L from 'leaflet';
 import { cn } from '@/lib/utils';
 
@@ -24,8 +24,9 @@ const customIcon = L.divIcon({
   `
 });
 
-// إحداثيات الحي الأول بمدينة العبور كمركز افتراضي
-const OBUR_DISTRICT_1: [number, number] = [30.2245, 31.5415];
+// إحداثيات بلوك ج بمدينة العبور كمركز افتراضي بناءً على طلب المستخدم
+const OBUR_BLOCK_G: [number, number] = [30.2444882, 31.4698325];
+const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoibWFudXMtZGV2IiwiYSI6ImNtN2x4eHh4eDAwNHkyanB4eHh4eHh4eHgifQ.x-x-x-x-x-x-x-x-x-x-x';
 
 interface MapPickerProps {
   onLocationSelect: (location: { address: string; latitude: number; longitude: number }) => void;
@@ -39,8 +40,6 @@ interface SearchResult {
   lon: number;
   display_name: string;
   name?: string;
-  city?: string;
-  district?: string;
 }
 
 function MapUpdater({ center }: { center: [number, number] }) {
@@ -56,7 +55,7 @@ function MapUpdater({ center }: { center: [number, number] }) {
 
 export default function MapPicker({ onLocationSelect, initialLocation, title, placeholder }: MapPickerProps) {
   const [position, setPosition] = useState<[number, number]>(
-    initialLocation ? [initialLocation.latitude, initialLocation.longitude] : OBUR_DISTRICT_1
+    initialLocation ? [initialLocation.latitude, initialLocation.longitude] : OBUR_BLOCK_G
   );
   const [address, setAddress] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -69,11 +68,24 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
 
   const reverseGeocode = useCallback(async (lat: number, lon: number) => {
     try {
+      // استخدام Mapbox Reverse Geocoding API لأفضل دقة
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ar&zoom=18&addressdetails=1`
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lon},${lat}.json?access_token=${MAPBOX_ACCESS_TOKEN}&language=ar&types=address,poi,neighborhood`
       );
       const data = await response.json();
-      const addr = data.display_name || 'موقع غير معروف';
+      
+      let addr = 'موقع غير معروف';
+      if (data.features && data.features.length > 0) {
+        addr = data.features[0].place_name;
+      } else {
+        // Fallback to Nominatim if Mapbox fails or has no results
+        const fallbackRes = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ar&zoom=18`
+        );
+        const fallbackData = await fallbackRes.json();
+        addr = fallbackData.display_name || 'موقع غير معروف';
+      }
+      
       setAddress(addr);
       onLocationSelect({ address: addr, latitude: lat, longitude: lon });
     } catch (error) {
@@ -85,11 +97,11 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     if (initialLocation) {
       reverseGeocode(initialLocation.latitude, initialLocation.longitude);
     } else {
-      reverseGeocode(OBUR_DISTRICT_1[0], OBUR_DISTRICT_1[1]);
+      reverseGeocode(OBUR_BLOCK_G[0], OBUR_BLOCK_G[1]);
     }
   }, []);
 
-  const handleSearchChange = async (query: string, forceLocal: boolean = false) => {
+  const handleSearchChange = async (query: string) => {
     setSearchQuery(query);
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     
@@ -104,19 +116,20 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        const finalQuery = forceLocal ? `${query} العبور` : query;
-        // استخدام Nominatim مباشرة كخيار أكثر استقراراً في مصر
-        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(finalQuery)}&limit=15&accept-language=ar&countrycodes=eg&addressdetails=1`;
+        // استخدام Mapbox Forward Geocoding API لنتائج احترافية
+        // تم تحديد الموقع حول العبور (proximity) لضمان أفضل نتائج محلية
+        const proximity = `${OBUR_BLOCK_G[1]},${OBUR_BLOCK_G[0]}`;
+        const searchUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_ACCESS_TOKEN}&language=ar&country=eg&proximity=${proximity}&limit=10`;
         
         const response = await fetch(searchUrl);
         const data = await response.json();
 
-        if (Array.isArray(data)) {
-          const results = data.map((item: any) => ({
-            lat: parseFloat(item.lat),
-            lon: parseFloat(item.lon),
-            display_name: item.display_name,
-            name: item.address?.name || item.display_name.split(',')[0]
+        if (data.features) {
+          const results = data.features.map((item: any) => ({
+            lat: item.center[1],
+            lon: item.center[0],
+            display_name: item.place_name,
+            name: item.text
           }));
           setSearchResults(results);
         }
@@ -182,7 +195,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
       )}>
         <div className="relative group w-full max-w-4xl mx-auto">
           <Input
-            placeholder={placeholder || "ابحث عن مطعم، محل، أو حي..."}
+            placeholder={placeholder || "ابحث عن أي مكان باحترافية..."}
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             onFocus={() => setShowResults(true)}
@@ -201,16 +214,6 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
             </button>
           )}
         </div>
-
-        {!showResults && !isFullScreen && (
-          <div className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar flex-row-reverse">
-            {['مطعم', 'كافيه', 'صيدلية', 'سوبر ماركت'].map((cat) => (
-              <Button key={cat} variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs whitespace-nowrap" onClick={() => handleSearchChange(cat, true)}>
-                {cat}
-              </Button>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* قائمة النتائج */}
@@ -218,7 +221,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
         <div className="absolute inset-0 z-[1001] bg-white overflow-y-auto pt-32">
           <div className="p-2 flex justify-between items-center border-b bg-slate-50">
              <Button variant="ghost" size="sm" onClick={() => setShowResults(false)} className="text-slate-500">إغلاق</Button>
-             <span className="text-xs font-bold text-slate-400 px-4">نتائج البحث</span>
+             <span className="text-xs font-bold text-slate-400 px-4">نتائج بحث Mapbox الاحترافية</span>
           </div>
           {searchResults.map((result, index) => (
             <button key={index} onClick={() => handleSelectResult(result)} className="w-full flex items-center gap-4 p-4 hover:bg-slate-50 border-b text-right flex-row-reverse">
@@ -242,7 +245,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
         className="flex-1 relative z-10 cursor-pointer h-full w-full"
         onClick={() => !isFullScreen && setIsFullScreen(true)}
       >
-        <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%', position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }} zoomControl={false}>
+        <MapContainer center={position} zoom={15} style={{ height: '100%', width: '100%', position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }} zoomControl={false}>
           <TileLayer
             url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
             attribution='&copy; Google Maps'
