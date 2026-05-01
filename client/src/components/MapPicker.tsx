@@ -116,21 +116,27 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        // استخدام Mapbox Forward Geocoding API لنتائج احترافية
-        // تم تحديد الموقع حول العبور (proximity) لضمان أفضل نتائج محلية
-        const proximity = `${OBUR_BLOCK_G[1]},${OBUR_BLOCK_G[0]}`;
-        const searchUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_ACCESS_TOKEN}&language=ar&country=eg&proximity=${proximity}&limit=10`;
+        // تحسين البحث ليكون أكثر شمولاً (Global Search within Egypt)
+        // إزالة القيد الجغرافي الصارم (proximity) للسماح بالبحث في أي مكان بالمنطقة والمدينة
+        // إضافة أنواع إضافية من النتائج مثل الأحياء والمدن والأماكن المشهورة
+        const searchUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_ACCESS_TOKEN}&language=ar&country=eg&types=poi,address,neighborhood,locality,place&limit=10&autocomplete=true`;
         
         const response = await fetch(searchUrl);
         const data = await response.json();
 
         if (data.features) {
-          const results = data.features.map((item: any) => ({
-            lat: item.center[1],
-            lon: item.center[0],
-            display_name: item.place_name,
-            name: item.text
-          }));
+          const results = data.features.map((item: any) => {
+            // استخراج اسم المكان والمنطقة بشكل أفضل للعرض
+            const name = item.text;
+            const fullName = item.place_name;
+            
+            return {
+              lat: item.center[1],
+              lon: item.center[0],
+              display_name: fullName,
+              name: name
+            };
+          });
           setSearchResults(results);
         }
       } catch (error) {
