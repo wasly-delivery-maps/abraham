@@ -24,7 +24,8 @@ const customIcon = L.divIcon({
   `
 });
 
-const EGYPT_CENTER: [number, number] = [30.0444, 31.2357];
+// إحداثيات الحي الأول بمدينة العبور كمركز افتراضي
+const OBUR_DISTRICT_1: [number, number] = [30.2245, 31.5415];
 
 interface MapPickerProps {
   onLocationSelect: (location: { address: string; latitude: number; longitude: number }) => void;
@@ -55,7 +56,7 @@ function MapUpdater({ center }: { center: [number, number] }) {
 
 export default function MapPicker({ onLocationSelect, initialLocation, title, placeholder }: MapPickerProps) {
   const [position, setPosition] = useState<[number, number]>(
-    initialLocation ? [initialLocation.latitude, initialLocation.longitude] : EGYPT_CENTER
+    initialLocation ? [initialLocation.latitude, initialLocation.longitude] : OBUR_DISTRICT_1
   );
   const [address, setAddress] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -84,7 +85,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     if (initialLocation) {
       reverseGeocode(initialLocation.latitude, initialLocation.longitude);
     } else {
-      reverseGeocode(EGYPT_CENTER[0], EGYPT_CENTER[1]);
+      reverseGeocode(OBUR_DISTRICT_1[0], OBUR_DISTRICT_1[1]);
     }
   }, []);
 
