@@ -1,74 +1,55 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Search, Navigation, X, Loader2, Check, Maximize2 } from 'lucide-react';
 import L from 'leaflet';
-import { cn } from '@/lib/utils';
-
-// استيراد CSS الخاص بـ Leaflet
 import 'leaflet/dist/leaflet.css';
+import { Search, Navigation, Loader2, X, Check, Maximize2 } from 'lucide-react';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { cn } from '../lib/utils';
 
-// إعداد أيقونة الدبوس لتكون مثل جوجل ماب (أحمر وأنيق)
-const customIcon = L.divIcon({
-  className: "custom-google-pin",
-  iconAnchor: [15, 45],
-  popupAnchor: [1, -34],
-  html: `
-    <div style="position: relative;">
-      <svg width="30" height="45" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
-        <path d="M12 0C7.58 0 4 3.58 4 8C4 13.54 12 24 12 24C12 24 20 13.54 20 8C20 3.58 16.42 0 12 0Z" fill="#EA4335"/>
-        <circle cx="12" cy="8" r="3" fill="white"/>
-      </svg>
-    </div>
-  `
+// أيقونة مخصصة للماركر
+const customIcon = new L.Icon({
+  iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+  iconSize: [40, 40],
+  iconAnchor: [20, 40],
+  popupAnchor: [0, -40],
 });
 
-// إحداثيات بلوك ج بمدينة العبور كمركز افتراضي بناءً على طلب المستخدم
-const OBUR_BLOCK_G: [number, number] = [30.2444882, 31.4698325];
-const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoibWFudXMtZGV2IiwiYSI6ImNtN2x4eHh4eDAwNHkyanB4eHh4eHh4eHgifQ.x-x-x-x-x-x-x-x-x-x-x';
+interface Location {
+  address: string;
+  latitude: number;
+  longitude: number;
+}
 
 interface MapPickerProps {
-  onLocationSelect: (location: { address: string; latitude: number; longitude: number }) => void;
+  onLocationSelect: (location: Location) => void;
   initialLocation?: { latitude: number; longitude: number };
-  title?: string;
   placeholder?: string;
 }
 
-interface SearchResult {
-  lat: number;
-  lon: number;
-  display_name: string;
-  name?: string;
-}
+// مركز مدينة العبور (بلوك ج)
+const OBUR_BLOCK_G: [number, number] = [30.2285, 31.4725];
 
 function MapUpdater({ center }: { center: [number, number] }) {
   const map = useMap();
   useEffect(() => {
-    if (center) {
-      map.setView(center, map.getZoom() < 13 ? 16 : map.getZoom());
-      setTimeout(() => map.invalidateSize(), 100);
-    }
+    map.setView(center, map.getZoom());
   }, [center, map]);
   return null;
 }
 
-export default function MapPicker({ onLocationSelect, initialLocation, title, placeholder }: MapPickerProps) {
+export default function MapPicker({ onLocationSelect, initialLocation, placeholder }: MapPickerProps) {
   const [position, setPosition] = useState<[number, number]>(
     initialLocation ? [initialLocation.latitude, initialLocation.longitude] : OBUR_BLOCK_G
   );
   const [address, setAddress] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [showResults, setShowResults] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
   const reverseGeocode = useCallback(async (lat: number, lon: number) => {
     try {
-      // استخدام Nominatim للتحويل العكسي لضمان الاستقرار التام
       const response = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ar&zoom=18&addressdetails=1`
       );
@@ -89,76 +70,26 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     }
   }, []);
 
-  const handleSearchChange = async (query: string) => {
-    setSearchQuery(query);
-    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    
-    if (!query.trim()) {
-      setSearchResults([]);
-      setShowResults(false);
-      return;
-    }
-
-    setIsSearching(true);
-    setShowResults(true);
-    
-    searchTimeoutRef.current = setTimeout(async () => {
-      try {
-        // تحسين البحث ليعطي الأولوية لمدينة العبور بالقليوبية (Viewbox)
-        // العبور تقع تقريباً بين خطي طول 31.4 و 31.6 وخطي عرض 30.1 و 30.3
-        const viewbox = '31.4,30.3,31.6,30.1';
-        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=15&accept-language=ar&countrycodes=eg&addressdetails=1&viewbox=${viewbox}&bounded=0`;
-        
-        const response = await fetch(searchUrl);
-        const data = await response.json();
-
-        if (Array.isArray(data)) {
-          // ترتيب النتائج برمجياً للتأكد من أن نتائج "العبور" تظهر أولاً
-          const results = data.map((item: any) => ({
-            lat: parseFloat(item.lat),
-            lon: parseFloat(item.lon),
-            display_name: item.display_name,
-            name: item.address?.name || item.address?.amenity || item.address?.shop || item.address?.building || item.display_name.split(',')[0]
-          })).sort((a, b) => {
-            const aInObur = a.display_name.includes('العبور') || a.display_name.includes('Obour');
-            const bInObur = b.display_name.includes('العبور') || b.display_name.includes('Obour');
-            if (aInObur && !bInObur) return -1;
-            if (!aInObur && bInObur) return 1;
-            return 0;
-          });
-          setSearchResults(results);
-        }
-      } catch (error) {
-        console.error('Search error:', error);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 500);
-  };
-
-  const handleSelectResult = (result: SearchResult) => {
-    const newPos: [number, number] = [result.lat, result.lon];
-    setPosition(newPos);
-    setAddress(result.display_name);
-    setSearchQuery('');
-    setShowResults(false);
-    onLocationSelect({ address: result.display_name, latitude: result.lat, longitude: result.lon });
-  };
-
-  const handleGetCurrentLocation = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleGetCurrentLocation = () => {
     setIsLocating(true);
-    if (navigator.geolocation) {
+    if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          setPosition([latitude, longitude]);
-          reverseGeocode(latitude, longitude);
+        (position) => {
+          const newPos: [number, number] = [position.coords.latitude, position.coords.longitude];
+          setPosition(newPos);
+          reverseGeocode(newPos[0], newPos[1]);
           setIsLocating(false);
         },
-        () => setIsLocating(false),
+        (error) => {
+          console.error("Error getting location:", error);
+          setIsLocating(false);
+          alert("تعذر تحديد موقعك الحالي. يرجى التأكد من تفعيل خدمة الموقع.");
+        },
         { enableHighAccuracy: true }
       );
+    } else {
+      setIsLocating(false);
+      alert("متصفحك لا يدعم خدمة تحديد الموقع.");
     }
   };
 
@@ -167,9 +98,15 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
       click(e) {
         const newPos: [number, number] = [e.latlng.lat, e.latlng.lng];
         setPosition(newPos);
-        setShowResults(false);
         reverseGeocode(newPos[0], newPos[1]);
       },
+      dragend(e) {
+        const map = e.target;
+        const center = map.getCenter();
+        const newPos: [number, number] = [center.lat, center.lng];
+        setPosition(newPos);
+        reverseGeocode(newPos[0], newPos[1]);
+      }
     });
     return position ? <Marker position={position} icon={customIcon} /> : null;
   }
@@ -183,7 +120,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
           : "h-full w-full rounded-3xl shadow-2xl border border-slate-200 min-h-[500px]"
       )}
     >
-      {/* زر اختيار الموقع الحالي في مكان خانة البحث */}
+      {/* زر اختيار الموقع الحالي في الأعلى (الوحيد والأساسي) */}
       <div className={cn(
         "p-4 z-[1000] absolute top-0 left-0 right-0 flex items-center justify-center gap-2",
         isFullScreen && "pt-12"
@@ -238,17 +175,10 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
           </div>
         )}
 
-        {/* زر الموقع الحالي */}
-        <div className="absolute bottom-6 left-4 z-[1000]">
-          <Button onClick={handleGetCurrentLocation} disabled={isLocating} className="w-14 h-14 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 shadow-2xl border p-0">
-            {isLocating ? <Loader2 className="h-6 w-6 animate-spin text-orange-500" /> : <Navigation className="h-6 w-6" />}
-          </Button>
-        </div>
-
         {/* عرض العنوان وزر التأكيد */}
         <div className={cn(
-          "absolute bottom-6 right-4 left-20 z-[1000] flex flex-col gap-3",
-          isFullScreen && "left-4 right-4 bottom-10"
+          "absolute bottom-6 right-4 left-4 z-[1000] flex flex-col gap-3",
+          isFullScreen && "bottom-10"
         )}>
           <div className="bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-xl border text-right">
             <p className="text-[10px] font-black text-orange-500 uppercase mb-1">الموقع المحدد</p>
