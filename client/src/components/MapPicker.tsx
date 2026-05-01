@@ -183,66 +183,14 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
           : "h-full w-full rounded-3xl shadow-2xl border border-slate-200 min-h-[500px]"
       )}
     >
-      {/* شريط البحث */}
-      <div className={cn(
-        "p-4 bg-white/90 backdrop-blur-md shadow-sm z-[1000] absolute top-0 left-0 right-0",
-        isFullScreen && "pt-12"
-      )}>
-        <div className="relative group w-full max-w-4xl mx-auto">
-          <Input
-            placeholder={placeholder || "ابحث عن أي مكان باحترافية..."}
-            value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            onFocus={() => setShowResults(true)}
-            className="h-16 pr-14 pl-14 rounded-2xl border-none bg-slate-100 focus:bg-white shadow-lg font-bold text-xl text-right w-full transition-all duration-300"
-            dir="rtl"
-          />
-          <div className="absolute right-4 top-1/2 -translate-y-1/2">
-            {isSearching ? <Loader2 className="h-5 w-5 animate-spin text-orange-500" /> : <Search className="h-5 w-5 text-slate-400" />}
-          </div>
-          {isFullScreen && (
-            <button 
-              onClick={(e) => { e.stopPropagation(); setIsFullScreen(false); setShowResults(false); }} 
-              className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full shadow-md z-[1002]"
-            >
-              <X className="h-5 w-5 text-slate-600" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* قائمة النتائج */}
-      {showResults && (searchResults.length > 0 || isSearching) && (
-        <div className={cn(
-          "absolute z-[1001] bg-white overflow-y-auto shadow-2xl border-t border-slate-100",
-          isFullScreen 
-            ? "inset-x-0 bottom-0 top-[120px]" 
-            : "inset-x-0 top-[80px] bottom-0 rounded-b-3xl"
-        )}>
-          <div className="p-3 flex justify-between items-center border-b bg-slate-50 sticky top-0 z-[1002]">
-             <Button variant="ghost" size="sm" onClick={() => setShowResults(false)} className="text-slate-500 font-bold">إغلاق</Button>
-             <span className="text-xs font-bold text-slate-400 px-4">نتائج البحث</span>
-          </div>
-          <div className="pb-20">
-            {searchResults.map((result, index) => (
-              <button key={index} onClick={() => handleSelectResult(result)} className="w-full flex items-center gap-4 p-5 hover:bg-slate-50 border-b text-right flex-row-reverse transition-colors">
-                <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-2xl flex-shrink-0 shadow-sm">
-                  📍
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-black text-slate-900 text-lg mb-1">{result.name}</p>
-                  <p className="text-xs text-slate-500 leading-relaxed">{result.display_name}</p>
-                </div>
-              </button>
-            ))}
-            {searchResults.length === 0 && !isSearching && (
-              <div className="p-12 text-center text-slate-400 font-bold flex flex-col items-center gap-4">
-                <Search className="h-12 w-12 text-slate-200" />
-                لا توجد نتائج، حاول كتابة اسم المكان بشكل أوضح
-              </div>
-            )}
-          </div>
-        </div>
+      {/* إزالة خانة البحث بناءً على طلب المستخدم */}
+      {isFullScreen && (
+        <button 
+          onClick={(e) => { e.stopPropagation(); setIsFullScreen(false); }} 
+          className="absolute left-4 top-12 p-2 bg-white rounded-full shadow-xl z-[1002] border border-slate-100"
+        >
+          <X className="h-6 w-6 text-slate-600" />
+        </button>
       )}
 
       {/* الخريطة */}
