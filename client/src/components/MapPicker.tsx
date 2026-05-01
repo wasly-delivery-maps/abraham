@@ -2,13 +2,14 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Navigation, X, Loader2, MapPin, Clock, Star, Map as MapIcon, ChevronLeft } from 'lucide-react';
+import { Search, Navigation, X, Loader2, MapPin, Check, Maximize2 } from 'lucide-react';
 import L from 'leaflet';
+import { cn } from '@/lib/utils';
 
-// استيراد CSS الخاص بـ Leaflet بشكل مباشر
+// استيراد CSS الخاص بـ Leaflet
 import 'leaflet/dist/leaflet.css';
 
-// إعداد أيقونة الدبوس باستخدام SVG مدمج لضمان الظهور 100% دون الاعتماد على ملفات خارجية
+// إعداد أيقونة الدبوس
 const markerHtmlStyles = `
   background-color: #f97316;
   width: 2rem;
@@ -66,6 +67,7 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
   const reverseGeocode = useCallback(async (lat: number, lon: number) => {
@@ -134,7 +136,8 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     onLocationSelect({ address: result.display_name, latitude: result.lat, longitude: result.lon });
   };
 
-  const handleGetCurrentLocation = () => {
+  const handleGetCurrentLocation = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setIsLocating(true);
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -163,9 +166,19 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-white overflow-hidden rounded-3xl shadow-2xl border border-slate-200 relative min-h-[500px]">
+    <div 
+      className={cn(
+        "flex flex-col bg-white overflow-hidden transition-all duration-300 ease-in-out relative",
+        isFullScreen 
+          ? "fixed inset-0 z-[9999] h-screen w-screen rounded-0" 
+          : "h-full w-full rounded-3xl shadow-2xl border border-slate-200 min-h-[500px]"
+      )}
+    >
       {/* شريط البحث */}
-      <div className="p-4 bg-white/90 backdrop-blur-md shadow-sm z-[1000] absolute top-0 left-0 right-0">
+      <div className={cn(
+        "p-4 bg-white/90 backdrop-blur-md shadow-sm z-[1000] absolute top-0 left-0 right-0",
+        isFullScreen && "pt-10" // مساحة إضافية في وضع ملء الشاشة للموبايل
+      )}>
         <div className="relative group">
           <Input
             placeholder={placeholder || "ابحث عن أي مكان..."}
@@ -178,9 +191,17 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
           <div className="absolute right-4 top-1/2 -translate-y-1/2">
             {isSearching ? <Loader2 className="h-5 w-5 animate-spin text-orange-500" /> : <Search className="h-5 w-5 text-slate-400" />}
           </div>
+          {isFullScreen && (
+            <button 
+              onClick={() => setIsFullScreen(false)} 
+              className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full shadow-md"
+            >
+              <X className="h-5 w-5 text-slate-600" />
+            </button>
+          )}
         </div>
 
-        {!showResults && (
+        {!showResults && !isFullScreen && (
           <div className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar flex-row-reverse">
             {['مطعم', 'كافيه', 'صيدلية', 'سوبر ماركت'].map((cat) => (
               <Button key={cat} variant="outline" size="sm" className="rounded-full border-slate-200 font-bold text-xs whitespace-nowrap" onClick={() => handleSearchChange(cat, true)}>
@@ -207,9 +228,11 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
       )}
 
       {/* الخريطة */}
-      <div className="flex-1 relative z-10">
-        <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%', minHeight: '500px' }} zoomControl={false}>
-          {/* استخدام تصميم Google Maps Streets المستقر والمجاني لضمان الظهور والجمال */}
+      <div 
+        className="flex-1 relative z-10 cursor-pointer"
+        onClick={() => !isFullScreen && setIsFullScreen(true)}
+      >
+        <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
           <TileLayer
             url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
             attribution='&copy; Google Maps'
@@ -218,6 +241,14 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
           <MapUpdater center={position} />
         </MapContainer>
         
+        {!isFullScreen && (
+          <div className="absolute inset-0 bg-transparent z-20 flex items-center justify-center pointer-events-none">
+            <div className="bg-orange-500/10 backdrop-blur-[1px] p-3 rounded-full border border-orange-500/20 animate-pulse">
+              <Maximize2 className="h-6 w-6 text-orange-600" />
+            </div>
+          </div>
+        )}
+
         {/* زر الموقع الحالي */}
         <div className="absolute bottom-6 left-4 z-[1000]">
           <Button onClick={handleGetCurrentLocation} disabled={isLocating} className="w-14 h-14 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 shadow-2xl border p-0">
@@ -225,12 +256,25 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
           </Button>
         </div>
 
-        {/* عرض العنوان */}
-        <div className="absolute bottom-6 right-4 left-20 z-[1000] pointer-events-none">
-          <div className="bg-white/95 backdrop-blur-sm p-3 rounded-2xl shadow-xl border text-right">
+        {/* عرض العنوان وزر التأكيد في وضع ملء الشاشة */}
+        <div className={cn(
+          "absolute bottom-6 right-4 left-20 z-[1000] flex flex-col gap-3",
+          isFullScreen && "left-4 right-4 bottom-10"
+        )}>
+          <div className="bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-xl border text-right">
             <p className="text-[10px] font-black text-orange-500 uppercase mb-1">الموقع المحدد</p>
-            <p className="text-xs font-bold text-slate-700 truncate">{address || "جاري تحديد العنوان..."}</p>
+            <p className="text-sm font-bold text-slate-700 truncate">{address || "جاري تحديد العنوان..."}</p>
           </div>
+          
+          {isFullScreen && (
+            <Button 
+              onClick={(e) => { e.stopPropagation(); setIsFullScreen(false); }}
+              className="w-full h-14 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-black text-lg shadow-xl flex items-center justify-center gap-2"
+            >
+              <Check className="h-6 w-6" />
+              تأكيد هذا الموقع
+            </Button>
+          )}
         </div>
       </div>
     </div>
