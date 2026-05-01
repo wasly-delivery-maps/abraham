@@ -44,7 +44,9 @@ interface SearchResult {
   lat: number;
   lon: number;
   display_name: string;
-  type: string;
+  name?: string;
+  city?: string;
+  district?: string;
 }
 
 function MapUpdater({ center }: { center: [number, number] }) {
@@ -106,21 +108,54 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
     
     searchTimeoutRef.current = setTimeout(async () => {
       try {
+        // استخدام محرك بحث Photon الذكي الذي يدعم POI (المحلات والمعالم) بشكل أفضل
         const finalQuery = forceLocal ? `${query} العبور` : query;
-        const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(finalQuery)}&limit=20&accept-language=ar&countrycodes=eg`;
+        const searchUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(finalQuery)}&limit=15&lang=ar&lat=30.21&lon=31.54`; // تركيز البحث حول العبور
+        
         const response = await fetch(searchUrl);
         const data = await response.json();
 
-        if (Array.isArray(data)) {
-          setSearchResults(data.map((item: any) => ({
-            lat: parseFloat(item.lat),
-            lon: parseFloat(item.lon),
-            display_name: item.display_name,
-            type: item.type || 'place'
-          })));
+        if (data && data.features) {
+          const results = data.features.map((feature: any) => {
+            const props = feature.properties;
+            const coords = feature.geometry.coordinates;
+            
+            // بناء اسم عرض جميل
+            const name = props.name || '';
+            const street = props.street || '';
+            const district = props.district || props.suburb || '';
+            const city = props.city || '';
+            
+            const displayName = [name, street, district, city]
+              .filter(Boolean)
+              .join(', ');
+
+            return {
+              lat: coords[1],
+              lon: coords[0],
+              display_name: displayName || 'موقع غير معروف',
+              name: name,
+              city: city,
+              district: district
+            };
+          });
+          setSearchResults(results);
         }
       } catch (error) {
         console.error('Search error:', error);
+        // Fallback to Nominatim if Photon fails
+        try {
+          const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10&accept-language=ar&countrycodes=eg`;
+          const nomRes = await fetch(nominatimUrl);
+          const nomData = await nomRes.json();
+          setSearchResults(nomData.map((item: any) => ({
+            lat: parseFloat(item.lat),
+            lon: parseFloat(item.lon),
+            display_name: item.display_name
+          })));
+        } catch (e) {
+          console.error('Fallback search error:', e);
+        }
       } finally {
         setIsSearching(false);
       }
@@ -177,11 +212,11 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
       {/* شريط البحث */}
       <div className={cn(
         "p-4 bg-white/90 backdrop-blur-md shadow-sm z-[1000] absolute top-0 left-0 right-0",
-        isFullScreen && "pt-10" // مساحة إضافية في وضع ملء الشاشة للموبايل
+        isFullScreen && "pt-10"
       )}>
         <div className="relative group">
           <Input
-            placeholder={placeholder || "ابحث عن أي مكان..."}
+            placeholder={placeholder || "ابحث عن مطعم، محل، أو حي..."}
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             onFocus={() => setShowResults(true)}
@@ -217,9 +252,11 @@ export default function MapPicker({ onLocationSelect, initialLocation, title, pl
         <div className="absolute inset-0 z-[1001] bg-white overflow-y-auto pt-32">
           {searchResults.map((result, index) => (
             <button key={index} onClick={() => handleSelectResult(result)} className="w-full flex items-center gap-4 p-4 hover:bg-slate-50 border-b text-right flex-row-reverse">
-              <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-xl flex-shrink-0">📍</div>
+              <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-xl flex-shrink-0">
+                {result.name ? '🏢' : '📍'}
+              </div>
               <div className="flex-1 min-w-0">
-                <p className="font-black text-slate-900 truncate">{result.display_name.split(',')[0]}</p>
+                <p className="font-black text-slate-900 truncate">{result.name || result.display_name.split(',')[0]}</p>
                 <p className="text-xs text-slate-500 truncate">{result.display_name}</p>
               </div>
             </button>
