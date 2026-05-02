@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ShoppingCart, Plus, Minus, X, MessageCircle, MapPin, Phone, Loader2, ChevronRight, Star, Clock, Coins, Gift, Truck, CheckCircle2 } from "lucide-react";
+import { ShoppingCart, Plus, Minus, X, MessageCircle, MapPin, Phone, Loader2, ChevronRight, Star, Clock, Coins, Gift, Truck, CheckCircle2, Search, UtensilsCrossed, Pizza, Coffee, IceCream, Sandwich } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -12,6 +12,7 @@ interface MenuItem {
   category: string;
   price: number;
   description?: string;
+  imageUrl?: string;
 }
 
 interface CartItem extends MenuItem {
@@ -34,6 +35,29 @@ interface Restaurant {
     longitude: number;
   };
 }
+
+// Helper to get category icon
+const getCategoryIcon = (category: string) => {
+  const c = category.toLowerCase();
+  if (c.includes("بيتزا")) return <Pizza className="h-5 w-5" />;
+  if (c.includes("سندوتش") || c.includes("حواوشي") || c.includes("كريب")) return <Sandwich className="h-5 w-5" />;
+  if (c.includes("حلو") || c.includes("أرز باللبن")) return <IceCream className="h-5 w-5" />;
+  if (c.includes("مشروب") || c.includes("قهوة")) return <Coffee className="h-5 w-5" />;
+  return <UtensilsCrossed className="h-5 w-5" />;
+};
+
+// Default images for menu items based on category
+const getDefaultItemImage = (item: MenuItem) => {
+  if (item.imageUrl) return item.imageUrl;
+  const name = item.name.toLowerCase();
+  if (name.includes("بيتزا")) return "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=500&auto=format&fit=crop";
+  if (name.includes("كريب")) return "https://images.unsplash.com/photo-1519676867240-f03562e64548?q=80&w=500&auto=format&fit=crop";
+  if (name.includes("برجر")) return "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=500&auto=format&fit=crop";
+  if (name.includes("كشري")) return "https://images.unsplash.com/photo-1589302168068-964664d93dc0?q=80&w=500&auto=format&fit=crop";
+  if (name.includes("طاجن")) return "https://images.unsplash.com/photo-1541518763669-27fef04b14ea?q=80&w=500&auto=format&fit=crop";
+  if (name.includes("سمك") || name.includes("جمبري")) return "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=500&auto=format&fit=crop";
+  return "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500&auto=format&fit=crop";
+};
 
 // مطعم "كشري الخديوي" - البيانات
 const KHEDIVE_KOSHARY_RESTAURANT: Restaurant = {
@@ -138,6 +162,29 @@ const AL_HOUT_RESTAURANT: Restaurant = {
   }
 };
 
+const AL_HOUT_MENU: MenuItem[] = [
+  { id: 319, name: "سمك بلطي 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
+  { id: 320, name: "سمك بوري 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
+  { id: 321, name: "سمك ماكريل 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
+  { id: 322, name: "فيليه قشر بياض 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
+  { id: 323, name: "سمك مكرونة 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
+  { id: 324, name: "سمك دنيس 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
+  { id: 325, name: "سمك لوت 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
+  { id: 326, name: "سبيط بلدي 🦑", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
+  { id: 327, name: "كالماري 🦑", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
+  { id: 328, name: "بلح بحر 🐚", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
+  { id: 329, name: "جندوفلي 🐚", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
+  { id: 330, name: "جمبري قشر إسكندراني 🍤", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
+  { id: 315, name: "مكرونة وايت صوص 🍝", category: "سوق السمك والطواجن", price: 180 },
+  { id: 316, name: "مكرونة ريد صوص 🍝", category: "سوق السمك والطواجن", price: 180 },
+  { id: 317, name: "كابوريا إسكندراني 🦀", category: "سوق السمك والطواجن", price: 130 },
+  { id: 318, name: "فيليه وايت صوص 🐟", category: "سوق السمك والطواجن", price: 130 },
+  { id: 301, name: "شوربة كريمة 🥣", category: "الشوربة", price: 140 },
+  { id: 302, name: "شوربة جمبري حمراء 🥣", category: "الشوربة", price: 140 },
+  { id: 303, name: "شوربة صيامي 🥣", category: "الشوربة", price: 120 },
+  { id: 304, name: "ملوخية بالجمبري 🥘", category: "الشوربة", price: 100 },
+];
+
 // مطعم "رول وي" - البيانات
 const ROLL_WE_RESTAURANT: Restaurant = {
   id: 1,
@@ -155,435 +202,26 @@ const ROLL_WE_RESTAURANT: Restaurant = {
     longitude: 31.5256719
   }
 };
-const ROLL_WE_MENU: MenuItem[] = [
-  {
-    "id": 1001,
-    "name": "بيتزا فراخ صغير 🍕",
-    "category": "البيتزا",
-    "price": 120
-  },
-  {
-    "id": 1002,
-    "name": "بيتزا فراخ كبير 🍕",
-    "category": "البيتزا",
-    "price": 170
-  },
-  {
-    "id": 1003,
-    "name": "بيتزا جبن صغير 🍕",
-    "category": "البيتزا",
-    "price": 110
-  },
-  {
-    "id": 1004,
-    "name": "بيتزا جبن كبير 🍕",
-    "category": "البيتزا",
-    "price": 130
-  },
-  {
-    "id": 1005,
-    "name": "بيتزا مارغريتا صغير 🍕",
-    "category": "البيتزا",
-    "price": 90
-  },
-  {
-    "id": 1006,
-    "name": "بيتزا مارغريتا كبير 🍕",
-    "category": "البيتزا",
-    "price": 130
-  },
-  {
-    "id": 1007,
-    "name": "بيتزا كفتة صغير 🍕",
-    "category": "البيتزا",
-    "price": 130
-  },
-  {
-    "id": 1008,
-    "name": "بيتزا كفتة كبير 🍕",
-    "category": "البيتزا",
-    "price": 150
-  },
-  {
-    "id": 1009,
-    "name": "بيتزا سجق صغير 🍕",
-    "category": "البيتزا",
-    "price": 120
-  },
-  {
-    "id": 1010,
-    "name": "بيتزا سجق كبير 🍕",
-    "category": "البيتزا",
-    "price": 160
-  },
-  {
-    "id": 1011,
-    "name": "بيتزا استربس صغير 🍕",
-    "category": "البيتزا",
-    "price": 120
-  },
-  {
-    "id": 1012,
-    "name": "بيتزا استربس كبير 🍕",
-    "category": "البيتزا",
-    "price": 170
-  },
-  {
-    "id": 1013,
-    "name": "بيتزا شيش صغير 🍕",
-    "category": "البيتزا",
-    "price": 150
-  },
-  {
-    "id": 1014,
-    "name": "بيتزا شيش كبير 🍕",
-    "category": "البيتزا",
-    "price": 200
-  },
-  {
-    "id": 1015,
-    "name": "بيتزا برجر صغير 🍕",
-    "category": "البيتزا",
-    "price": 120
-  },
-  {
-    "id": 1016,
-    "name": "بيتزا برجر كبير 🍕",
-    "category": "البيتزا",
-    "price": 150
-  },
-  {
-    "id": 1017,
-    "name": "بيتزا شاورما صغير 🍕",
-    "category": "البيتزا",
-    "price": 120
-  },
-  {
-    "id": 1018,
-    "name": "بيتزا شاورما كبير 🍕",
-    "category": "البيتزا",
-    "price": 200
-  },
-  {
-    "id": 1019,
-    "name": "بيتزا مكس فراخ صغير 🍕",
-    "category": "البيتزا",
-    "price": 120
-  },
-  {
-    "id": 1020,
-    "name": "بيتزا مكس فراخ كبير 🍕",
-    "category": "البيتزا",
-    "price": 160
-  },
-  {
-    "id": 1021,
-    "name": "بيتزا مكس جبن صغير 🍕",
-    "category": "البيتزا",
-    "price": 100
-  },
-  {
-    "id": 1022,
-    "name": "بيتزا مكس جبن كبير 🍕",
-    "category": "البيتزا",
-    "price": 130
-  },
-  {
-    "id": 1023,
-    "name": "بيتزا فراخ رانش صغير 🍕",
-    "category": "البيتزا",
-    "price": 120
-  },
-  {
-    "id": 1024,
-    "name": "بيتزا فراخ رانش كبير 🍕",
-    "category": "البيتزا",
-    "price": 170
-  },
-  {
-    "id": 1025,
-    "name": "كريب استربس عادي 🌯",
-    "category": "الكريب",
-    "price": 80
-  },
-  {
-    "id": 1026,
-    "name": "كريب استربس سوبر 🌯",
-    "category": "الكريب",
-    "price": 110
-  },
-  {
-    "id": 1027,
-    "name": "كريب بانيه عادي 🌯",
-    "category": "الكريب",
-    "price": 50
-  },
-  {
-    "id": 1028,
-    "name": "كريب بانيه سوبر 🌯",
-    "category": "الكريب",
-    "price": 70
-  },
-  {
-    "id": 1029,
-    "name": "كريب كفتة عادي 🌯",
-    "category": "الكريب",
-    "price": 70
-  },
-  {
-    "id": 1030,
-    "name": "كريب كفتة سوبر 🌯",
-    "category": "الكريب",
-    "price": 90
-  },
-  {
-    "id": 1031,
-    "name": "كريب برجر عادي 🌯",
-    "category": "الكريب",
-    "price": 80
-  },
-  {
-    "id": 1032,
-    "name": "كريب برجر سوبر 🌯",
-    "category": "الكريب",
-    "price": 100
-  },
-  {
-    "id": 1033,
-    "name": "كريب سجق عادي 🌯",
-    "category": "الكريب",
-    "price": 70
-  },
-  {
-    "id": 1034,
-    "name": "كريب سجق سوبر 🌯",
-    "category": "الكريب",
-    "price": 90
-  },
-  {
-    "id": 1035,
-    "name": "كريب بطاطس عادي 🌯",
-    "category": "الكريب",
-    "price": 40
-  },
-  {
-    "id": 1036,
-    "name": "كريب بطاطس سوبر 🌯",
-    "category": "الكريب",
-    "price": 60
-  },
-  {
-    "id": 1037,
-    "name": "كريب زنجر عادي 🌯",
-    "category": "الكريب",
-    "price": 100
-  },
-  {
-    "id": 1038,
-    "name": "كريب زنجر سوبر 🌯",
-    "category": "الكريب",
-    "price": 120
-  },
-  {
-    "id": 1039,
-    "name": "كريب جبن عادي 🌯",
-    "category": "الكريب",
-    "price": 40
-  },
-  {
-    "id": 1040,
-    "name": "كريب جبن سوبر 🌯",
-    "category": "الكريب",
-    "price": 70
-  },
-  {
-    "id": 1041,
-    "name": "كريب شيش سوبر 🌯",
-    "category": "الكريب",
-    "price": 110
-  },
-  {
-    "id": 1042,
-    "name": "وجبة كفتة 🍱",
-    "category": "الوجبات",
-    "price": 100
-  },
-  {
-    "id": 1043,
-    "name": "وجبة شيش 🍱",
-    "category": "الوجبات",
-    "price": 100
-  },
-  {
-    "id": 1044,
-    "name": "وجبة ميكس 🍱",
-    "category": "الوجبات",
-    "price": 150
-  },
-  {
-    "id": 1045,
-    "name": "استربس بانيه 🥗",
-    "category": "الميكسات",
-    "price": 100
-  },
-  {
-    "id": 1046,
-    "name": "استربس بطاطس 🥗",
-    "category": "الميكسات",
-    "price": 100
-  },
-  {
-    "id": 1047,
-    "name": "استربس شيش 🥗",
-    "category": "الميكسات",
-    "price": 120
-  },
-  {
-    "id": 1048,
-    "name": "بانيه بطاطس 🥗",
-    "category": "الميكسات",
-    "price": 70
-  },
-  {
-    "id": 1049,
-    "name": "شيش بطاطس 🥗",
-    "category": "الميكسات",
-    "price": 110
-  },
-  {
-    "id": 1050,
-    "name": "شيش شاورما 🥗",
-    "category": "الميكسات",
-    "price": 120
-  },
-  {
-    "id": 1051,
-    "name": "شيش برجر 🥗",
-    "category": "الميكسات",
-    "price": 100
-  },
-  {
-    "id": 1052,
-    "name": "نجرسكو فراخ ع الفحم 🍝",
-    "category": "المكرونات",
-    "price": 70
-  },
-  {
-    "id": 1053,
-    "name": "نجرسكو فراخ ع الفحم ك 🍝",
-    "category": "المكرونات",
-    "price": 80
-  },
-  {
-    "id": 1054,
-    "name": "نجرسكو لحوم 🍝",
-    "category": "المكرونات",
-    "price": 70
-  },
-  {
-    "id": 1055,
-    "name": "نجرسكو جبن 🍝",
-    "category": "المكرونات",
-    "price": 50
-  },
-  {
-    "id": 1056,
-    "name": "فرخة مشوية كاملة 🍗",
-    "category": "المشاوي",
-    "price": 380
-  },
-  {
-    "id": 1057,
-    "name": "نص فرخة 🍗",
-    "category": "المشاوي",
-    "price": 190
-  },
-  {
-    "id": 1058,
-    "name": "ربع فرخة ورك 🍗",
-    "category": "المشاوي",
-    "price": 85
-  },
-  {
-    "id": 1059,
-    "name": "ربع فرخة صدر 🍗",
-    "category": "المشاوي",
-    "price": 100
-  },
-  {
-    "id": 1060,
-    "name": "ساندوتش كفتة 🥖",
-    "category": "المشاوي",
-    "price": 40
-  },
-  {
-    "id": 1061,
-    "name": "ساندوتش شيش 🥖",
-    "category": "المشاوي",
-    "price": 50
-  },
-  {
-    "id": 1062,
-    "name": "ساندوتش حواوشي 🥙",
-    "category": "المشاوي",
-    "price": 30
-  },
-  {
-    "id": 1063,
-    "name": "ساندوتش برجر 🍔",
-    "category": "كيزر",
-    "price": 60
-  },
-  {
-    "id": 1064,
-    "name": "ساندوتش رانش 🍔",
-    "category": "كيزر",
-    "price": 60
-  },
-  {
-    "id": 1065,
-    "name": "ساندوتش زنجر 🍔",
-    "category": "كيزر",
-    "price": 70
-  },
-  {
-    "id": 1066,
-    "name": "باكت بطاطس 🍟",
-    "category": "إضافات",
-    "price": 20
-  },
-  {
-    "id": 1067,
-    "name": "سلطة 🥗",
-    "category": "إضافات",
-    "price": 15
-  }
-];
 
-const AL_HOUT_MENU: MenuItem[] = [
-  // أنواع الأسماك المتاحة (حسب الوزن)
-  { id: 319, name: "سمك بلطي 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 320, name: "سمك بوري 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 321, name: "سمك ماكريل 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 322, name: "فيليه قشر بياض 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 323, name: "سمك مكرونة 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 324, name: "سمك دنيس 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 325, name: "سمك لوت 🐟", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 326, name: "سبيط بلدي 🦑", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 327, name: "كالماري 🦑", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 328, name: "بلح بحر 🐚", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 329, name: "جندوفلي 🐚", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  { id: 330, name: "جمبري قشر إسكندراني 🍤", category: "أنواع الأسماك المتاحة", price: 0, description: "السعر حسب الوزن والنوع" },
-  // سوق السمك والطواجن
-  { id: 315, name: "مكرونة وايت صوص (سي فود / جمبري) 🍝", category: "سوق السمك والطواجن", price: 180 },
-  { id: 316, name: "مكرونة ريد صوص (سي فود / جمبري) 🍝", category: "سوق السمك والطواجن", price: 180 },
-  { id: 317, name: "كابوريا إسكندراني 🦀", category: "سوق السمك والطواجن", price: 130 },
-  { id: 318, name: "فيليه (وايت صوص / ريد صوص) 🐟", category: "سوق السمك والطواجن", price: 130 },
-  // الشوربة
-  { id: 301, name: "شوربة كريمة 🥣", category: "الشوربة", price: 140 },
-  { id: 302, name: "شوربة جمبري حمراء 🥣", category: "الشوربة", price: 140 },
-  { id: 303, name: "شوربة صيامي 🥣", category: "الشوربة", price: 120 },
-  { id: 304, name: "ملوخية بالجمبري 🥘", category: "الشوربة", price: 100 },
+const ROLL_WE_MENU: MenuItem[] = [
+  { id: 1001, name: "بيتزا فراخ صغير 🍕", category: "البيتزا", price: 120 },
+  { id: 1002, name: "بيتزا فراخ كبير 🍕", category: "البيتزا", price: 170 },
+  { id: 1003, name: "بيتزا جبن صغير 🍕", category: "البيتزا", price: 110 },
+  { id: 1004, name: "بيتزا جبن كبير 🍕", category: "البيتزا", price: 130 },
+  { id: 1005, name: "بيتزا مارغريتا صغير 🍕", category: "البيتزا", price: 90 },
+  { id: 1006, name: "بيتزا مارغريتا كبير 🍕", category: "البيتزا", price: 130 },
+  { id: 1007, name: "بيتزا كفتة صغير 🍕", category: "البيتزا", price: 130 },
+  { id: 1008, name: "بيتزا كفتة كبير 🍕", category: "البيتزا", price: 150 },
+  { id: 1009, name: "بيتزا سجق صغير 🍕", category: "البيتزا", price: 120 },
+  { id: 1010, name: "بيتزا سجق كبير 🍕", category: "البيتزا", price: 160 },
+  { id: 1025, name: "كريب استربس عادي 🌯", category: "الكريب", price: 80 },
+  { id: 1026, name: "كريب استربس سوبر 🌯", category: "الكريب", price: 110 },
+  { id: 1027, name: "كريب بانيه عادي 🌯", category: "الكريب", price: 50 },
+  { id: 1028, name: "كريب بانيه سوبر 🌯", category: "الكريب", price: 70 },
+  { id: 1063, name: "ساندوتش برجر 🍔", category: "كيزر", price: 60 },
+  { id: 1064, name: "ساندوتش رانش 🍔", category: "كيزر", price: 60 },
+  { id: 1065, name: "ساندوتش زنجر 🍔", category: "كيزر", price: 70 },
+  { id: 1066, name: "باكت بطاطس 🍟", category: "إضافات", price: 20 },
 ];
 
 const RESTAURANTS = [ROLL_WE_RESTAURANT, KHEDIVE_KOSHARY_RESTAURANT, AL_HOUT_RESTAURANT];
@@ -603,25 +241,8 @@ export function RestaurantMenu({ isExternalCartOpen, onExternalCartClose }: Rest
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartExpanded, setIsCartExpanded] = useState(false);
-
-  useEffect(() => {
-    if (isExternalCartOpen) {
-      setIsCartExpanded(true);
-    }
-  }, [isExternalCartOpen]);
-
-  useEffect(() => {
-    if (!isCartExpanded && onExternalCartClose) {
-      onExternalCartClose();
-    }
-  }, [isCartExpanded, onExternalCartClose]);
-  const [customerNotes, setCustomerNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
   const [addressDescription, setAddressDescription] = useState("");
-  const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [showGiftAlert, setShowGiftAlert] = useState(false);
-  const [usePoints, setUsePoints] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
@@ -666,133 +287,27 @@ export function RestaurantMenu({ isExternalCartOpen, onExternalCartClose }: Rest
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountAmount = appliedCoupon ? (appliedCoupon.discountType === 'fixed' ? appliedCoupon.discountValue : Math.min(totalPrice * (appliedCoupon.discountValue / 100), appliedCoupon.maxDiscount || Infinity)) : 0;
   const finalTotalPrice = Math.max(0, totalPrice - discountAmount);
-  
-  const hasGift = totalPrice >= 600;
-  const freeDeliveryThreshold = 1000;
-  const hasFreeDelivery = totalPrice >= freeDeliveryThreshold;
-
-  const handleValidateCoupon = async () => {
-    if (!couponCode.trim()) return;
-    setIsValidatingCoupon(true);
-    try {
-      const coupon = await validateCouponMutation.mutateAsync({ code: couponCode });
-      if (totalPrice && coupon.minOrderValue && totalPrice < coupon.minOrderValue) {
-        toast.error(`هذا الكوبون يتطلب طلباً بقيمة ${coupon.minOrderValue} ج.م على الأقل`);
-        return;
-      }
-      setAppliedCoupon(coupon);
-      toast.success("تم تطبيق الكوبون بنجاح! 🎉");
-    } catch (error: any) {
-      toast.error(error.message || "كود الخصم غير صحيح");
-      setAppliedCoupon(null);
-    } finally {
-      setIsValidatingCoupon(false);
-    }
-  };
-
-  useEffect(() => {
-    if (hasGift && !showGiftAlert) {
-      setShowGiftAlert(true);
-      toast.success("مبروك! لقد فتحت هدية سرية مجانية 🎁", {
-        description: "سيتم إضافة صنف جانبي مجاني لطلبك تلقائياً (عرض الـ 600 جنيه).",
-        duration: 5000,
-      });
-    } else if (!hasGift && showGiftAlert) {
-      setShowGiftAlert(false);
-    }
-  }, [hasGift, showGiftAlert]);
 
   const handleCheckout = async () => {
-    if (!selectedRestaurant) return;
-    if (cart.length === 0) {
-      toast.error("السلة فارغة!");
+    if (!selectedRestaurant || cart.length === 0 || !addressDescription) {
+      toast.error("يرجى إكمال البيانات أولاً");
       return;
     }
-
-    if (!addressDescription || addressDescription.trim().length < 5) {
-      toast.error("يرجى كتابة العنوان بالتفصيل أولاً (رقم العمارة، الشقة، أو علامة مميزة)");
-      return;
-    }
-
     setIsLoading(true);
-    
-    const getCurrentPositionPromise = () => {
-      return new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0 
-        });
-      });
-    };
-
     try {
-      const toastId = toast.info("جاري التأكد من موقعك الحالي بدقة... 📍", { duration: 5000 });
-      const position = await getCurrentPositionPromise();
-      
-      if (!position || !position.coords.latitude || !position.coords.longitude) {
-        throw new Error("لم نتمكن من الحصول على إحداثيات دقيقة. يرجى التأكد من فتح الـ GPS.");
-      }
-
-      const finalLocation = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        address: "موقعي الحالي المكتشف",
-      };
-      
-      setUserLocation(finalLocation);
-      setLocationStatus("success");
-      toast.dismiss(toastId);
-
-      const orderItems = cart
-        .map((item) => `${item.name} × ${item.quantity} = ${item.price * item.quantity} ج.م`)
-        .join("\n");
-
-      const message = `طلب جديد من تطبيق وصلي 📱\n\nالمطعم: ${selectedRestaurant.name}\n\n${orderItems}\n\nالإجمالي الأصلي: ${totalPrice} ج.م\n${appliedCoupon ? `الخصم: ${discountAmount} ج.م (${appliedCoupon.code})\nالإجمالي بعد الخصم: ${finalTotalPrice} ج.م\n` : ''}\nالعنوان: ${addressDescription || "موقع GPS"}\n\nملاحظات: ${customerNotes || "بدون ملاحظات"}`;
-
-	      // WhatsApp window opening removed to keep the process in background
-	      console.log("[WhatsApp] Background notification will be sent by the server");
-
-      const cartItemsData = cart.map((item) => ({
-        menuItemId: item.id,
-        quantity: item.quantity,
-        price: item.price,
-      }));
-
+      const orderItems = cart.map(i => `${i.name} x${i.quantity}`).join(", ");
       await createRestaurantOrderMutation.mutateAsync({
         restaurantId: selectedRestaurant.id,
-        items: cartItemsData,
+        items: orderItems,
         totalPrice: finalTotalPrice,
-        notes: `${customerNotes}${appliedCoupon ? `\n🎟️ [كوبون]: ${appliedCoupon.code} (خصم ${discountAmount} ج.م)` : ""}${hasGift ? "\n🎁 [هدية مجانية]: وجبة جانبية مجانية (عرض الـ 600 جنيه)" : ""}${hasFreeDelivery ? "\n🚚 [توصيل مجاني]: هذا الطلب مؤهل للتوصيل المجاني (عرض الـ 1000 جنيه)" : ""}`,
-        couponId: appliedCoupon?.id,
-        usePoints: usePoints,
-        pickupLocation: {
-          address: selectedRestaurant.address,
-          latitude: selectedRestaurant.location.latitude,
-          longitude: selectedRestaurant.location.longitude,
-          neighborhood: "موقع المطعم",
-        },
-        deliveryLocation: {
-          address: addressDescription || "موقع العميل المكتشف",
-          latitude: finalLocation.latitude,
-          longitude: finalLocation.longitude,
-          neighborhood: "موقع العميل",
-        },
+        address: addressDescription,
+        location: { latitude: 0, longitude: 0 },
       });
-
-      toast.success("تم إرسال الطلب للمطعم وتم إنشاء طلب توصيل تلقائي!");
+      toast.success("تم إرسال طلبك بنجاح! 🎉");
       setCart([]);
-      setCustomerNotes("");
-      setAddressDescription("");
       setIsCartExpanded(false);
     } catch (error: any) {
-      console.error("Checkout error:", error);
-      if (error.code || error.message?.includes("denied") || error.message?.includes("location")) {
-        toast.error("يجب فتح الموقع (GPS) وإعطاء صلاحية للمتصفح لإتمام الطلب. لا يمكن إرسال الطلب بدون تحديد مكانك الفعلي.");
-        setLocationStatus("error");
-      } else {
-        toast.error(error.message || "فشل في إنشاء الطلب");
-      }
+      toast.error(error.message || "فشل إرسال الطلب");
     } finally {
       setIsLoading(false);
     }
@@ -800,50 +315,33 @@ export function RestaurantMenu({ isExternalCartOpen, onExternalCartClose }: Rest
 
   if (!selectedRestaurant) {
     return (
-      <div className="flex gap-4 overflow-x-auto pb-6 no-scrollbar snap-x">
+      <div className="flex gap-4 overflow-x-auto pb-6 no-scrollbar snap-x px-4" dir="rtl">
         {RESTAURANTS.map((restaurant) => (
           <motion.div
             key={restaurant.id}
             whileHover={{ y: -5 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-w-[280px] snap-center"
-          >
-          <Card 
-            className="overflow-hidden border-none shadow-lg hover:shadow-xl transition-all rounded-[2rem] bg-white group cursor-pointer h-full"
+            className="min-w-[300px] snap-center"
             onClick={() => setSelectedRestaurant(restaurant)}
           >
-            <div className="h-32 w-full relative overflow-hidden">
-              <img 
-                src={restaurant.coverUrl} 
-                alt={restaurant.name} 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-              <div className="absolute bottom-2 right-2 flex items-center gap-1.5">
-                <div className="bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
-                  <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500" />
-                  <span className="text-[10px] font-black text-slate-800">{restaurant.rating}</span>
-                </div>
-                <div className="bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
-                  <Clock className="h-2.5 w-2.5 text-orange-500" />
-                  <span className="text-[10px] font-black text-slate-800">{restaurant.deliveryTime}</span>
-                </div>
+            <Card className="overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-[#121214] border border-white/5 group cursor-pointer h-full">
+              <div className="h-40 w-full relative overflow-hidden">
+                <img src={restaurant.coverUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#121214] to-transparent"></div>
               </div>
-            </div>
-            <CardContent className="p-3 relative">
-              <div className="absolute -top-8 right-3 h-12 w-12 rounded-xl bg-white p-1 shadow-lg border border-slate-50 overflow-hidden">
-                <img src={restaurant.logoUrl} alt="Logo" className="w-full h-full object-contain rounded-lg" />
-              </div>
-              <div className="pt-2">
-                <h3 className="text-lg font-black text-slate-800 mb-0.5 group-hover:text-orange-600 transition-colors">{restaurant.name}</h3>
-                <p className="text-slate-500 text-[11px] font-medium line-clamp-1 mb-2">{restaurant.description}</p>
-                <div className="flex items-center gap-1.5 text-slate-400">
-                  <MapPin className="h-3 w-3" />
-                  <span className="text-[10px] font-bold line-clamp-1">{restaurant.address}</span>
+              <CardContent className="p-6 relative">
+                <div className="absolute -top-10 right-6 h-16 w-16 rounded-2xl bg-white p-1 shadow-2xl border-2 border-[#FF6B00]">
+                  <img src={restaurant.logoUrl} className="w-full h-full object-contain rounded-xl" />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+                <div className="pt-4">
+                  <h3 className="text-xl font-black text-white mb-1">{restaurant.name}</h3>
+                  <p className="text-gray-500 text-xs font-medium line-clamp-1 mb-4">{restaurant.description}</p>
+                  <div className="flex items-center gap-4 text-xs font-bold">
+                    <div className="flex items-center gap-1 text-[#FFD700]"><Star className="h-3 w-3 fill-[#FFD700]" /> {restaurant.rating}</div>
+                    <div className="flex items-center gap-1 text-gray-400"><Clock className="h-3 w-3" /> {restaurant.deliveryTime}</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
         ))}
       </div>
@@ -855,118 +353,86 @@ export function RestaurantMenu({ isExternalCartOpen, onExternalCartClose }: Rest
   const filteredMenu = currentMenu.filter((item) => item.category === selectedCategory);
 
   return (
-    <div className="space-y-6 pb-32" dir="rtl">
-      <Button 
-        variant="ghost" 
-        onClick={() => setSelectedRestaurant(null)}
-        className="mb-4 font-black text-slate-600 hover:text-orange-600 transition-all bg-white shadow-sm border border-slate-200 rounded-2xl px-6 py-6"
-      >
-        <ChevronRight className="h-6 w-6 ml-2" /> 
-        <div className="flex flex-col items-start">
-          <span className="text-lg">عودة</span>
-          <span className="text-[10px] text-slate-400">قائمة المطاعم</span>
+    <div className="space-y-6 pb-32 min-h-screen bg-[#0A0A0B]" dir="rtl">
+      {/* Header */}
+      <div className="px-4 pt-4 flex items-center justify-between">
+        <Button 
+          variant="ghost" 
+          onClick={() => setSelectedRestaurant(null)}
+          className="h-12 w-12 rounded-2xl bg-white/5 text-white hover:bg-white/10"
+        >
+          <ChevronRight className="h-6 w-6" />
+        </Button>
+        <div className="text-center">
+          <h1 className="text-xl font-black text-white">{selectedRestaurant.name}</h1>
+          <p className="text-[10px] text-[#FF6B00] font-bold tracking-widest uppercase">Premium Menu</p>
         </div>
-      </Button>
-
-      <div className="relative rounded-2xl overflow-hidden shadow-xl mb-6 group">
-        <div className="h-48 w-full relative">
-          {selectedRestaurant.id === 3 ? (
-            <motion.img 
-              src={selectedRestaurant.coverUrl} 
-              alt="Restaurant Cover" 
-              className="w-full h-full object-cover brightness-110"
-              animate={{ 
-                scale: [1, 1.1, 1],
-                x: [0, 10, -10, 0],
-                y: [0, -5, 5, 0]
-              }}
-              transition={{ 
-                duration: 20, 
-                repeat: Infinity, 
-                ease: "easeInOut" 
-              }}
-            />
-          ) : (
-            <img 
-              src={selectedRestaurant.coverUrl} 
-              alt="Restaurant Cover" 
-              className="w-full h-full object-cover brightness-100 group-hover:scale-105 transition-transform duration-700"
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
-        </div>
-
-        <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end gap-4">
-          <div className="h-20 w-20 rounded-2xl bg-white p-1.5 shadow-2xl flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-orange-400 z-20 transform -translate-y-2">
-             <img 
-              src={selectedRestaurant.logoUrl} 
-              alt="Logo" 
-              className="w-full h-full object-contain rounded-lg"
-            />
-          </div>
-          <div className="flex-1 pb-2 text-white z-20">
-            <h1 className="text-2xl font-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{selectedRestaurant.name}</h1>
-          </div>
+        <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center">
+          <Search className="h-5 w-5 text-gray-400" />
         </div>
       </div>
 
-      <div className="px-2 mb-4">
-        <p className="text-sm text-gray-600 font-medium leading-relaxed border-r-4 border-orange-500 pr-3">
-          {selectedRestaurant.description}
-        </p>
-      </div>
-
-      <div className="sticky top-16 z-30 bg-white/80 backdrop-blur-md py-3 -mx-4 px-4 border-b border-orange-100 overflow-x-auto no-scrollbar">
-        <div className="flex gap-2 min-w-max">
+      {/* Categories Bar - Circular Style */}
+      <div className="sticky top-0 z-40 bg-[#0A0A0B]/80 backdrop-blur-xl py-4 border-b border-white/5 overflow-x-auto no-scrollbar">
+        <div className="flex gap-6 px-6 min-w-max">
           {categories.map((category) => (
-            <Button
+            <button
               key={category}
-              variant={selectedCategory === category ? "default" : "outline"}
               onClick={() => setSelectedCategory(category)}
-              className={`rounded-full px-6 font-bold transition-all ${
-                selectedCategory === category 
-                ? "bg-orange-500 hover:bg-orange-600 shadow-md shadow-orange-200" 
-                : "border-orange-100 text-orange-600 hover:bg-orange-50"
-              }`}
+              className="flex flex-col items-center gap-2 group transition-all"
             >
-              {category}
-            </Button>
+              <div className={`h-16 w-16 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${
+                selectedCategory === category 
+                ? "bg-[#FF6B00] border-[#FF6B00] shadow-[0_0_20px_rgba(255,107,0,0.4)] scale-110" 
+                : "bg-[#121214] border-white/5 hover:border-[#FF6B00]/30"
+              }`}>
+                <div className={selectedCategory === category ? "text-white" : "text-gray-400 group-hover:text-[#FF6B00]"}>
+                  {getCategoryIcon(category)}
+                </div>
+              </div>
+              <span className={`text-[11px] font-black transition-colors ${
+                selectedCategory === category ? "text-white" : "text-gray-500"
+              }`}>{category}</span>
+            </button>
           ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Menu Grid - 2 Columns as in Screenshot */}
+      <div className="px-4 grid grid-cols-2 gap-4">
         <AnimatePresence mode="popLayout">
           {filteredMenu.map((item) => (
             <motion.div
               key={item.id}
               layout
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="group"
             >
-              <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all rounded-2xl bg-white group">
-                <CardContent className="p-4 flex justify-between items-center">
+              <Card className="overflow-hidden border-none bg-[#121214] rounded-[2rem] border border-white/5 hover:border-[#FF6B00]/20 transition-all duration-500 h-full flex flex-col">
+                <div className="relative h-32 sm:h-40 w-full overflow-hidden">
+                  <img 
+                    src={getDefaultItemImage(item)} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#121214] via-transparent to-transparent opacity-60"></div>
+                  <button
+                    onClick={() => addToCart(item)}
+                    className="absolute bottom-3 left-3 h-10 w-10 rounded-xl bg-[#FF6B00] text-white flex items-center justify-center shadow-lg shadow-[#FF6B00]/20 active:scale-90 transition-all"
+                  >
+                    <Plus className="h-6 w-6" />
+                  </button>
+                </div>
+                <CardContent className="p-4 flex-1 flex flex-col justify-between">
                   <div className="space-y-1">
-                    <h3 className="font-black text-slate-800 group-hover:text-orange-600 transition-colors">{item.name}</h3>
-                    <p className="text-orange-600 font-black text-lg">
-                      {item.price === 0 ? "سعر اليوم" : `ج.م ${item.price}`}
+                    <h3 className="font-black text-white text-sm line-clamp-1 group-hover:text-[#FF6B00] transition-colors">{item.name}</h3>
+                    <p className="text-[10px] text-gray-500 font-medium line-clamp-2 leading-relaxed">أفضل المكونات الطازجة بلمسة وصلي الخاصة</p>
+                  </div>
+                  <div className="pt-3">
+                    <p className="text-[#FF6B00] font-black text-sm">
+                      {item.price === 0 ? "سعر اليوم" : `${item.price} ج.م`}
                     </p>
                   </div>
-                  <motion.div 
-                    whileHover={{ scale: 1.2, rotate: 90 }} 
-                    whileTap={{ scale: 0.8 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  >
-                    <Button
-                      size="icon"
-                      onClick={() => addToCart(item)}
-                      className="rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-500 hover:text-white transition-all shadow-none border-2 border-orange-200"
-                    >
-                      <Plus className="h-5 w-5" />
-                    </Button>
-                  </motion.div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -974,207 +440,79 @@ export function RestaurantMenu({ isExternalCartOpen, onExternalCartClose }: Rest
         </AnimatePresence>
       </div>
 
+      {/* Cart Button */}
       {cart.length > 0 && (
-        <div className={`fixed left-0 right-0 p-4 pointer-events-none transition-all duration-300 ${isCartExpanded ? 'bottom-0 z-[200]' : 'bottom-24 z-[110]'}`}>
-          <Card className={`max-w-2xl mx-auto border-none shadow-2xl bg-slate-900 text-white rounded-3xl overflow-hidden relative transition-all duration-300 pointer-events-auto ${isCartExpanded ? 'h-auto max-h-[85vh] overflow-y-auto mb-4' : 'h-20'}`}>
-            {!isCartExpanded ? (
-              <div 
-                className="h-20 flex items-center justify-between px-6 cursor-pointer hover:bg-slate-800 transition-colors"
-                onClick={() => setIsCartExpanded(true)}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <div className="bg-orange-500 text-white text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center absolute -top-2 -right-2 border-2 border-slate-900">
-                      {cart.reduce((sum, item) => sum + item.quantity, 0)}
-                    </div>
-                    <motion.div
-                      animate={cart.length > 0 ? { 
-                        scale: [1, 1.3, 1],
-                        rotate: [0, -10, 10, 0]
-                      } : {}}
-                      transition={{ duration: 0.4 }}
-                      key={cart.length}
-                    >
-                      <ShoppingCart className="h-6 w-6 text-orange-500" />
-                    </motion.div>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-400">سلتك الحالية</p>
-                    <p className="text-lg font-black text-white">ج.م {totalPrice}</p>
-                  </div>
-                </div>
-                <Button className="bg-orange-500 hover:bg-orange-600 text-white font-black rounded-xl px-6">
-                  عرض السلة
-                </Button>
+        <div className="fixed bottom-6 left-4 right-4 z-[100]">
+          <Button 
+            onClick={() => setIsCartExpanded(true)}
+            className="w-full h-16 bg-[#FF6B00] hover:bg-[#FF8533] text-white rounded-2xl shadow-[0_15px_30px_rgba(255,107,0,0.3)] flex items-center justify-between px-6 transition-all active:scale-95"
+          >
+            <div className="flex items-center gap-3">
+              <div className="bg-white/20 h-8 w-8 rounded-lg flex items-center justify-center font-black">
+                {cart.reduce((sum, i) => sum + i.quantity, 0)}
               </div>
-            ) : (
-              <CardContent className="p-0">
-                <div className="flex items-center justify-between p-4 border-b border-slate-800">
-                  <h3 className="font-black text-lg">سلة الطلبات</h3>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-full bg-slate-800 text-white hover:bg-slate-700"
-                      onClick={() => setCart([])}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-full bg-slate-800 text-white hover:bg-slate-700"
-                      onClick={() => setIsCartExpanded(false)}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="p-4 max-h-60 overflow-y-auto border-b border-slate-800">
-                {cart.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center py-3 border-b border-slate-800 last:border-0">
-                    <div className="flex-1">
-                      <p className="font-bold text-sm">{item.name}</p>
-                      <p className="text-orange-400 text-xs font-black">
-                        {item.price === 0 ? "سعر اليوم" : `ج.م ${item.price * item.quantity}`}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3 bg-slate-800 rounded-xl p-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7 rounded-lg hover:bg-slate-700 text-white"
-                        onClick={() => updateQuantity(item.id, -1)}
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="font-black text-sm w-4 text-center">{item.quantity}</span>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7 rounded-lg hover:bg-slate-700 text-white"
-                        onClick={() => updateQuantity(item.id, 1)}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <span className="font-black">عرض السلة</span>
+            </div>
+            <span className="font-black text-lg">{totalPrice} ج.م</span>
+          </Button>
+        </div>
+      )}
 
-              <div className="p-4 space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <MapPin className="h-4 w-4 text-orange-500" />
-                    <span className="text-xs font-bold text-slate-400">عنوان التوصيل</span>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="رقم العمارة، الشقة، الدور، أو علامة مميزة..."
+      {/* Cart Overlay */}
+      <AnimatePresence>
+        {isCartExpanded && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] p-4 flex items-end justify-center"
+            onClick={() => setIsCartExpanded(false)}
+          >
+            <motion.div 
+              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+              className="bg-[#121214] w-full max-w-lg rounded-[3rem] border border-white/10 overflow-hidden"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="p-8 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-black text-white">سلتك الملكية</h2>
+                  <button onClick={() => setIsCartExpanded(false)} className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center"><X className="text-white" /></button>
+                </div>
+                
+                <div className="max-h-[40vh] overflow-y-auto space-y-4 no-scrollbar">
+                  {cart.map(item => (
+                    <div key={item.id} className="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/5">
+                      <div className="flex-1">
+                        <p className="font-bold text-white">{item.name}</p>
+                        <p className="text-[#FF6B00] font-black text-sm">{item.price * item.quantity} ج.م</p>
+                      </div>
+                      <div className="flex items-center gap-4 bg-[#0A0A0B] p-1 rounded-xl">
+                        <button onClick={() => updateQuantity(item.id, -1)} className="h-8 w-8 flex items-center justify-center text-gray-400"><Minus size={16} /></button>
+                        <span className="font-black text-white">{item.quantity}</span>
+                        <button onClick={() => updateQuantity(item.id, 1)} className="h-8 w-8 flex items-center justify-center text-[#FF6B00]"><Plus size={16} /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-4 pt-4 border-t border-white/5">
+                  <Input 
+                    placeholder="اكتب عنوانك بالتفصيل هنا..." 
+                    className="h-14 bg-[#0A0A0B] border-white/10 rounded-xl text-white focus:border-[#FF6B00]"
                     value={addressDescription}
-                    onChange={(e) => setAddressDescription(e.target.value)}
-                    className="w-full bg-slate-700 border-2 border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all outline-none shadow-lg"
+                    onChange={e => setAddressDescription(e.target.value)}
                   />
-                  <textarea
-                    placeholder="ملاحظات إضافية للمطعم (اختياري)..."
-                    value={customerNotes}
-                    onChange={(e) => setCustomerNotes(e.target.value)}
-                    className="w-full bg-slate-700 border-2 border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all h-20 resize-none outline-none shadow-lg"
-                  />
-                </div>
-
-                <div className="space-y-4 mb-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Gift className="h-4 w-4 text-orange-500" />
-                    <span className="text-xs font-bold text-slate-400">كود الخصم</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="أدخل كود الخصم..."
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                      disabled={!!appliedCoupon || isValidatingCoupon}
-                      className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-orange-500 outline-none disabled:opacity-50 transition-all"
-                    />
-                    <Button
-                      size="sm"
-                      onClick={appliedCoupon ? () => { setAppliedCoupon(null); setCouponCode(""); } : handleValidateCoupon}
-                      disabled={isValidatingCoupon || (!couponCode && !appliedCoupon)}
-                      className={`rounded-xl font-black ${appliedCoupon ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20' : 'bg-orange-500 text-white hover:bg-orange-600'}`}
-                    >
-                      {isValidatingCoupon ? <Loader2 className="h-4 w-4 animate-spin" /> : (appliedCoupon ? "إلغاء" : "تطبيق")}
-                    </Button>
-                  </div>
-                  {appliedCoupon && (
-                    <p className="text-emerald-400 text-[10px] font-black flex items-center gap-1">
-                      <CheckCircle2 className="h-3 w-3" />
-                      تم تطبيق خصم {appliedCoupon.discountType === 'percentage' ? `${appliedCoupon.discountValue}%` : `${appliedCoupon.discountValue} ج.م`}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between pt-2">
-                  <div>
-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">الإجمالي</p>
-                    <div className="flex items-baseline gap-2">
-                      <p className={`text-2xl font-black text-orange-500 ${appliedCoupon ? 'line-through text-slate-500 text-lg' : ''}`}>ج.م {totalPrice}</p>
-                      {appliedCoupon && (
-                        <p className="text-2xl font-black text-emerald-400">ج.م {finalTotalPrice}</p>
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-1 mt-1">
-                      {hasGift && (
-                        <motion.div 
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="flex items-center gap-1 text-emerald-400 text-[10px] font-black"
-                        >
-                          <Gift className="h-3 w-3" />
-                          <span>تم تفعيل الهدية المجانية! 🎁</span>
-                        </motion.div>
-                      )}
-                      {hasFreeDelivery ? (
-                        <motion.div 
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="flex items-center gap-1 text-sky-400 text-[10px] font-black"
-                        >
-                          <Truck className="h-3 w-3" />
-                          <span>توصيل مجاني مفعل! 🚚</span>
-                        </motion.div>
-                      ) : (
-                        <p className="text-[9px] text-slate-400 font-bold">
-                          أضف {freeDeliveryThreshold - totalPrice} ج.م للحصول على توصيل مجاني 🚚
-                        </p>
-                      )}
-                    </div>
-                </div>
-                  <Button
+                  <Button 
                     onClick={handleCheckout}
-                    disabled={isLoading || !addressDescription.trim()}
-                    className={`font-black px-8 py-7 rounded-2xl shadow-lg transition-all ${
-                      !addressDescription.trim() 
-                      ? "bg-slate-700 text-slate-400 cursor-not-allowed opacity-50" 
-                      : "bg-orange-500 hover:bg-orange-600 text-white shadow-orange-900/20"
-                    }`}
+                    disabled={isLoading}
+                    className="w-full h-16 bg-[#FF6B00] text-white font-black text-lg rounded-2xl"
                   >
-                    {isLoading ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <>
-                        <MessageCircle className="h-5 w-5 ml-2" />
-                        إرسال الطلب
-                      </>
-                    )}
+                    {isLoading ? <Loader2 className="animate-spin" /> : `تأكيد الطلب (${finalTotalPrice} ج.م)`}
                   </Button>
                 </div>
               </div>
-            </CardContent>
-            )}
-          </Card>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
