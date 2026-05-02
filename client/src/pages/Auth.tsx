@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, Eye, EyeOff, Phone, Lock, Mail, User, Truck, ShieldCheck, Star } from "lucide-react";
+import { Loader2, Eye, EyeOff, Phone, Lock, User, ShieldCheck, Star, ArrowLeft } from "lucide-react";
 import { normalizePhoneNumber } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,13 +19,7 @@ export default function Auth() {
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
 
   const [loginData, setLoginData] = useState({ phone: "", password: "" });
-  const [registerData, setRegisterData] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    password: "",
-    role: "customer",
-  });
+  const [registerData, setRegisterData] = useState({ name: "", phone: "", email: "", password: "", role: "customer" });
 
   const loginMutation = trpc.auth.login.useMutation();
   const registerMutation = trpc.auth.register.useMutation();
@@ -39,10 +33,6 @@ export default function Auth() {
     }
   }, [isAuthenticated, user, authLoading, navigate]);
 
-  const handleLoginChange = (field: string, value: string) => setLoginData(prev => ({ ...prev, [field]: value }));
-  const handleRegisterChange = (field: string, value: string) => setRegisterData(prev => ({ ...prev, [field]: value }));
-
-  const utils = trpc.useUtils();
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginData.phone.trim() || !loginData.password.trim()) {
@@ -53,9 +43,7 @@ export default function Auth() {
     try {
       const normalizedPhone = normalizePhoneNumber(loginData.phone);
       const result = await loginMutation.mutateAsync({ phone: normalizedPhone, password: loginData.password });
-      utils.auth.me.setData(undefined, result.user as any);
-      await utils.auth.me.invalidate();
-      toast.success("مرحباً بك في عالم وصلي الفاخر");
+      toast.success("مرحباً بك في وصلي");
       setTimeout(() => {
         if (result.user?.role === "driver") navigate("/driver/dashboard");
         else if (result.user?.role === "admin") navigate("/admin/dashboard");
@@ -71,7 +59,7 @@ export default function Auth() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!registerData.name.trim() || !registerData.phone.trim() || registerData.password.length < 8) {
-      toast.error("يرجى التحقق من البيانات (كلمة المرور 8 أحرف على الأقل)");
+      toast.error("يرجى التحقق من البيانات");
       return;
     }
     setIsLoading(true);
@@ -84,9 +72,7 @@ export default function Auth() {
         email: registerData.email || undefined,
         role: registerData.role as "customer" | "driver",
       });
-      utils.auth.me.setData(undefined, result.user as any);
-      await utils.auth.me.invalidate();
-      toast.success("تم إنشاء حسابك الملكي بنجاح");
+      toast.success("تم إنشاء حسابك بنجاح");
       setTimeout(() => {
         if (result.user?.role === "driver") navigate("/driver/dashboard");
         else if (result.user?.role === "admin") navigate("/admin/dashboard");
@@ -100,168 +86,93 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center p-4 font-sans overflow-hidden relative" dir="rtl">
-      {/* Background Effects */}
-      <div className="absolute top-[-20%] right-[-10%] w-[70%] h-[70%] bg-[#FF6B00]/10 rounded-full blur-[150px] animate-pulse"></div>
-      <div className="absolute bottom-[-20%] left-[-10%] w-[60%] h-[60%] bg-[#FFD700]/5 rounded-full blur-[130px]"></div>
-      
-      <div className="w-full max-w-6xl relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          {/* Left Side - Branding */}
-          <motion.div 
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 1 }}
-            className="hidden lg:flex flex-col space-y-12 text-white"
-          >
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-xl border border-white/10 px-6 py-2 rounded-full text-xs font-black tracking-[0.2em] uppercase text-[#FF6B00]">
-                <Star className="h-3 w-3 fill-[#FFD700] text-[#FFD700]" />
-                Premium Member Access
+    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4 font-sans relative overflow-hidden" dir="rtl">
+      {/* Background Decorative */}
+      <div className="absolute top-0 left-0 w-full h-full opacity-40 pointer-events-none">
+        <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-orange-100 rounded-full blur-[100px]"></div>
+        <div className="absolute bottom-[-10%] left-[-5%] w-[30%] h-[30%] bg-blue-50 rounded-full blur-[80px]"></div>
+      </div>
+
+      <div className="w-full max-w-5xl relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* Left Branding */}
+          <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="hidden lg:flex flex-col space-y-8">
+            <button onClick={() => navigate("/")} className="flex items-center gap-2 text-slate-400 hover:text-orange-600 transition-colors font-bold text-sm mb-4">
+              <ArrowLeft size={18} /> العودة للرئيسية
+            </button>
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 bg-orange-50 px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase text-orange-600 border border-orange-100">
+                <Star size={12} className="fill-orange-600" /> Premium Member Access
               </div>
-              <div className="flex items-center gap-6">
-                <div className="bg-[#121214] p-4 rounded-[2.5rem] border border-white/10 shadow-2xl">
-                  <img src="/assets/logo.jpg" alt="وصلي" className="h-20 w-20 rounded-2xl" />
-                </div>
-                <h1 className="text-9xl font-[1000] tracking-tighter bg-gradient-to-b from-white to-white/40 bg-clip-text text-transparent">وصلي</h1>
-              </div>
-              <p className="text-4xl font-black leading-tight text-gray-300">
-                انضم إلى <span className="text-[#FF6B00]">النخبة</span> <br />
-                في عالم التوصيل.
-              </p>
+              <h1 className="text-7xl font-black text-slate-900 tracking-tight">مرحباً بك <br /><span className="text-orange-600">مرة أخرى</span></h1>
+              <p className="text-xl text-slate-500 font-medium leading-relaxed max-w-sm">سجل دخولك الآن لتستمتع بأسرع خدمة توصيل في مدينة العبور.</p>
             </div>
-            
-            <div className="space-y-6 opacity-60">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
-                  <ShieldCheck className="text-[#FFD700]" />
-                </div>
-                <p className="font-bold text-lg">أمان وحماية بضمان وصلي</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
-                  <Clock className="text-[#FF6B00]" />
-                </div>
-                <p className="font-bold text-lg">دقة متناهية في المواعيد</p>
+            <div className="space-y-4 pt-6">
+              <div className="flex items-center gap-3 text-slate-600 font-bold">
+                <div className="h-10 w-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-orange-600 border border-slate-100"><ShieldCheck size={20} /></div>
+                <span>حماية تامة لبياناتك وطلباتك</span>
               </div>
             </div>
           </motion.div>
 
-          {/* Right Side - Form */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            <Card className="border-0 shadow-[0_40px_100px_rgba(0,0,0,0.6)] overflow-hidden bg-[#121214] rounded-[3rem] border-white/5 border">
+          {/* Right Form */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
+            <Card className="border-none shadow-2xl shadow-slate-200/50 overflow-hidden bg-white rounded-[2.5rem]">
               <CardContent className="p-0">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid grid-cols-2 w-full h-24 p-2 bg-[#0A0A0B] border-b border-white/5">
-                    <TabsTrigger 
-                      value="login" 
-                      className="text-xl font-black rounded-[2rem] data-[state=active]:bg-[#FF6B00] data-[state=active]:text-white transition-all duration-500"
-                    >
-                      دخول
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="register" 
-                      className="text-xl font-black rounded-[2rem] data-[state=active]:bg-[#FF6B00] data-[state=active]:text-white transition-all duration-500"
-                    >
-                      تسجيل
-                    </TabsTrigger>
+                  <TabsList className="grid grid-cols-2 w-full h-20 p-2 bg-slate-50/50 border-b border-slate-100">
+                    <TabsTrigger value="login" className="text-lg font-black rounded-2xl data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-sm transition-all">دخول</TabsTrigger>
+                    <TabsTrigger value="register" className="text-lg font-black rounded-2xl data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-sm transition-all">تسجيل</TabsTrigger>
                   </TabsList>
 
-                  <div className="p-10 md:p-14">
+                  <div className="p-8 md:p-12">
                     <AnimatePresence mode="wait">
                       <TabsContent value="login" className="mt-0 outline-none">
-                        <form onSubmit={handleLogin} className="space-y-8">
-                          <div className="space-y-6">
+                        <form onSubmit={handleLogin} className="space-y-6">
+                          <div className="space-y-4">
                             <div className="relative group">
-                              <Phone className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#FF6B00] transition-colors" />
-                              <Input 
-                                type="tel" 
-                                placeholder="رقم الهاتف" 
-                                className="h-16 pr-12 bg-[#0A0A0B] border-white/10 rounded-2xl text-white text-lg focus:border-[#FF6B00] focus:ring-[#FF6B00]/20 transition-all"
-                                value={loginData.phone}
-                                onChange={(e) => handleLoginChange("phone", e.target.value)}
-                              />
+                              <Phone className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-orange-600 transition-colors" size={20} />
+                              <Input type="tel" placeholder="رقم الهاتف" className="h-14 pr-12 bg-slate-50 border-slate-100 rounded-xl focus:bg-white transition-all" value={loginData.phone} onChange={(e) => setLoginData(p => ({ ...p, phone: e.target.value }))} />
                             </div>
                             <div className="relative group">
-                              <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#FF6B00] transition-colors" />
-                              <Input 
-                                type={showLoginPassword ? "text" : "password"} 
-                                placeholder="كلمة المرور" 
-                                className="h-16 pr-12 pl-12 bg-[#0A0A0B] border-white/10 rounded-2xl text-white text-lg focus:border-[#FF6B00] focus:ring-[#FF6B00]/20 transition-all"
-                                value={loginData.password}
-                                onChange={(e) => handleLoginChange("password", e.target.value)}
-                              />
-                              <button 
-                                type="button"
-                                onClick={() => setShowLoginPassword(!showLoginPassword)}
-                                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
-                              >
-                                {showLoginPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                              <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-orange-600 transition-colors" size={20} />
+                              <Input type={showLoginPassword ? "text" : "password"} placeholder="كلمة المرور" className="h-14 pr-12 pl-12 bg-slate-50 border-slate-100 rounded-xl focus:bg-white transition-all" value={loginData.password} onChange={(e) => setLoginData(p => ({ ...p, password: e.target.value }))} />
+                              <button type="button" onClick={() => setShowLoginPassword(!showLoginPassword)} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-600 transition-colors">
+                                {showLoginPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                               </button>
                             </div>
                           </div>
-                          <Button 
-                            type="submit" 
-                            disabled={isLoading}
-                            className="w-full h-20 bg-[#FF6B00] hover:bg-[#FF8533] text-white text-xl font-black rounded-[2rem] shadow-2xl shadow-[#FF6B00]/20 transition-all duration-500 active:scale-95"
-                          >
-                            {isLoading ? <Loader2 className="animate-spin" /> : "تسجيل الدخول الملكي"}
+                          <Button type="submit" disabled={isLoading} className="w-full h-16 bg-orange-600 hover:bg-orange-700 text-white text-lg font-black rounded-2xl shadow-lg shadow-orange-100 transition-all">
+                            {isLoading ? <Loader2 className="animate-spin" /> : "تسجيل الدخول"}
                           </Button>
                         </form>
                       </TabsContent>
 
                       <TabsContent value="register" className="mt-0 outline-none">
-                        <form onSubmit={handleRegister} className="space-y-6">
-                          <div className="grid grid-cols-1 gap-4">
-                            <div className="relative group">
-                              <User className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#FF6B00] transition-colors" />
-                              <Input 
-                                placeholder="الاسم الكامل" 
-                                className="h-14 pr-12 bg-[#0A0A0B] border-white/10 rounded-2xl text-white focus:border-[#FF6B00] transition-all"
-                                value={registerData.name}
-                                onChange={(e) => handleRegisterChange("name", e.target.value)}
-                              />
-                            </div>
-                            <div className="relative group">
-                              <Phone className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#FF6B00] transition-colors" />
-                              <Input 
-                                type="tel" 
-                                placeholder="رقم الهاتف" 
-                                className="h-14 pr-12 bg-[#0A0A0B] border-white/10 rounded-2xl text-white focus:border-[#FF6B00] transition-all"
-                                value={registerData.phone}
-                                onChange={(e) => handleRegisterChange("phone", e.target.value)}
-                              />
-                            </div>
-                            <div className="relative group">
-                              <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#FF6B00] transition-colors" />
-                              <Input 
-                                type={showRegisterPassword ? "text" : "password"} 
-                                placeholder="كلمة المرور" 
-                                className="h-14 pr-12 bg-[#0A0A0B] border-white/10 rounded-2xl text-white focus:border-[#FF6B00] transition-all"
-                                value={registerData.password}
-                                onChange={(e) => handleRegisterChange("password", e.target.value)}
-                              />
-                            </div>
-                            <Select value={registerData.role} onValueChange={(v) => handleRegisterChange("role", v)}>
-                              <SelectTrigger className="h-14 bg-[#0A0A0B] border-white/10 rounded-2xl text-white focus:border-[#FF6B00]">
-                                <SelectValue placeholder="نوع الحساب" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-[#121214] border-white/10 text-white">
-                                <SelectItem value="customer">عميل (طلب خدمات)</SelectItem>
-                                <SelectItem value="driver">كابتن (تقديم خدمات)</SelectItem>
-                              </SelectContent>
-                            </Select>
+                        <form onSubmit={handleRegister} className="space-y-4">
+                          <div className="relative group">
+                            <User className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-orange-600 transition-colors" size={20} />
+                            <Input placeholder="الاسم الكامل" className="h-14 pr-12 bg-slate-50 border-slate-100 rounded-xl focus:bg-white transition-all" value={registerData.name} onChange={(e) => setRegisterData(p => ({ ...p, name: e.target.value }))} />
                           </div>
-                          <Button 
-                            type="submit" 
-                            disabled={isLoading}
-                            className="w-full h-20 bg-[#FF6B00] hover:bg-[#FF8533] text-white text-xl font-black rounded-[2rem] shadow-2xl transition-all duration-500"
-                          >
-                            {isLoading ? <Loader2 className="animate-spin" /> : "إنشاء حساب فاخر"}
+                          <div className="relative group">
+                            <Phone className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-orange-600 transition-colors" size={20} />
+                            <Input type="tel" placeholder="رقم الهاتف" className="h-14 pr-12 bg-slate-50 border-slate-100 rounded-xl focus:bg-white transition-all" value={registerData.phone} onChange={(e) => setRegisterData(p => ({ ...p, phone: e.target.value }))} />
+                          </div>
+                          <div className="relative group">
+                            <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-orange-600 transition-colors" size={20} />
+                            <Input type={showRegisterPassword ? "text" : "password"} placeholder="كلمة المرور (8 أحرف)" className="h-14 pr-12 pl-12 bg-slate-50 border-slate-100 rounded-xl focus:bg-white transition-all" value={registerData.password} onChange={(e) => setRegisterData(p => ({ ...p, password: e.target.value }))} />
+                          </div>
+                          <Select value={registerData.role} onValueChange={(v) => setRegisterData(p => ({ ...p, role: v }))}>
+                            <SelectTrigger className="h-14 bg-slate-50 border-slate-100 rounded-xl">
+                              <SelectValue placeholder="نوع الحساب" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white border-slate-100">
+                              <SelectItem value="customer">عميل (طلب خدمات)</SelectItem>
+                              <SelectItem value="driver">كابتن (تقديم خدمات)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button type="submit" disabled={isLoading} className="w-full h-16 bg-orange-600 hover:bg-orange-700 text-white text-lg font-black rounded-2xl shadow-lg shadow-orange-100 transition-all mt-4">
+                            {isLoading ? <Loader2 className="animate-spin" /> : "إنشاء الحساب"}
                           </Button>
                         </form>
                       </TabsContent>

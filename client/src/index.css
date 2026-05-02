@@ -35,38 +35,37 @@
 }
 
 :root {
-  /* Wasly Premium Dark Theme - Inspired by the provided image */
-  --background: #0A0A0B; /* Deep Black */
-  --foreground: #F8FAFC;
+  /* Wasly Light & Clean Theme - Highly Visible */
+  --background: #F8FAFC; /* Light Grayish White */
+  --foreground: #0F172A; /* Deep Navy for text */
   
-  --primary: #FF6B00; /* Neon Orange from the box */
+  --primary: #FF6B00; /* Signature Orange */
   --primary-foreground: #FFFFFF;
   
-  --secondary: #161618; /* Matte Black / Dark Gray */
-  --secondary-foreground: #FFD700; /* Gold text */
+  --secondary: #F1F5F9; /* Light Gray */
+  --secondary-foreground: #1E293B;
   
-  --accent: #FFD700; /* Gold Accent */
-  --accent-foreground: #0A0A0B;
+  --accent: #FF6B00;
+  --accent-foreground: #FFFFFF;
   
-  --card: #121214;
-  --card-foreground: #F8FAFC;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
   
-  --popover: #121214;
-  --popover-foreground: #F8FAFC;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
   
-  --muted: #1E1E21;
-  --muted-foreground: #94A3B8;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;
   
-  --border: #27272A;
-  --input: #1E1E21;
+  --border: #E2E8F0;
+  --input: #FFFFFF;
   --ring: #FF6B00;
   
-  --radius: 1rem;
+  --radius: 1.25rem;
 
-  /* Chart colors */
   --chart-1: #FF6B00;
-  --chart-2: #FFD700;
-  --chart-3: #1D2B53;
+  --chart-2: #1E293B;
+  --chart-3: #FFD700;
   --chart-4: #F16623;
   --chart-5: #FFB800;
 }
@@ -86,43 +85,25 @@
     @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl;
   }
 
-  /* Premium Glow Effect */
+  /* Premium Soft Glow */
   .glow-orange {
-    box-shadow: 0 0 20px rgba(255, 107, 0, 0.3);
+    box-shadow: 0 10px 30px rgba(255, 107, 0, 0.15);
   }
   
-  .glow-gold {
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
-  }
-
-  .text-gold {
-    @apply bg-gradient-to-tr from-[#FFD700] via-[#FDB931] to-[#9E7E38] bg-clip-text text-transparent;
-  }
-
-  .bg-premium-dark {
-    background: radial-gradient(circle at top right, #1E1E21, #0A0A0B);
+  .bg-premium-light {
+    background: radial-gradient(circle at top right, #FFFFFF, #F8FAFC);
   }
 
   .btn-premium {
     @apply relative overflow-hidden transition-all duration-500 hover:scale-105 active:scale-95;
-    background: linear-gradient(135deg, #FF6B00 0%, #E65100 100%);
-    box-shadow: 0 10px 30px -10px rgba(255, 107, 0, 0.5);
-  }
-
-  .btn-premium::after {
-    content: '';
-    @apply absolute inset-0 opacity-0 transition-opacity duration-500 bg-gradient-to-tr from-white/20 to-transparent;
-  }
-
-  .btn-premium:hover::after {
-    @apply opacity-100;
+    background: linear-gradient(135deg, #FF6B00 0%, #FF8533 100%);
+    box-shadow: 0 10px 25px -5px rgba(255, 107, 0, 0.4);
   }
 }
 
-/* Custom Animations */
 @keyframes float {
   0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
   100% { transform: translateY(0px); }
 }
 
