@@ -37,7 +37,7 @@
 :root {
   /* Wasly Light & Clean Theme - Highly Visible */
   --background: #F8FAFC; /* Light Grayish White */
-  --foreground: #0F172A; /* Deep Navy for text */
+  --foreground: #000000; /* Pure Black for maximum visibility */
   
   --primary: #FF6B00; /* Signature Orange */
   --primary-foreground: #FFFFFF;
@@ -55,7 +55,7 @@
   --popover-foreground: #0F172A;
   
   --muted: #F1F5F9;
-  --muted-foreground: #64748B;
+  --muted-foreground: #475569; /* Darker muted text */
   
   --border: #E2E8F0;
   --input: #FFFFFF;
@@ -109,4 +109,14 @@
 
 .animate-float {
   animation: float 4s ease-in-out infinite;
+}
+
+/* Force black text for all inputs and textareas for maximum visibility */
+input, textarea, select {
+  color: #000000 !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #64748B !important;
+  opacity: 0.8;
 }
