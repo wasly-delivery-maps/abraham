@@ -52,13 +52,13 @@ export function useAuth(options?: UseAuthOptions) {
       
       // 4. إعادة التوجيه باستخدام استبدال الصفحة بالكامل لقتل أي حالة React متبقية
       if (typeof window !== 'undefined') {
-        window.location.replace("/auth");
+        window.location.replace("/");
       }
     } catch (error) {
       console.error("[Auth] Critical error during logout:", error);
-      // في حالة الفشل الذريع، اجبر المتصفح على الذهاب لصفحة الدخول
+      // في حالة الفشل الذريع، اجبر المتصفح على الذهاب للصفحة الرئيسية
       if (typeof window !== 'undefined') {
-        window.location.href = "/auth";
+        window.location.href = "/";
       }
     }
   }, [logoutMutation, utils]);
