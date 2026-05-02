@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, Eye, EyeOff, Phone, Lock, Mail, User, Truck, ShieldCheck } from "lucide-react";
+import { Loader2, Eye, EyeOff, Phone, Lock, Mail, User, Truck, ShieldCheck, Star } from "lucide-react";
 import { normalizePhoneNumber } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,13 +18,7 @@ export default function Auth() {
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
 
-  // Login state
-  const [loginData, setLoginData] = useState({
-    phone: "",
-    password: "",
-  });
-
-  // Register state
+  const [loginData, setLoginData] = useState({ phone: "", password: "" });
   const [registerData, setRegisterData] = useState({
     name: "",
     phone: "",
@@ -33,108 +27,42 @@ export default function Auth() {
     role: "customer",
   });
 
-  // tRPC mutations
   const loginMutation = trpc.auth.login.useMutation();
   const registerMutation = trpc.auth.register.useMutation();
   const { user, isAuthenticated, loading: authLoading } = trpc.auth.me.useQuery();
 
   useEffect(() => {
-    // If user is already authenticated, redirect them back to their dashboard
-    // This prevents logging out when pressing the back button from the dashboard
     if (!authLoading && isAuthenticated && user) {
-      if (user.role === "driver") {
-        navigate("/driver/dashboard");
-      } else if (user.role === "admin") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/customer/dashboard?tab=restaurants");
-      }
+      if (user.role === "driver") navigate("/driver/dashboard");
+      else if (user.role === "admin") navigate("/admin/dashboard");
+      else navigate("/customer/dashboard?tab=restaurants");
     }
   }, [isAuthenticated, user, authLoading, navigate]);
 
-  useEffect(() => {
-    try {
-      sessionStorage.removeItem("auth_form_data");
-      sessionStorage.removeItem("register_form_data");
-    } catch (e) {
-      console.warn("SessionStorage access warning:", e);
-    }
-  }, []);
-
-  const handleLoginChange = (field: string, value: string) => {
-    setLoginData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleRegisterChange = (field: string, value: string) => {
-    setRegisterData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
+  const handleLoginChange = (field: string, value: string) => setLoginData(prev => ({ ...prev, [field]: value }));
+  const handleRegisterChange = (field: string, value: string) => setRegisterData(prev => ({ ...prev, [field]: value }));
 
   const utils = trpc.useUtils();
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!loginData.phone.trim()) {
-      toast.error("يرجى إدخال رقم الهاتف");
+    if (!loginData.phone.trim() || !loginData.password.trim()) {
+      toast.error("يرجى إدخال كافة البيانات");
       return;
     }
-
-    if (!loginData.password.trim()) {
-      toast.error("يرجى إدخال كلمة المرور");
-      return;
-    }
-
     setIsLoading(true);
-
     try {
       const normalizedPhone = normalizePhoneNumber(loginData.phone);
-      
-      const result = await loginMutation.mutateAsync({
-        phone: normalizedPhone,
-        password: loginData.password,
-      });
-
-      // تحديث بيانات المستخدم في tRPC cache فوراً لضمان التعرف على الجلسة
+      const result = await loginMutation.mutateAsync({ phone: normalizedPhone, password: loginData.password });
       utils.auth.me.setData(undefined, result.user as any);
       await utils.auth.me.invalidate();
-
-      // ربط هوية المستخدم بـ OneSignal للإشعارات المنبثقة (Push Notifications)
-      if (typeof window !== 'undefined' && (window as any).OneSignalDeferred) {
-        (window as any).OneSignalDeferred.push(async function(OneSignal: any) {
-          await OneSignal.login(normalizedPhone);
-          // إضافة وسم الدور للمستخدم عند تسجيل الدخول
-          await OneSignal.User.addTags({
-            role: result.user?.role || "customer",
-            phone: normalizedPhone,
-            external_id: normalizedPhone
-          });
-          console.log("[OneSignal] User logged in and tagged:", normalizedPhone, result.user?.role);
-        });
-      }
-
-      toast.success("مرحباً بك! تم تسجيل الدخول بنجاح");
-
-      setLoginData({ phone: "", password: "" });
-
-      // تأخير بسيط لضمان تحديث الحالة قبل الانتقال
+      toast.success("مرحباً بك في عالم وصلي الفاخر");
       setTimeout(() => {
-        if (result.user?.role === "driver") {
-          navigate("/driver/dashboard");
-        } else if (result.user?.role === "admin") {
-          navigate("/admin/dashboard");
-        } else {
-          navigate("/customer/dashboard?tab=restaurants");
-        }
+        if (result.user?.role === "driver") navigate("/driver/dashboard");
+        else if (result.user?.role === "admin") navigate("/admin/dashboard");
+        else navigate("/customer/dashboard?tab=restaurants");
       }, 100);
     } catch (error: any) {
-      console.error("Login error:", error);
-      const errorMessage = error?.message || "فشل تسجيل الدخول. يرجى التحقق من البيانات والمحاولة مرة أخرى.";
-      toast.error(errorMessage);
+      toast.error(error?.message || "فشل تسجيل الدخول");
     } finally {
       setIsLoading(false);
     }
@@ -142,37 +70,13 @@ export default function Auth() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!registerData.name.trim()) {
-      toast.error("يرجى إدخال الاسم الكامل");
+    if (!registerData.name.trim() || !registerData.phone.trim() || registerData.password.length < 8) {
+      toast.error("يرجى التحقق من البيانات (كلمة المرور 8 أحرف على الأقل)");
       return;
     }
-
-    if (registerData.name.trim().length < 2) {
-      toast.error("الاسم يجب أن يكون حرفين على الأقل");
-      return;
-    }
-
-    if (!registerData.phone.trim()) {
-      toast.error("يرجى إدخال رقم الهاتف");
-      return;
-    }
-
-    if (!registerData.password.trim()) {
-      toast.error("يرجى إدخال كلمة المرور");
-      return;
-    }
-
-    if (registerData.password.length < 8) {
-      toast.error("كلمة المرور يجب أن تكون 8 أحرف على الأقل");
-      return;
-    }
-
     setIsLoading(true);
-
     try {
       const normalizedPhone = normalizePhoneNumber(registerData.phone);
-      
       const result = await registerMutation.mutateAsync({
         phone: normalizedPhone,
         password: registerData.password,
@@ -180,345 +84,186 @@ export default function Auth() {
         email: registerData.email || undefined,
         role: registerData.role as "customer" | "driver",
       });
-
-      // تحديث بيانات المستخدم في tRPC cache فوراً لضمان التعرف على الجلسة
       utils.auth.me.setData(undefined, result.user as any);
       await utils.auth.me.invalidate();
-
-      // ربط هوية المستخدم بـ OneSignal للإشعارات المنبثقة (Push Notifications)
-      if (typeof window !== 'undefined' && (window as any).OneSignalDeferred) {
-        (window as any).OneSignalDeferred.push(async function(OneSignal: any) {
-          await OneSignal.login(normalizedPhone);
-          // إضافة وسم الدور للمستخدم الجديد
-          await OneSignal.User.addTags({
-            role: result.user?.role || "customer",
-            phone: normalizedPhone,
-            external_id: normalizedPhone
-          });
-          console.log("[OneSignal] New user logged in and tagged:", normalizedPhone, result.user?.role);
-        });
-      }
-
-      toast.success("مرحباً! تم إنشاء حسابك بنجاح");
-
-      setRegisterData({
-        name: "",
-        phone: "",
-        email: "",
-        password: "",
-        role: "customer",
-      });
-
-      // تأخير بسيط لضمان تحديث الحالة قبل الانتقال
+      toast.success("تم إنشاء حسابك الملكي بنجاح");
       setTimeout(() => {
-        if (result.user?.role === "driver") {
-          navigate("/driver/dashboard");
-        } else if (result.user?.role === "admin") {
-          navigate("/admin/dashboard");
-        } else {
-          navigate("/customer/dashboard?tab=restaurants");
-        }
+        if (result.user?.role === "driver") navigate("/driver/dashboard");
+        else if (result.user?.role === "admin") navigate("/admin/dashboard");
+        else navigate("/customer/dashboard?tab=restaurants");
       }, 100);
     } catch (error: any) {
-      console.error("Register error:", error);
-      const errorMessage = error?.message || "فشل التسجيل. يرجى التحقق من البيانات والمحاولة مرة أخرى.";
-      toast.error(errorMessage);
+      toast.error(error?.message || "فشل التسجيل");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const isLoginPending = loginMutation.isPending || isLoading;
-  const isRegisterPending = registerMutation.isPending || isLoading;
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-500 to-amber-500 flex items-center justify-center p-4 font-sans" dir="rtl">
-      {/* Background decorative elements */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full blur-[120px] -z-10 animate-pulse"></div>
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-white/10 rounded-full blur-[120px] -z-10 animate-pulse" style={{ animationDelay: '1s' }}></div>
-
-      <div className="w-full max-w-5xl">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left side - Branding */}
+    <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center p-4 font-sans overflow-hidden relative" dir="rtl">
+      {/* Background Effects */}
+      <div className="absolute top-[-20%] right-[-10%] w-[70%] h-[70%] bg-[#FF6B00]/10 rounded-full blur-[150px] animate-pulse"></div>
+      <div className="absolute bottom-[-20%] left-[-10%] w-[60%] h-[60%] bg-[#FFD700]/5 rounded-full blur-[130px]"></div>
+      
+      <div className="w-full max-w-6xl relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          {/* Left Side - Branding */}
           <motion.div 
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="hidden lg:flex flex-col justify-center space-y-8 text-white"
+            transition={{ duration: 1 }}
+            className="hidden lg:flex flex-col space-y-12 text-white"
           >
-            <div className="space-y-4">
-              <motion.div 
-                className="inline-block bg-white/20 backdrop-blur-md px-4 py-1 rounded-full text-sm font-bold tracking-widest uppercase"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                منصة التوصيل رقم #1
-              </motion.div>
-              <div className="flex items-center gap-6">
-                <motion.div 
-                  className="bg-white p-3 rounded-[2rem] shadow-2xl border-4 border-white/20 overflow-hidden"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                >
-                  <img src="/wasly-logo-v2.png" alt="وصلي" className="h-24 w-24 object-contain" />
-                </motion.div>
-                <h1 className="text-8xl font-black tracking-tighter">وصلي</h1>
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-xl border border-white/10 px-6 py-2 rounded-full text-xs font-black tracking-[0.2em] uppercase text-[#FF6B00]">
+                <Star className="h-3 w-3 fill-[#FFD700] text-[#FFD700]" />
+                Premium Member Access
               </div>
-              <p className="text-2xl font-medium opacity-90 leading-relaxed">
-                الجيل القادم من خدمات التوصيل الذكية والموثوقة في مصر.
+              <div className="flex items-center gap-6">
+                <div className="bg-[#121214] p-4 rounded-[2.5rem] border border-white/10 shadow-2xl">
+                  <img src="/assets/logo.jpg" alt="وصلي" className="h-20 w-20 rounded-2xl" />
+                </div>
+                <h1 className="text-9xl font-[1000] tracking-tighter bg-gradient-to-b from-white to-white/40 bg-clip-text text-transparent">وصلي</h1>
+              </div>
+              <p className="text-4xl font-black leading-tight text-gray-300">
+                انضم إلى <span className="text-[#FF6B00]">النخبة</span> <br />
+                في عالم التوصيل.
               </p>
             </div>
-
-            <div className="grid grid-cols-1 gap-6 pt-4">
-              {[
-                { icon: Truck, title: "توصيل فائق السرعة", desc: "نصل إليك في أسرع وقت ممكن وبأمان تام." },
-                { icon: ShieldCheck, title: "أمان وموثوقية", desc: "طرودك في أيدٍ أمينة مع نظام تتبع حي." },
-                { icon: User, title: "دعم فني متواصل", desc: "فريقنا متاح لخدمتك على مدار الساعة." }
-              ].map((item, i) => (
-                <motion.div 
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 + (i * 0.1) }}
-                  className="flex items-start gap-5 group"
-                >
-                  <div className="w-14 h-14 bg-white/10 backdrop-blur-lg rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/20 group-hover:bg-white group-hover:text-orange-600 transition-all duration-300 shadow-xl">
-                    <item.icon className="w-7 h-7" />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-xl">{item.title}</h3>
-                    <p className="text-white/70 font-medium">{item.desc}</p>
-                  </div>
-                </motion.div>
-              ))}
+            
+            <div className="space-y-6 opacity-60">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
+                  <ShieldCheck className="text-[#FFD700]" />
+                </div>
+                <p className="font-bold text-lg">أمان وحماية بضمان وصلي</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
+                  <Clock className="text-[#FF6B00]" />
+                </div>
+                <p className="font-bold text-lg">دقة متناهية في المواعيد</p>
+              </div>
             </div>
           </motion.div>
 
-          {/* Right side - Auth Card */}
+          {/* Right Side - Form */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="w-full"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <Card className="border-0 shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-[2.5rem] overflow-hidden bg-white/95 backdrop-blur-sm">
+            <Card className="border-0 shadow-[0_40px_100px_rgba(0,0,0,0.6)] overflow-hidden bg-[#121214] rounded-[3rem] border-white/5 border">
               <CardContent className="p-0">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 h-20 p-2 bg-gray-100/50">
+                  <TabsList className="grid grid-cols-2 w-full h-24 p-2 bg-[#0A0A0B] border-b border-white/5">
                     <TabsTrigger 
                       value="login" 
-                      className="rounded-2xl text-xl font-bold data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-lg transition-all"
+                      className="text-xl font-black rounded-[2rem] data-[state=active]:bg-[#FF6B00] data-[state=active]:text-white transition-all duration-500"
                     >
                       دخول
                     </TabsTrigger>
                     <TabsTrigger 
                       value="register" 
-                      className="rounded-2xl text-xl font-bold data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-lg transition-all"
+                      className="text-xl font-black rounded-[2rem] data-[state=active]:bg-[#FF6B00] data-[state=active]:text-white transition-all duration-500"
                     >
-                      تسجيل جديد
+                      تسجيل
                     </TabsTrigger>
                   </TabsList>
 
-                  <div className="p-8 md:p-12">
+                  <div className="p-10 md:p-14">
                     <AnimatePresence mode="wait">
                       <TabsContent value="login" className="mt-0 outline-none">
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          className="space-y-8"
-                        >
-                          <div className="space-y-2">
-                            <h2 className="text-4xl font-black text-gray-900 tracking-tight">أهلاً بك مجدداً</h2>
-                            <p className="text-gray-500 font-medium text-lg">سجل دخولك لمتابعة طلباتك</p>
-                          </div>
-
-                          <form onSubmit={handleLogin} className="space-y-6">
-                            <div className="space-y-5">
-                              <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-700 mr-1">رقم الهاتف</label>
-                                <div className="relative group">
-                                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-orange-500 transition-colors">
-                                    <Phone className="h-5 w-5" />
-                                  </div>
-                                  <Input
-                                    type="tel"
-                                    placeholder="01xxxxxxxxx"
-                                    className="h-14 pr-12 bg-gray-50 border-gray-200 rounded-2xl focus:ring-orange-500 focus:border-orange-500 text-lg font-medium transition-all"
-                                    value={loginData.phone}
-                                    onChange={(e) => handleLoginChange("phone", e.target.value)}
-                                    disabled={isLoginPending}
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-700 mr-1">كلمة المرور</label>
-                                <div className="relative group">
-                                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-orange-500 transition-colors">
-                                    <Lock className="h-5 w-5" />
-                                  </div>
-                                  <Input
-                                    type={showLoginPassword ? "text" : "password"}
-                                    placeholder="••••••••"
-                                    className="h-14 pr-12 pl-12 bg-gray-50 border-gray-200 rounded-2xl focus:ring-orange-500 focus:border-orange-500 text-lg font-medium transition-all"
-                                    value={loginData.password}
-                                    onChange={(e) => handleLoginChange("password", e.target.value)}
-                                    disabled={isLoginPending}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => setShowLoginPassword(!showLoginPassword)}
-                                    className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 hover:text-orange-500 transition-colors"
-                                  >
-                                    {showLoginPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                  </button>
-                                </div>
-                              </div>
+                        <form onSubmit={handleLogin} className="space-y-8">
+                          <div className="space-y-6">
+                            <div className="relative group">
+                              <Phone className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#FF6B00] transition-colors" />
+                              <Input 
+                                type="tel" 
+                                placeholder="رقم الهاتف" 
+                                className="h-16 pr-12 bg-[#0A0A0B] border-white/10 rounded-2xl text-white text-lg focus:border-[#FF6B00] focus:ring-[#FF6B00]/20 transition-all"
+                                value={loginData.phone}
+                                onChange={(e) => handleLoginChange("phone", e.target.value)}
+                              />
                             </div>
-
-                            <Button 
-                              type="submit" 
-                              className="w-full h-16 bg-orange-600 hover:bg-orange-700 text-white rounded-2xl text-xl font-black shadow-xl shadow-orange-200 transition-all active:scale-[0.98]"
-                              disabled={isLoginPending}
-                            >
-                              {isLoginPending ? (
-                                <div className="flex items-center gap-3">
-                                  <Loader2 className="h-6 w-6 animate-spin" />
-                                  <span>جاري التحقق...</span>
-                                </div>
-                              ) : (
-                                "دخول آمن"
-                              )}
-                            </Button>
-                          </form>
-                        </motion.div>
+                            <div className="relative group">
+                              <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#FF6B00] transition-colors" />
+                              <Input 
+                                type={showLoginPassword ? "text" : "password"} 
+                                placeholder="كلمة المرور" 
+                                className="h-16 pr-12 pl-12 bg-[#0A0A0B] border-white/10 rounded-2xl text-white text-lg focus:border-[#FF6B00] focus:ring-[#FF6B00]/20 transition-all"
+                                value={loginData.password}
+                                onChange={(e) => handleLoginChange("password", e.target.value)}
+                              />
+                              <button 
+                                type="button"
+                                onClick={() => setShowLoginPassword(!showLoginPassword)}
+                                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                              >
+                                {showLoginPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                              </button>
+                            </div>
+                          </div>
+                          <Button 
+                            type="submit" 
+                            disabled={isLoading}
+                            className="w-full h-20 bg-[#FF6B00] hover:bg-[#FF8533] text-white text-xl font-black rounded-[2rem] shadow-2xl shadow-[#FF6B00]/20 transition-all duration-500 active:scale-95"
+                          >
+                            {isLoading ? <Loader2 className="animate-spin" /> : "تسجيل الدخول الملكي"}
+                          </Button>
+                        </form>
                       </TabsContent>
 
                       <TabsContent value="register" className="mt-0 outline-none">
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          className="space-y-8"
-                        >
-                          <div className="space-y-2">
-                            <h2 className="text-4xl font-black text-gray-900 tracking-tight">انضم إلينا اليوم</h2>
-                            <p className="text-gray-500 font-medium text-lg">ابدأ رحلتك مع أسرع منصة توصيل</p>
+                        <form onSubmit={handleRegister} className="space-y-6">
+                          <div className="grid grid-cols-1 gap-4">
+                            <div className="relative group">
+                              <User className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#FF6B00] transition-colors" />
+                              <Input 
+                                placeholder="الاسم الكامل" 
+                                className="h-14 pr-12 bg-[#0A0A0B] border-white/10 rounded-2xl text-white focus:border-[#FF6B00] transition-all"
+                                value={registerData.name}
+                                onChange={(e) => handleRegisterChange("name", e.target.value)}
+                              />
+                            </div>
+                            <div className="relative group">
+                              <Phone className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#FF6B00] transition-colors" />
+                              <Input 
+                                type="tel" 
+                                placeholder="رقم الهاتف" 
+                                className="h-14 pr-12 bg-[#0A0A0B] border-white/10 rounded-2xl text-white focus:border-[#FF6B00] transition-all"
+                                value={registerData.phone}
+                                onChange={(e) => handleRegisterChange("phone", e.target.value)}
+                              />
+                            </div>
+                            <div className="relative group">
+                              <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#FF6B00] transition-colors" />
+                              <Input 
+                                type={showRegisterPassword ? "text" : "password"} 
+                                placeholder="كلمة المرور" 
+                                className="h-14 pr-12 bg-[#0A0A0B] border-white/10 rounded-2xl text-white focus:border-[#FF6B00] transition-all"
+                                value={registerData.password}
+                                onChange={(e) => handleRegisterChange("password", e.target.value)}
+                              />
+                            </div>
+                            <Select value={registerData.role} onValueChange={(v) => handleRegisterChange("role", v)}>
+                              <SelectTrigger className="h-14 bg-[#0A0A0B] border-white/10 rounded-2xl text-white focus:border-[#FF6B00]">
+                                <SelectValue placeholder="نوع الحساب" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-[#121214] border-white/10 text-white">
+                                <SelectItem value="customer">عميل (طلب خدمات)</SelectItem>
+                                <SelectItem value="driver">كابتن (تقديم خدمات)</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
-
-                          <form onSubmit={handleRegister} className="space-y-5">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                              <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-700 mr-1">الاسم الكامل</label>
-                                <div className="relative group">
-                                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-orange-500 transition-colors">
-                                    <User className="h-5 w-5" />
-                                  </div>
-                                  <Input
-                                    placeholder="الاسم كما في البطاقة"
-                                    className="h-14 pr-12 bg-gray-50 border-gray-200 rounded-2xl focus:ring-orange-500 focus:border-orange-500 text-lg font-medium transition-all"
-                                    value={registerData.name}
-                                    onChange={(e) => handleRegisterChange("name", e.target.value)}
-                                    disabled={isRegisterPending}
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-700 mr-1">رقم الهاتف</label>
-                                <div className="relative group">
-                                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-orange-500 transition-colors">
-                                    <Phone className="h-5 w-5" />
-                                  </div>
-                                  <Input
-                                    type="tel"
-                                    placeholder="01xxxxxxxxx"
-                                    className="h-14 pr-12 bg-gray-50 border-gray-200 rounded-2xl focus:ring-orange-500 focus:border-orange-500 text-lg font-medium transition-all"
-                                    value={registerData.phone}
-                                    onChange={(e) => handleRegisterChange("phone", e.target.value)}
-                                    disabled={isRegisterPending}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="space-y-2">
-                              <label className="text-sm font-bold text-gray-700 mr-1">البريد الإلكتروني (اختياري)</label>
-                              <div className="relative group">
-                                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-orange-500 transition-colors">
-                                  <Mail className="h-5 w-5" />
-                                </div>
-                                <Input
-                                  type="email"
-                                  placeholder="name@example.com"
-                                  className="h-14 pr-12 bg-gray-50 border-gray-200 rounded-2xl focus:ring-orange-500 focus:border-orange-500 text-lg font-medium transition-all"
-                                  value={registerData.email}
-                                  onChange={(e) => handleRegisterChange("email", e.target.value)}
-                                  disabled={isRegisterPending}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                              <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-700 mr-1">نوع الحساب</label>
-                                <Select 
-                                  value={registerData.role} 
-                                  onValueChange={(v) => handleRegisterChange("role", v)}
-                                  disabled={isRegisterPending}
-                                >
-                                  <SelectTrigger className="h-14 bg-gray-50 border-gray-200 rounded-2xl focus:ring-orange-500 text-lg font-medium">
-                                    <SelectValue placeholder="اختر نوع الحساب" />
-                                  </SelectTrigger>
-                                  <SelectContent className="rounded-2xl border-gray-100 shadow-2xl">
-                                    <SelectItem value="customer" className="h-12 text-lg font-medium focus:bg-orange-50 focus:text-orange-600">عميل</SelectItem>
-                                    <SelectItem value="driver" className="h-12 text-lg font-medium focus:bg-orange-50 focus:text-orange-600">كابتن</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-
-                              <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-700 mr-1">كلمة المرور</label>
-                                <div className="relative group">
-                                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-orange-500 transition-colors">
-                                    <Lock className="h-5 w-5" />
-                                  </div>
-                                  <Input
-                                    type={showRegisterPassword ? "text" : "password"}
-                                    placeholder="••••••••"
-                                    className="h-14 pr-12 pl-12 bg-gray-50 border-gray-200 rounded-2xl focus:ring-orange-500 focus:border-orange-500 text-lg font-medium transition-all"
-                                    value={registerData.password}
-                                    onChange={(e) => handleRegisterChange("password", e.target.value)}
-                                    disabled={isRegisterPending}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                                    className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 hover:text-orange-500 transition-colors"
-                                  >
-                                    {showRegisterPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-
-                            <Button 
-                              type="submit" 
-                              className="w-full h-16 bg-orange-600 hover:bg-orange-700 text-white rounded-2xl text-xl font-black shadow-xl shadow-orange-200 transition-all active:scale-[0.98] mt-4"
-                              disabled={isRegisterPending}
-                            >
-                              {isRegisterPending ? (
-                                <div className="flex items-center gap-3">
-                                  <Loader2 className="h-6 w-6 animate-spin" />
-                                  <span>جاري إنشاء الحساب...</span>
-                                </div>
-                              ) : (
-                                "إنشاء حساب جديد"
-                              )}
-                            </Button>
-                          </form>
-                        </motion.div>
+                          <Button 
+                            type="submit" 
+                            disabled={isLoading}
+                            className="w-full h-20 bg-[#FF6B00] hover:bg-[#FF8533] text-white text-xl font-black rounded-[2rem] shadow-2xl transition-all duration-500"
+                          >
+                            {isLoading ? <Loader2 className="animate-spin" /> : "إنشاء حساب فاخر"}
+                          </Button>
+                        </form>
                       </TabsContent>
                     </AnimatePresence>
                   </div>
