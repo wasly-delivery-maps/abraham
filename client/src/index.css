@@ -32,42 +32,118 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 }
 
 :root {
-  /* Wasly Light & Clean Theme - Highly Visible */
-  --background: #F8FAFC; /* Light Grayish White */
-  --foreground: #000000; /* Pure Black for maximum visibility */
+  /* Delivery App Theme - Abraham Logo Inspired (Orange & Navy) */
+  /* Primary: Vibrant Orange (#F16623) */
+  --primary: oklch(0.65 0.25 35);
+  --primary-foreground: oklch(0.98 0.001 0);
+  --sidebar-primary: oklch(0.65 0.25 35);
+  --sidebar-primary-foreground: oklch(0.98 0.001 0);
   
-  --primary: #FF6B00; /* Signature Orange */
-  --primary-foreground: #FFFFFF;
+  /* Chart colors: Orange, Navy, Gold */
+  --chart-1: oklch(0.65 0.25 35);
+  --chart-2: oklch(0.25 0.10 260);
+  --chart-3: oklch(0.75 0.20 50);
+  --chart-4: oklch(0.45 0.15 260);
+  --chart-5: oklch(0.40 0.12 260);
   
-  --secondary: #F1F5F9; /* Light Gray */
-  --secondary-foreground: #1E293B;
+  --radius: 0.65rem;
   
-  --accent: #FF6B00;
-  --accent-foreground: #FFFFFF;
+  /* Light theme backgrounds */
+  --background: oklch(0.98 0.001 0);
+  --foreground: oklch(0.20 0.05 30);
+  --card: oklch(0.99 0.001 0);
+  --card-foreground: oklch(0.20 0.05 30);
+  --popover: oklch(0.99 0.001 0);
+  --popover-foreground: oklch(0.20 0.05 30);
   
-  --card: #FFFFFF;
-  --card-foreground: #0F172A;
+  /* Secondary: Deep Navy (#1D2B53) */
+  --secondary: oklch(0.25 0.10 260);
+  --secondary-foreground: oklch(0.98 0.001 0);
   
-  --popover: #FFFFFF;
-  --popover-foreground: #0F172A;
+  /* Muted: Light gray */
+  --muted: oklch(0.92 0.005 0);
+  --muted-foreground: oklch(0.55 0.02 30);
   
-  --muted: #F1F5F9;
-  --muted-foreground: #475569; /* Darker muted text */
+  /* Accent: Orange */
+  --accent: oklch(0.62 0.25 34);
+  --accent-foreground: oklch(0.98 0.001 0);
   
-  --border: #E2E8F0;
-  --input: #FFFFFF;
-  --ring: #FF6B00;
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
   
-  --radius: 1.25rem;
+  /* Border: Light orange tint */
+  --border: oklch(0.90 0.02 50);
+  --input: oklch(0.92 0.005 0);
+  --ring: oklch(0.62 0.25 34);
+  
+  /* Sidebar */
+  --sidebar: oklch(0.99 0.001 0);
+  --sidebar-foreground: oklch(0.20 0.05 30);
+  --sidebar-accent: oklch(0.62 0.25 34);
+  --sidebar-accent-foreground: oklch(0.98 0.001 0);
+  --sidebar-border: oklch(0.90 0.02 50);
+  --sidebar-ring: oklch(0.62 0.25 34);
+}
 
-  --chart-1: #FF6B00;
-  --chart-2: #1E293B;
-  --chart-3: #FFD700;
-  --chart-4: #F16623;
-  --chart-5: #FFB800;
+.dark {
+  /* Dark theme - Deep blue night with warm orange/gold accents */
+  --primary: oklch(0.65 0.25 34);
+  --primary-foreground: oklch(0.15 0.05 260);
+  --sidebar-primary: oklch(0.65 0.25 34);
+  --sidebar-primary-foreground: oklch(0.15 0.05 260);
+  
+  /* Dark backgrounds */
+  --background: oklch(0.15 0.05 260);
+  --foreground: oklch(0.92 0.01 50);
+  --card: oklch(0.22 0.08 260);
+  --card-foreground: oklch(0.92 0.01 50);
+  --popover: oklch(0.15 0.05 260);
+  --popover-foreground: oklch(0.92 0.01 50);
+  
+  /* Secondary: Golden Yellow */
+  --secondary: oklch(0.75 0.20 50);
+  --secondary-foreground: oklch(0.15 0.05 260);
+  
+  --muted: oklch(0.30 0.08 260);
+  --muted-foreground: oklch(0.75 0.02 50);
+  
+  /* Accent: Bright Orange */
+  --accent: oklch(0.65 0.25 34);
+  --accent-foreground: oklch(0.15 0.05 260);
+  
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  
+  /* Border: Orange tint */
+  --border: oklch(0.30 0.08 260);
+  --input: oklch(0.25 0.08 260);
+  --ring: oklch(0.65 0.25 34);
+  
+  /* Chart colors */
+  --chart-1: oklch(0.65 0.25 34);
+  --chart-2: oklch(0.75 0.20 50);
+  --chart-3: oklch(0.55 0.18 260);
+  --chart-4: oklch(0.50 0.15 260);
+  --chart-5: oklch(0.45 0.12 260);
+  
+  /* Sidebar */
+  --sidebar: oklch(0.22 0.08 260);
+  --sidebar-foreground: oklch(0.92 0.01 50);
+  --sidebar-accent: oklch(0.65 0.25 34);
+  --sidebar-accent-foreground: oklch(0.15 0.05 260);
+  --sidebar-border: oklch(0.30 0.08 260);
+  --sidebar-ring: oklch(0.65 0.25 34);
 }
 
 @layer base {
@@ -75,48 +151,92 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground antialiased;
-    font-feature-settings: "cv11", "ss01";
+    @apply bg-background text-foreground;
+  }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [type="button"]:not(:disabled),
+  [type="submit"]:not(:disabled),
+  [type="reset"]:not(:disabled),
+  a[href],
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled) {
+    @apply cursor-pointer;
   }
 }
 
 @layer components {
+  /**
+   * Custom container utility that centers content and adds responsive padding.
+   *
+   * This overrides Tailwind's default container behavior to:
+   * - Auto-center content (mx-auto)
+   * - Add responsive horizontal padding
+   * - Set max-width for large screens
+   *
+   * Usage: <div className="container">...</div>
+   *
+   * For custom widths, use max-w-* utilities directly:
+   * <div className="max-w-6xl mx-auto px-4">...</div>
+   */
   .container {
-    @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem; /* 16px - mobile padding */
+    padding-right: 1rem;
   }
 
-  /* Premium Soft Glow */
-  .glow-orange {
-    box-shadow: 0 10px 30px rgba(255, 107, 0, 0.15);
-  }
-  
-  .bg-premium-light {
-    background: radial-gradient(circle at top right, #FFFFFF, #F8FAFC);
+  .flex {
+    min-height: 0;
+    min-width: 0;
   }
 
-  .btn-premium {
-    @apply relative overflow-hidden transition-all duration-500 hover:scale-105 active:scale-95;
-    background: linear-gradient(135deg, #FF6B00 0%, #FF8533 100%);
-    box-shadow: 0 10px 25px -5px rgba(255, 107, 0, 0.4);
+  @media (min-width: 640px) {
+    .container {
+      padding-left: 1.5rem; /* 24px - tablet padding */
+      padding-right: 1.5rem;
+    }
   }
-}
 
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
-  100% { transform: translateY(0px); }
-}
+  @media (min-width: 1024px) {
+    .container {
+      padding-left: 2rem; /* 32px - desktop padding */
+      padding-right: 2rem;
+      max-width: 1280px; /* Standard content width */
+    }
+  }
 
-.animate-float {
-  animation: float 4s ease-in-out infinite;
-}
+  /* Gradient backgrounds inspired by sunset delivery image */
+  .gradient-sunset {
+    background: linear-gradient(135deg, oklch(0.62 0.25 34) 0%, oklch(0.75 0.20 50) 50%, oklch(0.50 0.18 260) 100%);
+  }
 
-/* Force black text for all inputs and textareas for maximum visibility */
-input, textarea, select {
-  color: #000000 !important;
-}
+  .gradient-warm {
+    background: linear-gradient(135deg, oklch(0.62 0.25 34) 0%, oklch(0.75 0.20 50) 100%);
+  }
 
-input::placeholder, textarea::placeholder {
-  color: #64748B !important;
-  opacity: 0.8;
+  .gradient-cool {
+    background: linear-gradient(135deg, oklch(0.50 0.18 260) 0%, oklch(0.40 0.15 260) 100%);
+  }
+
+  .hero-section {
+    @apply relative overflow-hidden;
+    background: linear-gradient(135deg, oklch(0.62 0.25 34) 0%, oklch(0.75 0.20 50) 50%, oklch(0.50 0.18 260) 100%);
+  }
+
+  .hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    background-image: url('https://d2xsxph8kpxj0f.cloudfront.net/310519663445151132/JZro5Fsicdzuccz8J48EN3/delivery-driver_6bf573e3.jpg');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.9;
+    z-index: 0;
+  }
 }
