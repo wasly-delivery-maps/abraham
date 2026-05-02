@@ -66,76 +66,63 @@ const getCategoryIcon = (category: string) => {
   return <UtensilsCrossed className="h-5 w-5" />;
 };
 
-// مطعم "كشري الخديوي" - البيانات
-const KHEDIVE_KOSHARY_RESTAURANT: Restaurant = {
-  id: 2,
-  name: "كشري الخديوي",
-  phone: "01032809502",
-  whatsappPhone: "201032809502",
-  address: "7F49+V89 كشري الخديوي، العبور، القليوبية",
-  description: "أصل الكشري المصري والطواجن البيتي في قلب العبور",
-  logoUrl: "https://ui-avatars.com/api/?name=KK&background=e11d48&color=fff&size=128&bold=true",
-  coverUrl: "https://web-production-0eb1b.up.railway.app/uploads/khedive_koshary_logo_fb.webp",
-  rating: "4.9",
-  deliveryTime: "20-35 دقيقة",
-  location: { latitude: 30.2570159, longitude: 31.4682469 }
-};
-
+// مطعم "كشري الخديوي" - القائمة الكاملة
 const KHEDIVE_KOSHARY_MENU: MenuItem[] = [
   { id: 101, name: "علبة كمالة 🥣", category: "العلب", price: 15 },
+  { id: 102, name: "علبة صغيرة 🥣", category: "العلب", price: 17 },
   { id: 103, name: "علبة الخديوي 👑", category: "العلب", price: 25 },
+  { id: 104, name: "لوكس الخديوي ✨", category: "العلب", price: 30 },
+  { id: 105, name: "سوبر الخديوي 🔥", category: "العلب", price: 35 },
+  { id: 106, name: "أسبيشيال الخديوي 🌟", category: "العلب", price: 40 },
+  { id: 107, name: "وليمة الخديوي 🥘", category: "العلب", price: 45 },
+  { id: 108, name: "جامبو الخديوي 🐘", category: "العلب", price: 50 },
+  { id: 109, name: "طاجن عادة 🥘", category: "الطواجن", price: 30 },
   { id: 110, name: "طاجن لحمة 🥩", category: "الطواجن", price: 45 },
+  { id: 111, name: "طاجن سجق 🌭", category: "الطواجن", price: 45 },
+  { id: 112, name: "طاجن كبدة 🥘", category: "الطواجن", price: 45 },
   { id: 113, name: "طاجن فراخ 🍗", category: "الطواجن", price: 50 },
+  { id: 114, name: "طاجن خضار 🥦", category: "الطواجن", price: 50 },
+  { id: 115, name: "طاجن وايت صوص 🥛", category: "طواجن وايت صوص", price: 80 },
   { id: 118, name: "طاجن فراخ وايت صوص 🍗", category: "طواجن وايت صوص", price: 90 },
+  { id: 121, name: "موتزاريللا سادة 🧀", category: "طواجن موتزاريللا", price: 53 },
+  { id: 122, name: "موتزاريللا لحمة 🥩", category: "طواجن موتزاريللا", price: 68 },
   { id: 132, name: "حواوشي سادة 🥙", category: "الحواوشي", price: 35 },
+  { id: 133, name: "حواوشي سجق 🌭", category: "الحواوشي", price: 60 },
   { id: 137, name: "أرز باللبن سادة 🍚", category: "الحلويات", price: 20 },
+  { id: 138, name: "أرز باللبن فرن 🍮", category: "الحلويات", price: 22 },
+  { id: 148, name: "دقة 🍶", category: "الإضافات", price: 9 },
   { id: 152, name: "تقلية 🧅", category: "الإضافات", price: 12 },
 ];
 
-// مطعم "الحوت" - البيانات
-const AL_HOUT_RESTAURANT: Restaurant = {
-  id: 3,
-  name: "الحوت - Al-Hout",
-  phone: "01557564373",
-  whatsappPhone: "201557564373",
-  address: "العبور الجديدة - حي المجد - مول ريتاج",
-  description: "أشهى المأكولات البحرية والأسماك",
-  logoUrl: "https://ui-avatars.com/api/?name=AH&background=0369a1&color=fff&size=128&bold=true",
-  coverUrl: "/assets/al-hout-blue-whale.jpg",
-  rating: "5.0",
-  deliveryTime: "25-40 دقيقة",
-  location: { latitude: 30.2767773, longitude: 31.5299175 }
-};
-
+// مطعم "الحوت" - القائمة الكاملة
 const AL_HOUT_MENU: MenuItem[] = [
   { id: 319, name: "سمك بلطي 🐟", category: "الأسماك", price: 100 },
+  { id: 320, name: "سمك بوري 🐟", category: "الأسماك", price: 150 },
+  { id: 323, name: "سمك مكرونة 🐟", category: "الأسماك", price: 120 },
   { id: 330, name: "جمبري إسكندراني 🍤", category: "الأسماك", price: 250 },
   { id: 301, name: "شوربة كريمة 🥣", category: "الشوربة", price: 140 },
+  { id: 302, name: "شوربة جمبري حمراء 🥣", category: "الشوربة", price: 140 },
+  { id: 304, name: "ملوخية بالجمبري 🥘", category: "الشوربة", price: 100 },
 ];
 
-// مطعم "رول وي" - البيانات
-const ROLL_WE_RESTAURANT: Restaurant = {
-  id: 1,
-  name: "مطعم وصلي",
-  phone: "01557564373",
-  whatsappPhone: "201557564373",
-  address: "العبور الجديدة - مطعم وصلي",
-  description: "أشهى المأكولات والبيتزا والكريب",
-  logoUrl: "https://ui-avatars.com/api/?name=WS&background=f97316&color=fff&size=128&bold=true",
-  coverUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format&fit=crop",
-  rating: "5.0",
-  deliveryTime: "20-35 دقيقة",
-  location: { latitude: 30.2750625, longitude: 31.5256719 }
-};
-
+// مطعم "رول وي" - القائمة الكاملة
 const ROLL_WE_MENU: MenuItem[] = [
-  { id: 1001, name: "بيتزا فراخ 🍕", category: "البيتزا", price: 120 },
-  { id: 1005, name: "بيتزا مارغريتا 🍕", category: "البيتزا", price: 90 },
-  { id: 1025, name: "كريب استربس 🌯", category: "الكريب", price: 80 },
+  { id: 1001, name: "بيتزا فراخ صغير 🍕", category: "البيتزا", price: 120 },
+  { id: 1002, name: "بيتزا فراخ كبير 🍕", category: "البيتزا", price: 170 },
+  { id: 1005, name: "بيتزا مارغريتا صغير 🍕", category: "البيتزا", price: 90 },
+  { id: 1006, name: "بيتزا مارغريتا كبير 🍕", category: "البيتزا", price: 130 },
+  { id: 1025, name: "كريب استربس عادي 🌯", category: "الكريب", price: 80 },
+  { id: 1026, name: "كريب استربس سوبر 🌯", category: "الكريب", price: 110 },
   { id: 1063, name: "ساندوتش برجر 🍔", category: "كيزر", price: 60 },
+  { id: 1066, name: "باكت بطاطس 🍟", category: "إضافات", price: 20 },
 ];
 
-const RESTAURANTS = [ROLL_WE_RESTAURANT, KHEDIVE_KOSHARY_RESTAURANT, AL_HOUT_RESTAURANT];
+const RESTAURANTS = [
+  { id: 1, name: "مطعم وصلي", phone: "01557564373", whatsappPhone: "201557564373", address: "العبور الجديدة - مطعم وصلي", description: "أشهى المأكولات والبيتزا والكريب", logoUrl: "https://ui-avatars.com/api/?name=WS&background=f97316&color=fff&size=128&bold=true", coverUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format&fit=crop", rating: "5.0", deliveryTime: "20-35 دقيقة", location: { latitude: 30.2750625, longitude: 31.5256719 } },
+  { id: 2, name: "كشري الخديوي", phone: "01032809502", whatsappPhone: "201032809502", address: "7F49+V89 كشري الخديوي، العبور", description: "أصل الكشري المصري والطواجن البيتي", logoUrl: "https://ui-avatars.com/api/?name=KK&background=e11d48&color=fff&size=128&bold=true", coverUrl: "https://web-production-0eb1b.up.railway.app/uploads/khedive_koshary_logo_fb.webp", rating: "4.9", deliveryTime: "20-35 دقيقة", location: { latitude: 30.2570159, longitude: 31.4682469 } },
+  { id: 3, name: "الحوت - Al-Hout", phone: "01557564373", whatsappPhone: "201557564373", address: "العبور الجديدة - حي المجد", description: "أشهى المأكولات البحرية والأسماك", logoUrl: "https://ui-avatars.com/api/?name=AH&background=0369a1&color=fff&size=128&bold=true", coverUrl: "/assets/al-hout-blue-whale.jpg", rating: "5.0", deliveryTime: "25-40 دقيقة", location: { latitude: 30.2767773, longitude: 31.5299175 } }
+];
+
 const MENUS: Record<number, MenuItem[]> = { 1: ROLL_WE_MENU, 2: KHEDIVE_KOSHARY_MENU, 3: AL_HOUT_MENU };
 
 export function RestaurantMenu() {
@@ -178,13 +165,7 @@ export function RestaurantMenu() {
     setIsLoading(true);
     try {
       const orderItems = cart.map(i => `${i.name} x${i.quantity}`).join(", ");
-      await createRestaurantOrderMutation.mutateAsync({
-        restaurantId: selectedRestaurant.id,
-        items: orderItems,
-        totalPrice: totalPrice,
-        address: addressDescription,
-        location: { latitude: 0, longitude: 0 },
-      });
+      await createRestaurantOrderMutation.mutateAsync({ restaurantId: selectedRestaurant.id, items: orderItems, totalPrice: totalPrice, address: addressDescription, location: { latitude: 0, longitude: 0 } });
       toast.success("تم إرسال طلبك بنجاح! 🎉");
       setCart([]);
       setIsCartExpanded(false);
@@ -230,7 +211,7 @@ export function RestaurantMenu() {
   const filteredMenu = currentMenu.filter((item) => item.category === selectedCategory);
 
   return (
-    <div className="space-y-6 pb-40 min-h-screen bg-[#F8FAFC]" dir="rtl">
+    <div className="space-y-6 pb-48 min-h-screen bg-[#F8FAFC]" dir="rtl">
       {/* Header */}
       <div className="px-4 pt-4 flex items-center justify-between">
         <Button variant="ghost" onClick={() => setSelectedRestaurant(null)} className="h-12 w-12 rounded-2xl bg-white text-slate-900 shadow-sm border border-slate-100">
@@ -287,9 +268,9 @@ export function RestaurantMenu() {
         </AnimatePresence>
       </div>
 
-      {/* Sticky Cart Bar */}
+      {/* Sticky Cart Bar - Fixed ABOVE Bottom Nav */}
       {cart.length > 0 && (
-        <div className="fixed bottom-6 left-4 right-4 z-[100]">
+        <div className="fixed bottom-24 left-4 right-4 z-[100]">
           <motion.div initial={{ y: 100 }} animate={{ y: 0 }} className="w-full">
             <Button onClick={() => setIsCartExpanded(true)} className="w-full h-20 bg-orange-600 hover:bg-orange-700 text-white rounded-[2rem] shadow-xl shadow-orange-200 flex items-center justify-between px-8 transition-all active:scale-95">
               <div className="flex items-center gap-4">
