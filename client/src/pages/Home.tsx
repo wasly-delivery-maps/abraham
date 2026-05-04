@@ -2,9 +2,10 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
-import { Truck, MapPin, Clock, Star, Zap, Shield, ArrowRight, CheckCircle2, Menu, X, Facebook, Home as HomeIcon, ShoppingBag, User, Search, Bell, Utensils, Package, ShoppingCart, Pill, ChefHat, Leaf, Heart } from "lucide-react";
+import { Truck, MapPin, Clock, Star, Zap, Shield, ArrowRight, CheckCircle2, Menu, X, Facebook, Home as HomeIcon, ShoppingBag, User, Search, Bell, Utensils, Package, ShoppingCart, Pill, ChefHat, Leaf, Heart, ChevronDown, Quote } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export default function Home() {
   const { user, loading, isAuthenticated } = useAuth();
@@ -40,338 +41,328 @@ export default function Home() {
     return null;
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-orange-50 pb-24 sm:pb-0" dir="rtl">
-      {/* Header - Minimalist Design */}
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/95 backdrop-blur-md shadow-md" : "bg-transparent"}`}>
-        <div className="container mx-auto px-4 flex justify-between items-center py-4">
+    <div className="min-h-screen bg-[#FAFAFA] pb-24 sm:pb-0" dir="rtl">
+      {/* Header */}
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? "bg-white/80 backdrop-blur-xl shadow-sm py-2" : "bg-transparent py-4"}`}>
+        <div className="container mx-auto px-6 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <motion.div 
-              whileHover={{ rotate: 5, scale: 1.05 }}
-              className="bg-gradient-to-br from-orange-500 to-orange-600 p-2.5 rounded-2xl shadow-lg shadow-orange-200"
+              whileHover={{ rotate: 15, scale: 1.1 }}
+              className="bg-orange-500 p-2.5 rounded-2xl shadow-lg shadow-orange-200"
             >
               <Truck className="text-white h-6 w-6" />
             </motion.div>
             <div className="flex flex-col">
-              <span className="text-2xl font-black text-[#1D2B53] leading-none">وصلي</span>
-              <span className="text-[8px] font-bold text-orange-600">مدينة العبور</span>
+              <span className="text-2xl font-black text-slate-900 leading-none tracking-tight">وصلي</span>
+              <span className="text-[9px] font-bold text-orange-600 uppercase tracking-widest">Obour City</span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <motion.button 
-              whileHover={{ scale: 1.1 }}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="relative p-2.5 bg-white rounded-full shadow-md border border-gray-100 text-gray-600 hover:shadow-lg transition-all"
+              className="relative p-2.5 bg-white/50 backdrop-blur-md rounded-full border border-slate-100 text-slate-600"
             >
               <Bell className="h-5 w-5" />
-              {unreadNotifications > 0 && (
-                <motion.span 
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-1 -left-1 bg-red-500 text-white text-[10px] font-black rounded-full h-5 w-5 flex items-center justify-center"
-                >
-                  {unreadNotifications}
-                </motion.span>
-              )}
+              <span className="absolute top-0 right-0 bg-orange-500 w-2 h-2 rounded-full border-2 border-white"></span>
             </motion.button>
             <Link href="/auth">
               <motion.button 
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="p-2.5 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full shadow-lg shadow-orange-200 text-white hover:shadow-xl transition-all"
+                className="px-5 py-2.5 bg-slate-900 text-white rounded-full text-sm font-bold shadow-lg shadow-slate-200"
               >
-                <User className="h-5 w-5" />
+                تسجيل الدخول
               </motion.button>
             </Link>
           </div>
         </div>
       </header>
 
-      {/* Hero Section - Minimalist */}
-      <section className="pt-28 px-4 pb-12">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="max-w-2xl mx-auto space-y-8"
-        >
-          {/* Main Title */}
-          <div className="space-y-4 text-center">
-            <h1 className="text-5xl font-black text-[#1D2B53] leading-tight">
-              أسرع توصيل <br />
-              <span className="bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">في العبور</span>
-            </h1>
-            <p className="text-base text-gray-600 font-medium max-w-md mx-auto">
-              وجبات شهية وطرود آمنة توصل لباب بيتك في دقائق معدودة
-            </p>
-          </div>
-
-          {/* Search Bar */}
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-20 px-6 overflow-hidden">
+        <div className="absolute top-0 right-0 -z-10 w-1/2 h-full bg-orange-50/50 rounded-bl-[100px]"></div>
+        <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <motion.div 
-            whileHover={{ scale: 1.02 }}
-            className="relative group"
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="space-y-8"
           >
-            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-orange-400" />
-            </div>
-            <input 
-              type="text" 
-              placeholder="ابحث عن مطاعم أو خدمات..." 
-              className="w-full bg-white border-2 border-transparent py-4 pr-12 pl-4 rounded-2xl shadow-xl shadow-orange-100 text-sm font-medium focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all cursor-pointer"
-              readOnly
-              onClick={() => window.location.href = "/auth"}
-            />
-          </motion.div>
-
-          {/* CTA Button */}
-          <Link href="/auth">
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-orange-200 hover:shadow-xl transition-all"
-            >
-              ابدأ الآن
-            </motion.button>
-          </Link>
-        </motion.div>
-      </section>
-
-      {/* Service Categories - Clean Grid */}
-      <section className="px-4 py-12">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-black text-[#1D2B53] mb-8 text-center">خدماتنا</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { title: "مطاعم", icon: Utensils, color: "from-orange-400 to-orange-500", bgColor: "bg-orange-100", textColor: "text-orange-600" },
-              { title: "طرود", icon: Package, color: "from-blue-400 to-blue-500", bgColor: "bg-blue-100", textColor: "text-blue-600" },
-              { title: "سوبر ماركت", icon: ShoppingCart, color: "from-green-400 to-green-500", bgColor: "bg-green-100", textColor: "text-green-600" },
-              { title: "صيدلية", icon: Pill, color: "from-red-400 to-red-500", bgColor: "bg-red-100", textColor: "text-red-600" },
-            ].map((cat, i) => (
-              <motion.button
-                key={i}
-                whileTap={{ scale: 0.92 }}
-                whileHover={{ y: -4 }}
-                onClick={() => window.location.href = "/auth"}
-                className="flex flex-col items-center gap-3 p-6 bg-white rounded-2xl shadow-md hover:shadow-lg transition-all border border-gray-100"
-              >
-                <motion.div 
-                  className={`${cat.bgColor} w-16 h-16 rounded-2xl flex items-center justify-center`}
-                  whileHover={{ rotate: 5 }}
-                >
-                  <cat.icon className={`${cat.textColor} h-7 w-7`} />
-                </motion.div>
-                <span className="text-sm font-bold text-gray-800">{cat.title}</span>
-              </motion.button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Promotional Banner - Clean Design */}
-      <section className="px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <motion.div 
-            whileHover={{ scale: 1.02 }}
-            className="bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 rounded-3xl p-8 text-white relative overflow-hidden shadow-xl"
-          >
-            <div className="relative z-10 flex items-center justify-between">
-              <div className="space-y-3 max-w-[60%]">
-                <motion.h3 
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="text-3xl font-black"
-                >
-                  خصم 50%
-                </motion.h3>
-                <p className="text-sm font-medium text-orange-50">على أول طلب لك</p>
-                <Link href="/auth">
-                  <motion.button 
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="bg-white text-orange-600 text-sm font-bold px-6 py-2 rounded-xl mt-3 shadow-lg hover:shadow-xl transition-all"
-                  >
-                    اطلب الآن
-                  </motion.button>
-                </Link>
-              </div>
-              <motion.div 
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="text-6xl opacity-20"
-              >
-                🚚
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Why Choose Wasly - Features */}
-      <section className="px-4 py-12">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <h2 className="text-2xl font-black text-[#1D2B53] text-center">لماذا وصلي؟</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[
-              { 
-                title: "توصيل سريع", 
-                desc: "متوسط التوصيل 15 دقيقة", 
-                icon: Zap, 
-                bg: "bg-yellow-50", 
-                iconColor: "text-yellow-500", 
-                borderColor: "border-yellow-100" 
-              },
-              { 
-                title: "تتبع مباشر", 
-                desc: "تابع طلبك لحظة بلحظة على الخريطة", 
-                icon: MapPin, 
-                bg: "bg-blue-50", 
-                iconColor: "text-blue-500", 
-                borderColor: "border-blue-100" 
-              },
-              { 
-                title: "دعم 24/7", 
-                desc: "فريقنا معاك في أي وقت", 
-                icon: Clock, 
-                bg: "bg-purple-50", 
-                iconColor: "text-purple-500", 
-                borderColor: "border-purple-100" 
-              },
-              { 
-                title: "أمان مضمون", 
-                desc: "طلبك في أمان تام مع تأمين شامل", 
-                icon: Shield, 
-                bg: "bg-green-50", 
-                iconColor: "text-green-500", 
-                borderColor: "border-green-100" 
-              },
-            ].map((f, i) => (
-              <motion.div 
-                key={i} 
-                whileHover={{ y: -8 }}
-                className={`${f.bg} p-6 rounded-2xl space-y-3 border-2 ${f.borderColor} shadow-md hover:shadow-lg transition-all`}
-              >
-                <motion.div whileHover={{ rotate: 10, scale: 1.1 }}>
-                  <f.icon className={`${f.iconColor} h-8 w-8`} />
-                </motion.div>
-                <div>
-                  <h4 className="text-base font-black text-gray-900">{f.title}</h4>
-                  <p className="text-sm font-medium text-gray-600 mt-1">{f.desc}</p>
+            <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-xs font-bold">
+              <Zap className="h-3 w-3 fill-orange-700" />
+              أسرع خدمة توصيل في مدينة العبور
+            </motion.div>
+            <motion.h1 variants={itemVariants} className="text-5xl lg:text-7xl font-black text-slate-900 leading-[1.1]">
+              طلبك يوصل <br />
+              <span className="text-orange-500">قبل ما تجوع!</span>
+            </motion.h1>
+            <motion.p variants={itemVariants} className="text-lg text-slate-600 leading-relaxed max-w-md">
+              نحن نجمع بين التكنولوجيا والسرعة لنقدم لك أفضل تجربة توصيل في المدينة. اطلب الآن واستمتع بخصومات حصرية.
+            </motion.p>
+            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4">
+              <Link href="/auth">
+                <Button className="h-14 px-10 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white text-lg font-bold shadow-xl shadow-orange-200">
+                  اطلب الآن
+                </Button>
+              </Link>
+              <div className="flex items-center gap-3 px-4">
+                <div className="flex -space-x-2 rtl:space-x-reverse">
+                  {[1,2,3].map(i => (
+                    <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-200 overflow-hidden">
+                      <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="user" />
+                    </div>
+                  ))}
                 </div>
-              </motion.div>
-            ))}
-          </div>
+                <div className="text-xs font-bold text-slate-500">
+                  <span className="text-slate-900 block">+5,000 مستخدم</span>
+                  يثقون بنا يومياً
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+          
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8 }}
+            className="relative"
+          >
+            <div className="relative z-10 rounded-[40px] overflow-hidden shadow-2xl border-8 border-white">
+              <img 
+                src="https://images.unsplash.com/photo-1526367790999-0150786486a9?q=80&w=2070&auto=format&fit=crop" 
+                alt="Delivery" 
+                className="w-full h-[500px] object-cover"
+              />
+            </div>
+            <motion.div 
+              animate={{ y: [0, -20, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -top-6 -right-6 z-20 bg-white p-4 rounded-3xl shadow-xl border border-slate-50"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
+                  <CheckCircle2 className="text-green-600 h-6 w-6" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-400">حالة الطلب</div>
+                  <div className="text-sm font-black text-slate-900">تم التوصيل بنجاح!</div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
-      {/* Trust Section - Statistics */}
-      <section className="px-4 py-12 bg-white/50">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-3 gap-6 text-center">
+      {/* Services Section */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
+            <h2 className="text-3xl font-black text-slate-900">خدماتنا المتكاملة</h2>
+            <p className="text-slate-500 font-medium">كل ما تحتاجه في مكان واحد، نصل إليك أينما كنت في العبور.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { count: "5000+", label: "طلب يومي" },
-              { count: "4.9⭐", label: "تقييم" },
-              { count: "15 دقيقة", label: "متوسط التوصيل" },
-            ].map((stat, i) => (
+              { title: "المطاعم", icon: Utensils, desc: "أشهى الوجبات من مطاعمك المفضلة", color: "orange" },
+              { title: "الطرود", icon: Package, desc: "توصيل آمن وسريع لجميع طرودك", color: "blue" },
+              { title: "سوبر ماركت", icon: ShoppingCart, desc: "مقاضي البيت توصلك لحد الباب", color: "green" },
+              { title: "الصيدلية", icon: Pill, desc: "أدويتك واحتياجاتك الطبية بسرعة", color: "red" },
+            ].map((service, i) => (
               <motion.div 
                 key={i}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
+                whileHover={{ y: -10 }}
+                className="group p-8 rounded-[32px] bg-[#F8F9FB] hover:bg-white hover:shadow-2xl hover:shadow-slate-100 transition-all duration-500 border border-transparent hover:border-slate-50"
               >
-                <p className="text-2xl font-black text-orange-600">{stat.count}</p>
-                <p className="text-xs font-bold text-gray-600 mt-2">{stat.label}</p>
+                <div className={`w-16 h-16 rounded-2xl bg-${service.color}-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                  <service.icon className={`text-${service.color}-600 h-8 w-8`} />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 mb-3">{service.title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed mb-6">{service.desc}</p>
+                <Link href="/auth">
+                  <button className="flex items-center gap-2 text-sm font-bold text-slate-900 group-hover:text-orange-500 transition-colors">
+                    اطلب الآن
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </Link>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section - Final */}
-      <section className="px-4 py-12">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <h2 className="text-2xl font-black text-[#1D2B53]">
-            جاهز لتجربة الخدمة؟
-          </h2>
-          <p className="text-gray-600 font-medium">
-            انضم لآلاف المستخدمين الذين يستمتعون بخدمة وصلي
-          </p>
-          <Link href="/auth">
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-orange-200 hover:shadow-xl transition-all"
-            >
-              ابدأ الآن
-            </motion.button>
-          </Link>
+      {/* Testimonials Section */}
+      <section className="py-20 bg-[#F8F9FB]">
+        <div className="container mx-auto px-6">
+          <div className="flex flex-col lg:flex-row gap-12 items-center">
+            <div className="lg:w-1/3 space-y-6 text-center lg:text-right">
+              <h2 className="text-4xl font-black text-slate-900 leading-tight">ماذا يقول <br /><span className="text-orange-500">عملاؤنا؟</span></h2>
+              <p className="text-slate-500 font-medium leading-relaxed">ثقة عملائنا هي سر نجاحنا، نسعى دائماً لتقديم الأفضل.</p>
+              <div className="flex justify-center lg:justify-start gap-4 pt-4">
+                <div className="text-center">
+                  <div className="text-2xl font-black text-slate-900">4.9/5</div>
+                  <div className="flex text-orange-400 gap-0.5">
+                    {[1,2,3,4,5].map(i => <Star key={i} className="h-3 w-3 fill-current" />)}
+                  </div>
+                </div>
+                <div className="w-px h-10 bg-slate-200"></div>
+                <div className="text-center">
+                  <div className="text-2xl font-black text-slate-900">+10k</div>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">تقييم إيجابي</div>
+                </div>
+              </div>
+            </div>
+            <div className="lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                { name: "أحمد محمود", text: "أسرع خدمة توصيل جربتها في العبور، الأكل بيوصل سخن وكأنك في المطعم.", role: "عميل دائم" },
+                { name: "سارة حسن", text: "تطبيق سهل جداً والمناديب محترمين جداً، شكراً وصلي على الخدمة الممتازة.", role: "مستخدم جديد" },
+              ].map((t, i) => (
+                <motion.div key={i} className="bg-white p-8 rounded-[32px] shadow-sm border border-slate-50 space-y-4">
+                  <Quote className="text-orange-100 h-10 w-10 fill-current" />
+                  <p className="text-slate-600 font-medium leading-relaxed italic">"{t.text}"</p>
+                  <div className="flex items-center gap-3 pt-4">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 overflow-hidden">
+                      <img src={`https://i.pravatar.cc/100?img=${i+20}`} alt={t.name} />
+                    </div>
+                    <div>
+                      <div className="font-black text-slate-900">{t.name}</div>
+                      <div className="text-xs font-bold text-orange-500">{t.role}</div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-2xl border-t-2 border-gray-100 px-4 py-3 z-50 sm:hidden shadow-2xl">
-        <div className="flex justify-between items-center max-w-md mx-auto">
-          {[
-            { id: "home", label: "الرئيسية", icon: HomeIcon },
-            { id: "search", label: "البحث", icon: Search },
-            { id: "orders", label: "طلباتي", icon: ShoppingBag },
-            { id: "profile", label: "حسابي", icon: User },
-          ].map((item) => (
-            <motion.button
-              key={item.id}
-              onClick={() => {
-                setActiveTab(item.id);
-                if (item.id !== "home") window.location.href = "/auth";
-              }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              className={`flex flex-col items-center gap-1.5 transition-all py-2 px-3 rounded-2xl ${activeTab === item.id ? "bg-orange-50" : ""}`}
-            >
-              <motion.div
-                animate={{ scale: activeTab === item.id ? 1.2 : 1 }}
-                className={`transition-all ${activeTab === item.id ? "text-orange-600" : "text-gray-400"}`}
-              >
-                <item.icon className="h-6 w-6" />
-              </motion.div>
-              <span className={`text-[10px] font-black transition-colors ${activeTab === item.id ? "text-orange-600" : "text-gray-500"}`}>
-                {item.label}
-              </span>
-              {activeTab === item.id && (
-                <motion.div 
-                  layoutId="nav-dot" 
-                  className="w-1.5 h-1.5 bg-orange-600 rounded-full"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                />
-              )}
-            </motion.button>
-          ))}
+      {/* FAQ Section */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-6 max-w-3xl">
+          <div className="text-center mb-16 space-y-4">
+            <h2 className="text-3xl font-black text-slate-900">الأسئلة الشائعة</h2>
+            <p className="text-slate-500 font-medium">كل ما تريد معرفته عن خدمات وصلي</p>
+          </div>
+          <Accordion type="single" collapsible className="space-y-4">
+            {[
+              { q: "ما هي مناطق التغطية الحالية؟", a: "حالياً نغطي جميع أحياء مدينة العبور بالكامل، ونسعى للتوسع في المدن المجاورة قريباً." },
+              { q: "كم يستغرق وقت التوصيل؟", a: "متوسط وقت التوصيل لدينا هو 15-25 دقيقة، ويعتمد ذلك على المسافة وتجهيز الطلب." },
+              { q: "هل يوجد حد أدنى للطلب؟", a: "لا يوجد حد أدنى للطلب في وصلي، يمكنك طلب أي شيء مهما كان حجمه." },
+              { q: "كيف يمكنني تتبع طلبي؟", a: "بمجرد قبول الطلب، يمكنك تتبعه مباشرة على الخريطة من خلال التطبيق لحظة بلحظة." },
+            ].map((item, i) => (
+              <AccordionItem key={i} value={`item-${i}`} className="border-none bg-[#F8F9FB] rounded-2xl px-6">
+                <AccordionTrigger className="hover:no-underline font-bold text-slate-900 py-6">
+                  {item.q}
+                </AccordionTrigger>
+                <AccordionContent className="text-slate-500 font-medium leading-relaxed pb-6">
+                  {item.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
-      </nav>
+      </section>
 
-      {/* Desktop Footer */}
-      <footer className="hidden sm:block bg-gradient-to-r from-gray-50 to-gray-100 pt-20 pb-10 border-t-2 border-gray-200 mt-20">
-        <div className="container mx-auto px-6 text-center space-y-4">
-          <p className="text-gray-600 text-sm font-bold">© 2026 وصلي. تجربة تطبيق الهاتف على الويب.</p>
-          <p className="text-gray-500 text-xs">جودة عالية • سرعة فائقة • أمان مضمون</p>
+      {/* Footer */}
+      <footer className="bg-slate-900 text-white pt-20 pb-10">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="bg-orange-500 p-2 rounded-xl">
+                  <Truck className="text-white h-5 w-5" />
+                </div>
+                <span className="text-2xl font-black">وصلي</span>
+              </div>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                المنصة الرائدة للتوصيل الذكي في مدينة العبور. نجمع بين السرعة والأمان لخدمتك.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-black mb-6">روابط سريعة</h4>
+              <ul className="space-y-4 text-slate-400 text-sm font-bold">
+                <li><Link href="/auth">عن وصلي</Link></li>
+                <li><Link href="/auth">انضم كشريك</Link></li>
+                <li><Link href="/auth">كن سائقاً معنا</Link></li>
+                <li><Link href="/auth">تواصل معنا</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-black mb-6">خدماتنا</h4>
+              <ul className="space-y-4 text-slate-400 text-sm font-bold">
+                <li>توصيل الطعام</li>
+                <li>توصيل الطرود</li>
+                <li>سوبر ماركت</li>
+                <li>صيدلية</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-black mb-6">تواصل معنا</h4>
+              <ul className="space-y-4 text-slate-400 text-sm font-bold">
+                <li className="flex items-center gap-3">
+                  <MapPin className="h-4 w-4 text-orange-500" />
+                  مدينة العبور، مصر
+                </li>
+                <li className="flex items-center gap-3">
+                  <Bell className="h-4 w-4 text-orange-500" />
+                  دعم فني 24/7
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="pt-10 border-t border-slate-800 text-center text-slate-500 text-xs font-bold">
+            © 2026 وصلي. جميع الحقوق محفوظة.
+          </div>
         </div>
       </footer>
 
+      {/* Mobile Nav */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-slate-100 px-6 py-3 z-50 sm:hidden flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+        {[
+          { id: "home", label: "الرئيسية", icon: HomeIcon },
+          { id: "search", label: "البحث", icon: Search },
+          { id: "orders", label: "طلباتي", icon: ShoppingBag },
+          { id: "profile", label: "حسابي", icon: User },
+        ].map((item) => (
+          <button
+            key={item.id}
+            onClick={() => {
+              setActiveTab(item.id);
+              if (item.id !== "home") window.location.href = "/auth";
+            }}
+            className={`flex flex-col items-center gap-1 transition-all ${activeTab === item.id ? "text-orange-500" : "text-slate-400"}`}
+          >
+            <item.icon className={`h-6 w-6 ${activeTab === item.id ? "fill-orange-500/10" : ""}`} />
+            <span className="text-[10px] font-black">{item.label}</span>
+          </button>
+        ))}
+      </nav>
+
       <style jsx global>{`
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
         @font-face {
           font-family: 'Cairo';
           src: url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
         }
         body {
           font-family: 'Cairo', sans-serif;
-          background-color: #F8F9FB;
         }
       `}</style>
     </div>
