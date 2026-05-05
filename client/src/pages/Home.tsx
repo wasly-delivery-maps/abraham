@@ -132,7 +132,7 @@ export default function Home() {
           >
             <div className="relative z-10 rounded-[30px] sm:rounded-[40px] overflow-hidden shadow-2xl border-4 sm:border-8 border-white">
               <img 
-                src="https://images.unsplash.com/photo-1526367790999-0150786486a9?q=80&w=2070&auto=format&fit=crop" 
+                src="https://images.unsplash.com/photo-1617347454431-f49d7ff5c3b1?q=80&w=2015&auto=format&fit=crop" 
                 alt="Delivery Service" 
                 className="w-full h-[300px] sm:h-[500px] object-cover"
                 onError={(e) => {
