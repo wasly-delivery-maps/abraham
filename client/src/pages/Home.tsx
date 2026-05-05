@@ -11,7 +11,6 @@ export default function Home() {
   const { user, loading, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState("home");
   const [scrolled, setScrolled] = useState(false);
-  const [unreadNotifications, setUnreadNotifications] = useState(3);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -40,6 +39,15 @@ export default function Home() {
     }
     return null;
   }
+
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    } else {
+      window.location.href = "/auth";
+    }
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -71,20 +79,20 @@ export default function Home() {
             variants={containerVariants}
             className="space-y-6 sm:space-y-8 text-center lg:text-right"
           >
-            {/* Logo and Header Actions Integrated in Hero for cleaner look */}
+            {/* Header Actions Integrated in Hero */}
             <div className="flex justify-between items-center mb-8 lg:mb-12">
               <div className="flex items-center gap-2 sm:gap-3">
-                <img src="/logo.jpg" alt="Wasly Logo" className="h-10 sm:h-14 object-contain" />
+                <img src="/logo.jpg" alt="Wasly Logo" className="h-12 sm:h-16 object-contain rounded-xl" />
                 <div className="flex flex-col text-right">
-                  <span className="text-xl sm:text-2xl font-black text-slate-900 leading-none tracking-tight">وصلي</span>
-                  <span className="text-[8px] sm:text-[9px] font-bold text-orange-600 uppercase tracking-widest">Obour City</span>
+                  <span className="text-2xl sm:text-3xl font-black text-slate-900 leading-none tracking-tight">وصلي</span>
+                  <span className="text-[9px] sm:text-[10px] font-bold text-orange-600 uppercase tracking-widest">Obour City</span>
                 </div>
               </div>
               <Link href="/auth">
                 <motion.button 
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-4 sm:px-6 py-2 sm:py-3 bg-slate-900 text-white rounded-full text-xs sm:text-sm font-bold shadow-lg shadow-slate-200"
+                  className="px-5 sm:px-7 py-2.5 sm:py-3.5 bg-slate-900 text-white rounded-2xl text-xs sm:text-sm font-bold shadow-xl shadow-slate-200"
                 >
                   تسجيل الدخول
                 </motion.button>
@@ -95,7 +103,7 @@ export default function Home() {
               <Zap className="h-3 w-3 fill-orange-700" />
               أسرع خدمة توصيل في مدينة العبور
             </motion.div>
-            <motion.h1 variants={itemVariants} className="text-4xl sm:text-5xl lg:text-7xl font-black text-slate-900 leading-[1.2] sm:leading-[1.1]">
+            <motion.h1 variants={itemVariants} className="text-4xl sm:text-6xl lg:text-7xl font-black text-slate-900 leading-[1.2] sm:leading-[1.1]">
               طلبك يوصل <br />
               <span className="text-orange-500">قبل ما تجوع!</span>
             </motion.h1>
@@ -104,7 +112,7 @@ export default function Home() {
             </motion.p>
             <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link href="/auth">
-                <Button className="h-12 sm:h-14 px-8 sm:px-10 rounded-xl sm:rounded-2xl bg-orange-500 hover:bg-orange-600 text-white text-base sm:text-lg font-bold shadow-xl shadow-orange-200 w-full sm:w-auto">
+                <Button className="h-14 sm:h-16 px-10 sm:px-12 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white text-base sm:text-lg font-bold shadow-2xl shadow-orange-200 w-full sm:w-auto">
                   ابدأ الطلب الآن
                 </Button>
               </Link>
@@ -134,10 +142,7 @@ export default function Home() {
               <img 
                 src="https://images.unsplash.com/photo-1617347454431-f49d7ff5c3b1?q=80&w=2015&auto=format&fit=crop" 
                 alt="Delivery Service" 
-                className="w-full h-[300px] sm:h-[500px] object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = "https://images.unsplash.com/photo-1633966887768-64f9a867bdba?q=80&w=2003&auto=format&fit=crop";
-                }}
+                className="w-full h-[350px] sm:h-[550px] object-cover"
               />
             </div>
             <motion.div 
@@ -160,13 +165,13 @@ export default function Home() {
       </section>
 
       {/* Services Section */}
-      <section className="py-12 sm:py-20 bg-white">
+      <section id="services" className="py-12 sm:py-24 bg-white">
         <div className="container mx-auto px-4">
-          <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-16 space-y-3 sm:space-y-4">
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900">خدماتنا المتكاملة</h2>
-            <p className="text-sm sm:text-slate-500 font-medium px-4">كل ما تحتاجه في مكان واحد، نصل إليك أينما كنت في العبور.</p>
+          <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-20 space-y-3 sm:space-y-4">
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900">خدماتنا المتكاملة</h2>
+            <p className="text-sm sm:text-lg text-slate-500 font-medium px-4">كل ما تحتاجه في مكان واحد، نصل إليك أينما كنت في العبور.</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {[
               { title: "المطاعم", icon: Utensils, desc: "أشهى الوجبات من مطاعمك المفضلة", color: "orange", bg: "bg-orange-50", text: "text-orange-600" },
               { title: "الطرود", icon: Package, desc: "توصيل آمن وسريع لجميع طرودك", color: "blue", bg: "bg-blue-50", text: "text-blue-600" },
@@ -175,20 +180,19 @@ export default function Home() {
             ].map((service, i) => (
               <motion.div 
                 key={i}
-                whileHover={{ y: -5 }}
-                className="group p-6 sm:p-8 rounded-[24px] sm:rounded-[32px] bg-[#F8F9FB] hover:bg-white hover:shadow-xl transition-all duration-500 border border-transparent hover:border-slate-50"
+                whileHover={{ y: -10 }}
+                onClick={() => window.location.href = "/auth"}
+                className="group p-8 rounded-[32px] bg-[#F8F9FB] hover:bg-white hover:shadow-2xl transition-all duration-500 border border-transparent hover:border-slate-50 cursor-pointer"
               >
-                <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl ${service.bg} flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform`}>
-                  <service.icon className={`${service.text} h-6 w-6 sm:h-8 sm:w-8`} />
+                <div className={`w-16 h-16 rounded-2xl ${service.bg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                  <service.icon className={`${service.text} h-8 w-8`} />
                 </div>
-                <h3 className="text-lg sm:text-xl font-black text-slate-900 mb-2 sm:mb-3">{service.title}</h3>
-                <p className="text-slate-500 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6">{service.desc}</p>
-                <Link href="/auth">
-                  <button className="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900 group-hover:text-orange-500 transition-colors">
-                    اطلب الآن
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
-                </Link>
+                <h3 className="text-xl font-black text-slate-900 mb-3">{service.title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed mb-6">{service.desc}</p>
+                <div className="flex items-center gap-2 text-sm font-bold text-slate-900 group-hover:text-orange-500 transition-colors">
+                  اطلب الآن
+                  <ArrowRight className="h-4 w-4" />
+                </div>
               </motion.div>
             ))}
           </div>
@@ -196,40 +200,40 @@ export default function Home() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-12 sm:py-20 bg-[#F8F9FB]">
+      <section id="testimonials" className="py-12 sm:py-24 bg-[#F8F9FB]">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col lg:flex-row gap-10 sm:gap-12 items-center">
-            <div className="lg:w-1/3 space-y-4 sm:space-y-6 text-center lg:text-right">
-              <h2 className="text-3xl sm:text-4xl font-black text-slate-900 leading-tight">ماذا يقول <br /><span className="text-orange-500">عملاؤنا؟</span></h2>
-              <p className="text-sm sm:text-slate-500 font-medium leading-relaxed">ثقة عملائنا هي سر نجاحنا، نسعى دائماً لتقديم الأفضل.</p>
-              <div className="flex justify-center lg:justify-start gap-4 pt-2">
+          <div className="flex flex-col lg:flex-row gap-12 items-center">
+            <div className="lg:w-1/3 space-y-6 text-center lg:text-right">
+              <h2 className="text-4xl font-black text-slate-900 leading-tight">ماذا يقول <br /><span className="text-orange-500">عملاؤنا؟</span></h2>
+              <p className="text-sm sm:text-lg text-slate-500 font-medium leading-relaxed">ثقة عملائنا هي سر نجاحنا، نسعى دائماً لتقديم الأفضل.</p>
+              <div className="flex justify-center lg:justify-start gap-6 pt-4">
                 <div className="text-center">
-                  <div className="text-xl sm:text-2xl font-black text-slate-900">4.9/5</div>
+                  <div className="text-2xl sm:text-3xl font-black text-slate-900">4.9/5</div>
                   <div className="flex text-orange-400 gap-0.5 justify-center">
-                    {[1,2,3,4,5].map(i => <Star key={i} className="h-3 w-3 fill-current" />)}
+                    {[1,2,3,4,5].map(i => <Star key={i} className="h-4 w-4 fill-current" />)}
                   </div>
                 </div>
-                <div className="w-px h-8 sm:h-10 bg-slate-200"></div>
+                <div className="w-px h-12 bg-slate-200"></div>
                 <div className="text-center">
-                  <div className="text-xl sm:text-2xl font-black text-slate-900">+10k</div>
-                  <div className="text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">تقييم إيجابي</div>
+                  <div className="text-2xl sm:text-3xl font-black text-slate-900">+10k</div>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">تقييم إيجابي</div>
                 </div>
               </div>
             </div>
-            <div className="lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 w-full">
+            <div className="lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
               {[
                 { name: "أحمد محمود", text: "أسرع خدمة توصيل جربتها في العبور، الأكل بيوصل سخن وكأنك في المطعم.", role: "عميل دائم" },
                 { name: "سارة حسن", text: "تطبيق سهل جداً والمناديب محترمين جداً، شكراً وصلي على الخدمة الممتازة.", role: "مستخدم جديد" },
               ].map((t, i) => (
-                <motion.div key={i} className="bg-white p-6 sm:p-8 rounded-[24px] sm:rounded-[32px] shadow-sm border border-slate-50 space-y-3 sm:space-y-4">
-                  <Quote className="text-orange-100 h-8 w-8 sm:h-10 sm:w-10 fill-current" />
-                  <p className="text-sm sm:text-slate-600 font-medium leading-relaxed italic text-right">"{t.text}"</p>
-                  <div className="flex items-center gap-3 pt-2 justify-end">
+                <motion.div key={i} className="bg-white p-8 rounded-[32px] shadow-sm border border-slate-50 space-y-4">
+                  <Quote className="text-orange-100 h-10 w-10 fill-current" />
+                  <p className="text-sm sm:text-base text-slate-600 font-medium leading-relaxed italic text-right">"{t.text}"</p>
+                  <div className="flex items-center gap-4 pt-4 justify-end">
                     <div className="text-right">
-                      <div className="font-black text-xs sm:text-sm text-slate-900">{t.name}</div>
-                      <div className="text-[10px] sm:text-xs font-bold text-orange-500">{t.role}</div>
+                      <div className="font-black text-sm sm:text-base text-slate-900">{t.name}</div>
+                      <div className="text-xs font-bold text-orange-500">{t.role}</div>
                     </div>
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-100 overflow-hidden">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 overflow-hidden border-2 border-orange-50">
                       <img src={`https://i.pravatar.cc/100?img=${i+20}`} alt={t.name} />
                     </div>
                   </div>
@@ -241,24 +245,24 @@ export default function Home() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-12 sm:py-20 bg-white">
-        <div className="container mx-auto px-4 max-w-3xl">
-          <div className="text-center mb-10 sm:mb-16 space-y-3 sm:space-y-4">
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900">الأسئلة الشائعة</h2>
-            <p className="text-sm sm:text-slate-500 font-medium">كل ما تريد معرفته عن خدمات وصلي</p>
+      <section id="faq" className="py-12 sm:py-24 bg-white">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="text-center mb-12 sm:mb-20 space-y-4">
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900">الأسئلة الشائعة</h2>
+            <p className="text-sm sm:text-lg text-slate-500 font-medium">كل ما تريد معرفته عن خدمات وصلي</p>
           </div>
-          <Accordion type="single" collapsible className="space-y-3 sm:space-y-4">
+          <Accordion type="single" collapsible className="space-y-4">
             {[
               { q: "ما هي مناطق التغطية الحالية؟", a: "حالياً نغطي جميع أحياء مدينة العبور بالكامل، ونسعى للتوسع في المدن المجاورة قريباً." },
               { q: "كم يستغرق وقت التوصيل؟", a: "متوسط وقت التوصيل لدينا هو 15-25 دقيقة، ويعتمد ذلك على المسافة وتجهيز الطلب." },
               { q: "هل يوجد حد أدنى للطلب؟", a: "لا يوجد حد أدنى للطلب في وصلي، يمكنك طلب أي شيء مهما كان حجمه." },
               { q: "كيف يمكنني تتبع طلبي؟", a: "بمجرد قبول الطلب، يمكنك تتبعه مباشرة على الخريطة من خلال التطبيق لحظة بلحظة." },
             ].map((item, i) => (
-              <AccordionItem key={i} value={`item-${i}`} className="border-none bg-[#F8F9FB] rounded-xl sm:rounded-2xl px-4 sm:px-6">
-                <AccordionTrigger className="hover:no-underline font-bold text-sm sm:text-base text-slate-900 py-4 sm:py-6 text-right">
+              <AccordionItem key={i} value={`item-${i}`} className="border-none bg-[#F8F9FB] rounded-2xl px-6 sm:px-8">
+                <AccordionTrigger className="hover:no-underline font-bold text-base sm:text-lg text-slate-900 py-6 text-right">
                   {item.q}
                 </AccordionTrigger>
-                <AccordionContent className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed pb-4 sm:pb-6 text-right">
+                <AccordionContent className="text-sm sm:text-base text-slate-500 font-medium leading-relaxed pb-6 text-right">
                   {item.a}
                 </AccordionContent>
               </AccordionItem>
@@ -268,51 +272,52 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-white pt-12 sm:pt-20 pb-12 sm:pb-10">
+      <footer className="bg-slate-900 text-white pt-20 pb-12">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 sm:gap-12 mb-12 sm:mb-16">
-            <div className="space-y-4 sm:space-y-6 text-center sm:text-right">
-              <div className="flex items-center gap-3 justify-center sm:justify-start">
-                <img src="/logo.jpg" alt="Wasly Logo" className="h-10 object-contain brightness-0 invert" />
-                <span className="text-xl sm:text-2xl font-black">وصلي</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+            <div className="space-y-6 text-center sm:text-right">
+              <div className="flex items-center gap-4 justify-center sm:justify-start">
+                {/* Fixed Logo in Footer: Removed brightness filter to show original colors */}
+                <img src="/logo.jpg" alt="Wasly Logo" className="h-14 w-14 object-contain rounded-xl" />
+                <span className="text-2xl sm:text-3xl font-black">وصلي</span>
               </div>
-              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+              <p className="text-slate-400 text-sm leading-relaxed max-w-xs mx-auto sm:mx-0">
                 المنصة الرائدة للتوصيل الذكي في مدينة العبور. نجمع بين السرعة والأمان لخدمتك.
               </p>
             </div>
             <div className="text-center sm:text-right">
-              <h4 className="font-black mb-4 sm:mb-6 text-sm sm:text-base">روابط سريعة</h4>
-              <ul className="space-y-3 sm:space-y-4 text-slate-400 text-xs sm:text-sm font-bold">
-                <li><Link href="/auth">عن وصلي</Link></li>
-                <li><Link href="/auth">انضم كشريك</Link></li>
-                <li><Link href="/auth">كن سائقاً معنا</Link></li>
-                <li><Link href="/auth">تواصل معنا</Link></li>
+              <h4 className="font-black mb-6 text-lg">روابط سريعة</h4>
+              <ul className="space-y-4 text-slate-400 text-sm font-bold">
+                <li><button onClick={() => scrollToSection('services')} className="hover:text-orange-500 transition-colors">عن وصلي</button></li>
+                <li><button onClick={() => window.location.href = "/auth"} className="hover:text-orange-500 transition-colors">انضم كشريك</button></li>
+                <li><button onClick={() => window.location.href = "/auth"} className="hover:text-orange-500 transition-colors">كن سائقاً معنا</button></li>
+                <li><button onClick={() => scrollToSection('faq')} className="hover:text-orange-500 transition-colors">تواصل معنا</button></li>
               </ul>
             </div>
             <div className="text-center sm:text-right">
-              <h4 className="font-black mb-4 sm:mb-6 text-sm sm:text-base">خدماتنا</h4>
-              <ul className="space-y-3 sm:space-y-4 text-slate-400 text-xs sm:text-sm font-bold">
-                <li>توصيل الطعام</li>
-                <li>توصيل الطرود</li>
-                <li>سوبر ماركت</li>
-                <li>صيدلية</li>
+              <h4 className="font-black mb-6 text-lg">خدماتنا</h4>
+              <ul className="space-y-4 text-slate-400 text-sm font-bold">
+                <li><button onClick={() => scrollToSection('services')} className="hover:text-orange-500 transition-colors">توصيل الطعام</button></li>
+                <li><button onClick={() => scrollToSection('services')} className="hover:text-orange-500 transition-colors">توصيل الطرود</button></li>
+                <li><button onClick={() => scrollToSection('services')} className="hover:text-orange-500 transition-colors">سوبر ماركت</button></li>
+                <li><button onClick={() => scrollToSection('services')} className="hover:text-orange-500 transition-colors">صيدلية</button></li>
               </ul>
             </div>
             <div className="text-center sm:text-right">
-              <h4 className="font-black mb-4 sm:mb-6 text-sm sm:text-base">تواصل معنا</h4>
-              <ul className="space-y-3 sm:space-y-4 text-slate-400 text-xs sm:text-sm font-bold">
+              <h4 className="font-black mb-6 text-lg">تواصل معنا</h4>
+              <ul className="space-y-4 text-slate-400 text-sm font-bold">
                 <li className="flex items-center gap-3 justify-center sm:justify-start">
-                  <MapPin className="h-4 w-4 text-orange-500" />
+                  <MapPin className="h-5 w-5 text-orange-500" />
                   مدينة العبور، مصر
                 </li>
                 <li className="flex items-center gap-3 justify-center sm:justify-start">
-                  <Bell className="h-4 w-4 text-orange-500" />
+                  <Bell className="h-5 w-5 text-orange-500" />
                   دعم فني 24/7
                 </li>
               </ul>
             </div>
           </div>
-          <div className="pt-8 sm:pt-10 border-t border-slate-800 text-center text-slate-500 text-[10px] sm:text-xs font-bold">
+          <div className="pt-10 border-t border-slate-800 text-center text-slate-500 text-xs font-bold">
             © 2026 وصلي. جميع الحقوق محفوظة.
           </div>
         </div>
@@ -326,6 +331,7 @@ export default function Home() {
         body {
           font-family: 'Cairo', sans-serif;
           overflow-x: hidden;
+          scroll-behavior: smooth;
         }
       `}</style>
     </div>
