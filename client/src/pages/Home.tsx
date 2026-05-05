@@ -60,46 +60,9 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] pb-24 sm:pb-0 overflow-x-hidden" dir="rtl">
-      {/* Header */}
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? "bg-white/90 backdrop-blur-xl shadow-sm py-2" : "bg-transparent py-4"}`}>
-        <div className="container mx-auto px-4 flex justify-between items-center">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <motion.div 
-              whileHover={{ rotate: 15, scale: 1.1 }}
-              className="bg-orange-500 p-2 rounded-xl sm:rounded-2xl shadow-lg shadow-orange-200"
-            >
-              <Truck className="text-white h-5 w-5 sm:h-6 sm:w-6" />
-            </motion.div>
-            <div className="flex flex-col">
-              <span className="text-xl sm:text-2xl font-black text-slate-900 leading-none tracking-tight">وصلي</span>
-              <span className="text-[8px] sm:text-[9px] font-bold text-orange-600 uppercase tracking-widest">Obour City</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="relative p-2 bg-white/50 backdrop-blur-md rounded-full border border-slate-100 text-slate-600"
-            >
-              <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span className="absolute top-0.5 right-0.5 bg-orange-500 w-1.5 h-1.5 rounded-full border border-white"></span>
-            </motion.button>
-            <Link href="/auth">
-              <motion.button 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-4 sm:px-5 py-2 sm:py-2.5 bg-slate-900 text-white rounded-full text-xs sm:text-sm font-bold shadow-lg shadow-slate-200"
-              >
-                دخول
-              </motion.button>
-            </Link>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-[#FAFAFA] overflow-x-hidden" dir="rtl">
       {/* Hero Section */}
-      <section className="relative pt-24 sm:pt-32 pb-12 sm:pb-20 px-4 overflow-hidden">
+      <section className="relative pt-12 pb-12 sm:pb-20 px-4 overflow-hidden">
         <div className="absolute top-0 right-0 -z-10 w-full sm:w-1/2 h-full bg-orange-50/50 rounded-bl-[50px] sm:rounded-bl-[100px]"></div>
         <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           <motion.div 
@@ -108,6 +71,26 @@ export default function Home() {
             variants={containerVariants}
             className="space-y-6 sm:space-y-8 text-center lg:text-right"
           >
+            {/* Logo and Header Actions Integrated in Hero for cleaner look */}
+            <div className="flex justify-between items-center mb-8 lg:mb-12">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <img src="/logo.jpg" alt="Wasly Logo" className="h-10 sm:h-14 object-contain" />
+                <div className="flex flex-col text-right">
+                  <span className="text-xl sm:text-2xl font-black text-slate-900 leading-none tracking-tight">وصلي</span>
+                  <span className="text-[8px] sm:text-[9px] font-bold text-orange-600 uppercase tracking-widest">Obour City</span>
+                </div>
+              </div>
+              <Link href="/auth">
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-4 sm:px-6 py-2 sm:py-3 bg-slate-900 text-white rounded-full text-xs sm:text-sm font-bold shadow-lg shadow-slate-200"
+                >
+                  تسجيل الدخول
+                </motion.button>
+              </Link>
+            </div>
+
             <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-[10px] sm:text-xs font-bold">
               <Zap className="h-3 w-3 fill-orange-700" />
               أسرع خدمة توصيل في مدينة العبور
@@ -122,7 +105,7 @@ export default function Home() {
             <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link href="/auth">
                 <Button className="h-12 sm:h-14 px-8 sm:px-10 rounded-xl sm:rounded-2xl bg-orange-500 hover:bg-orange-600 text-white text-base sm:text-lg font-bold shadow-xl shadow-orange-200 w-full sm:w-auto">
-                  اطلب الآن
+                  ابدأ الطلب الآن
                 </Button>
               </Link>
               <div className="flex items-center gap-3 px-4 justify-center">
@@ -150,8 +133,11 @@ export default function Home() {
             <div className="relative z-10 rounded-[30px] sm:rounded-[40px] overflow-hidden shadow-2xl border-4 sm:border-8 border-white">
               <img 
                 src="https://images.unsplash.com/photo-1526367790999-0150786486a9?q=80&w=2070&auto=format&fit=crop" 
-                alt="Delivery" 
+                alt="Delivery Service" 
                 className="w-full h-[300px] sm:h-[500px] object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = "https://images.unsplash.com/photo-1633966887768-64f9a867bdba?q=80&w=2003&auto=format&fit=crop";
+                }}
               />
             </div>
             <motion.div 
@@ -282,14 +268,12 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-white pt-12 sm:pt-20 pb-24 sm:pb-10">
+      <footer className="bg-slate-900 text-white pt-12 sm:pt-20 pb-12 sm:pb-10">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 sm:gap-12 mb-12 sm:mb-16">
             <div className="space-y-4 sm:space-y-6 text-center sm:text-right">
               <div className="flex items-center gap-3 justify-center sm:justify-start">
-                <div className="bg-orange-500 p-2 rounded-lg sm:rounded-xl">
-                  <Truck className="text-white h-4 w-4 sm:h-5 sm:w-5" />
-                </div>
+                <img src="/logo.jpg" alt="Wasly Logo" className="h-10 object-contain brightness-0 invert" />
                 <span className="text-xl sm:text-2xl font-black">وصلي</span>
               </div>
               <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
@@ -333,28 +317,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-
-      {/* Mobile Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-100 px-6 py-3 z-50 sm:hidden flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-        {[
-          { id: "home", label: "الرئيسية", icon: HomeIcon },
-          { id: "search", label: "البحث", icon: Search },
-          { id: "orders", label: "طلباتي", icon: ShoppingBag },
-          { id: "profile", label: "حسابي", icon: User },
-        ].map((item) => (
-          <button
-            key={item.id}
-            onClick={() => {
-              setActiveTab(item.id);
-              if (item.id !== "home") window.location.href = "/auth";
-            }}
-            className={`flex flex-col items-center gap-1 transition-all ${activeTab === item.id ? "text-orange-500" : "text-slate-400"}`}
-          >
-            <item.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${activeTab === item.id ? "fill-orange-500/10" : ""}`} />
-            <span className="text-[9px] font-black">{item.label}</span>
-          </button>
-        ))}
-      </nav>
 
       <style jsx global>{`
         @font-face {
