@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Truck, Zap, ArrowRight, CheckCircle2, Utensils, Package, ShoppingCart, Pill, Star, Quote, MapPin, Bell, ChevronLeft, ChevronRight, PlayCircle, ShieldCheck, Globe } from "lucide-react";
+import { Truck, Zap, ArrowRight, CheckCircle2, Utensils, Package, ShoppingCart, Pill, Star, Quote, MapPin, Bell, ChevronLeft, ChevronRight, PlayCircle, ShieldCheck, Globe, Bike } from "lucide-react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -55,19 +55,21 @@ export default function Home() {
         <div className="container mx-auto px-6 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <motion.div whileHover={{ scale: 1.05 }} className="flex items-center gap-3 cursor-pointer">
-              <div className="bg-orange-500 p-2.5 rounded-2xl shadow-lg shadow-orange-200">
-                <Truck className="text-white h-6 w-6" />
-              </div>
+              <img src="/logo.jpg" alt="Wasly Logo" className="h-10 sm:h-12 object-contain rounded-lg shadow-sm" />
               <div className="flex flex-col">
                 <span className="text-2xl font-black tracking-tight leading-none">وصلي</span>
-                <span className="text-[10px] font-bold text-orange-600 uppercase tracking-[0.2em]">Premium Delivery</span>
+                <span className="text-[10px] font-bold text-orange-600 uppercase tracking-[0.2em]">أسرع توصيل في العبور</span>
               </div>
             </motion.div>
           </div>
 
           <div className="hidden lg:flex items-center gap-10">
-            {['الرئيسية', 'خدماتنا', 'كيف نعمل', 'الأسئلة الشائعة'].map((item) => (
-              <button key={item} className="text-sm font-bold text-slate-600 hover:text-orange-500 transition-colors relative group">
+            {['الرئيسية', 'خدماتنا', 'كيف نعمل', 'الأسئلة الشائعة'].map((item, idx) => (
+              <button 
+                key={item} 
+                onClick={() => idx === 1 ? scrollToSection('services') : idx === 2 ? scrollToSection('how-it-works') : idx === 3 ? scrollToSection('faq') : window.scrollTo({top: 0, behavior: 'smooth'})}
+                className="text-sm font-bold text-slate-600 hover:text-orange-500 transition-colors relative group"
+              >
                 {item}
                 <span className="absolute -bottom-1 right-0 w-0 h-0.5 bg-orange-500 transition-all group-hover:w-full"></span>
               </button>
@@ -101,7 +103,7 @@ export default function Home() {
               className="inline-flex items-center gap-3 px-5 py-2.5 bg-white shadow-xl shadow-slate-100 rounded-full border border-slate-50"
             >
               <span className="flex h-2 w-2 rounded-full bg-orange-500 animate-ping"></span>
-              <span className="text-xs font-black text-slate-600 uppercase tracking-wider">نحن نغطي مدينة العبور بالكامل</span>
+              <span className="text-xs font-black text-slate-600 uppercase tracking-wider">أسرع تطبيق دليفري في مدينة العبور</span>
             </motion.div>
 
             <motion.h1 
@@ -110,8 +112,8 @@ export default function Home() {
               transition={{ delay: 0.2 }}
               className="text-5xl sm:text-7xl lg:text-8xl font-black text-slate-900 leading-[1.05]"
             >
-              التوصيل <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-orange-600">بذكاء وسرعة</span>
+              وصلي.. <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-orange-600">مشاويرك خلصانة</span>
             </motion.h1>
 
             <motion.p 
@@ -120,7 +122,7 @@ export default function Home() {
               transition={{ delay: 0.3 }}
               className="text-lg sm:text-xl text-slate-500 leading-relaxed max-w-xl mx-auto lg:mx-0 font-medium"
             >
-              اختبر الجيل القادم من خدمات التوصيل في العبور. نجمع لك كل ما تحتاجه من مطاعم، طرود، وصيدليات في منصة واحدة فائقة السرعة.
+              ببساطة إحنا بنوصلك أي أكلة تحبها من مطاعم العبور لحد باب بيتك، وكمان بنعملك مشاويرك الخاصة؛ لو نسيت حاجة أو محتاج طلبات من الصيدلية والسوبر ماركت، طيارين وصلي في خدمتك.
             </motion.p>
 
             <motion.div 
@@ -132,43 +134,15 @@ export default function Home() {
               <Link href="/auth">
                 <Button className="h-16 px-12 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white text-lg font-black shadow-2xl shadow-orange-200 group overflow-hidden relative">
                   <span className="relative z-10 flex items-center gap-3">
-                    ابدأ تجربتك الآن
+                    جرب تطلب دلوقتي
                     <ArrowRight className="h-5 w-5 group-hover:translate-x-[-5px] transition-transform" />
                   </span>
                 </Button>
               </Link>
-              <button className="h-16 px-8 rounded-2xl bg-white border border-slate-100 text-slate-900 text-lg font-black shadow-xl shadow-slate-50 flex items-center justify-center gap-3 hover:bg-slate-50 transition-all">
+              <button onClick={() => scrollToSection('how-it-works')} className="h-16 px-8 rounded-2xl bg-white border border-slate-100 text-slate-900 text-lg font-black shadow-xl shadow-slate-50 flex items-center justify-center gap-3 hover:bg-slate-50 transition-all">
                 <PlayCircle className="h-6 w-6 text-orange-500" />
                 شاهد كيف نعمل
               </button>
-            </motion.div>
-
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="pt-10 flex flex-wrap items-center gap-8 justify-center lg:justify-start"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex -space-x-3 rtl:space-x-reverse">
-                  {[1,2,3,4].map(i => (
-                    <img key={i} src={`https://i.pravatar.cc/100?img=${i+10}`} className="w-12 h-12 rounded-full border-4 border-white shadow-sm" alt="user" />
-                  ))}
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-black text-slate-900">+15,000 عميل</div>
-                  <div className="flex text-orange-400 gap-0.5">
-                    {[1,2,3,4,5].map(i => <Star key={i} className="h-3 w-3 fill-current" />)}
-                  </div>
-                </div>
-              </div>
-              <div className="h-10 w-px bg-slate-200 hidden sm:block"></div>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center">
-                  <ShieldCheck className="text-green-600 h-6 w-6" />
-                </div>
-                <div className="text-right text-sm font-black text-slate-900">خدمة آمنة 100%</div>
-              </div>
             </motion.div>
           </div>
 
@@ -197,22 +171,8 @@ export default function Home() {
                 <Zap className="text-white h-7 w-7" />
               </div>
               <div className="text-right">
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-tighter">وقت التوصيل</div>
-                <div className="text-xl font-black text-slate-900">12 دقيقة</div>
-              </div>
-            </motion.div>
-
-            <motion.div 
-              animate={{ x: [0, 20, 0] }}
-              transition={{ duration: 6, repeat: Infinity }}
-              className="absolute bottom-10 -left-10 z-20 bg-slate-900 p-5 rounded-3xl shadow-2xl flex items-center gap-4"
-            >
-              <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
-                <MapPin className="text-orange-500 h-6 w-6" />
-              </div>
-              <div className="text-right">
-                <div className="text-[10px] font-bold text-slate-400">موقع المندوب</div>
-                <div className="text-sm font-black text-white">الحي الخامس، العبور</div>
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-tighter">سرعة فائقة</div>
+                <div className="text-xl font-black text-slate-900">توصيل فوري</div>
               </div>
             </motion.div>
           </motion.div>
@@ -224,44 +184,49 @@ export default function Home() {
         <div className="container mx-auto px-6">
           <div className="flex flex-col lg:flex-row justify-between items-end mb-20 gap-8">
             <div className="space-y-4 text-center lg:text-right">
-              <h2 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">خدماتنا <span className="text-orange-500 underline decoration-orange-200 underline-offset-8">المتميزة</span></h2>
-              <p className="text-lg text-slate-500 font-medium max-w-xl">حلول ذكية لكل احتياجاتك اليومية، نعتني بأدق التفاصيل لنصل إليك بأفضل حال.</p>
+              <h2 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">إحنا بنعمل <span className="text-orange-500 underline decoration-orange-200 underline-offset-8">حاجتين</span></h2>
+              <p className="text-lg text-slate-500 font-medium max-w-xl">ببساطة، وصلي هو رفيقك في مدينة العبور لكل احتياجاتك اليومية.</p>
             </div>
-            <Link href="/auth">
-              <button className="flex items-center gap-3 text-lg font-black text-slate-900 hover:text-orange-600 transition-all group">
-                استكشف جميع الخدمات
-                <div className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center group-hover:bg-orange-500 group-hover:border-orange-500 group-hover:text-white transition-all">
-                  <ArrowRight className="h-5 w-5" />
-                </div>
-              </button>
-            </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { title: "المطاعم", icon: Utensils, desc: "أشهى الأطباق من أرقى المطاعم المحلية والعالمية بلمسة زر.", color: "orange", count: "150+ مطعم" },
-              { title: "الطرود", icon: Package, desc: "توصيل طرودك الشخصية والتجارية بأمان تام وسرعة فائقة.", color: "blue", count: "توصيل فوري" },
-              { title: "سوبر ماركت", icon: ShoppingCart, desc: "تسوق مقاضي البيت وستصلك طازجة ومرتبة كما تحب.", color: "green", count: "24/7 متوفر" },
-              { title: "الصيدلية", icon: Pill, desc: "احتياجاتك الدوائية والطبية نصلها لك بكل خصوصية وأمان.", color: "red", count: "دعم طبي" },
-            ].map((s, i) => (
-              <motion.div 
-                key={i}
-                whileHover={{ y: -15 }}
-                className="group relative bg-white p-10 rounded-[40px] shadow-xl shadow-slate-100/50 border border-slate-50 overflow-hidden"
-              >
-                <div className="relative z-10">
-                  <div className={`w-16 h-16 rounded-2xl bg-${s.color}-50 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500`}>
-                    <s.icon className={`text-${s.color}-600 h-8 w-8`} />
-                  </div>
-                  <div className="text-xs font-black text-orange-600 mb-2 uppercase tracking-widest">{s.count}</div>
-                  <h3 className="text-2xl font-black text-slate-900 mb-4">{s.title}</h3>
-                  <p className="text-slate-500 text-sm leading-relaxed mb-8">{s.desc}</p>
-                  <button className="w-full py-4 bg-slate-50 rounded-2xl text-sm font-black text-slate-900 group-hover:bg-orange-500 group-hover:text-white transition-all">
-                    اطلب الآن
-                  </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <motion.div 
+              whileHover={{ y: -15 }}
+              className="group relative bg-white p-10 rounded-[40px] shadow-xl shadow-slate-100/50 border border-slate-50 overflow-hidden"
+            >
+              <div className="relative z-10">
+                <div className="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500">
+                  <Utensils className="text-orange-600 h-8 w-8" />
                 </div>
-              </motion.div>
-            ))}
+                <div className="text-xs font-black text-orange-600 mb-2 uppercase tracking-widest">الأولى</div>
+                <h3 className="text-3xl font-black text-slate-900 mb-4">توصيل الطعام</h3>
+                <p className="text-slate-500 text-lg leading-relaxed mb-8">بنوصلك أي أكلة تحبها من مطاعم العبور لحد باب بيتك في أسرع وقت ممكن.</p>
+                <Link href="/auth">
+                  <button className="w-full py-4 bg-orange-500 rounded-2xl text-sm font-black text-white shadow-lg shadow-orange-200 hover:bg-orange-600 transition-all">
+                    اطلب أكل دلوقتي
+                  </button>
+                </Link>
+              </div>
+            </motion.div>
+
+            <motion.div 
+              whileHover={{ y: -15 }}
+              className="group relative bg-white p-10 rounded-[40px] shadow-xl shadow-slate-100/50 border border-slate-50 overflow-hidden"
+            >
+              <div className="relative z-10">
+                <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500">
+                  <Bike className="text-blue-600 h-8 w-8" />
+                </div>
+                <div className="text-xs font-black text-blue-600 mb-2 uppercase tracking-widest">الثانية</div>
+                <h3 className="text-3xl font-black text-slate-900 mb-4">مشاويرك الخاصة</h3>
+                <p className="text-slate-500 text-lg leading-relaxed mb-8">لو نسيت حاجة، عايز تبعت طرد، أو محتاج طلبات من الصيدلية والسوبر ماركت، طيارين وصلي في خدمتك.</p>
+                <Link href="/auth">
+                  <button className="w-full py-4 bg-slate-900 rounded-2xl text-sm font-black text-white shadow-lg shadow-slate-200 hover:bg-slate-800 transition-all">
+                    اطلب مشوار خاص
+                  </button>
+                </Link>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -281,15 +246,15 @@ export default function Home() {
 
             <div className="space-y-12 order-1 lg:order-2">
               <div className="space-y-4">
-                <h2 className="text-4xl sm:text-5xl font-black text-slate-900">كيف يعمل <span className="text-orange-500">وصلي؟</span></h2>
-                <p className="text-lg text-slate-500 font-medium">ثلاث خطوات بسيطة تفصلك عن الحصول على ما تريد.</p>
+                <h2 className="text-4xl sm:text-5xl font-black text-slate-900">إزاي تستخدم <span className="text-orange-500">وصلي؟</span></h2>
+                <p className="text-lg text-slate-500 font-medium">خطوات بسيطة وسهلة عشان تريح نفسك.</p>
               </div>
 
               <div className="space-y-10">
                 {[
-                  { step: "01", title: "اختر خدمتك", desc: "تصفح قائمة المطاعم أو المتاجر الواسعة واختر ما يناسبك." },
-                  { step: "02", title: "حدد موقعك", desc: "أكد عنوان التوصيل في مدينة العبور بدقة عبر الخريطة." },
-                  { step: "03", title: "تتبع واستلم", desc: "راقب مندوبنا لحظة بلحظة حتى يصل إلى باب منزلك." },
+                  { step: "01", title: "حمل التطبيق", desc: "تقدر تحمل التطبيق وتستمتع بأسرع توصيل في العبور." },
+                  { step: "02", title: "حدد طلبك", desc: "سواء كان أكلة من مطعم أو مشوار خاص، حدد اللي محتاجه." },
+                  { step: "03", title: "استلم في مكانك", desc: "طيارين وصلي هيوصلولك في أسرع وقت لحد باب البيت." },
                 ].map((step, i) => (
                   <div key={i} className="flex gap-8 group">
                     <div className="flex-shrink-0 w-16 h-16 rounded-3xl bg-white shadow-xl shadow-slate-100 border border-slate-50 flex items-center justify-center text-2xl font-black text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all duration-500">
@@ -307,54 +272,20 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-32 bg-slate-900 relative overflow-hidden">
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="text-center max-w-3xl mx-auto mb-20 space-y-6">
-            <h2 className="text-4xl sm:text-6xl font-black text-white">ثقة عملائنا هي <span className="text-orange-500 underline decoration-orange-500/30">محركنا</span></h2>
-            <p className="text-lg text-slate-400 font-medium leading-relaxed">قصص نجاح نكتبها يومياً مع آلاف المستخدمين في مدينة العبور.</p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {[
-              { name: "أحمد كمال", role: "رائد أعمال", text: "وصلي غير مفهوم التوصيل في العبور. الدقة في المواعيد مذهلة والخدمة راقية جداً." },
-              { name: "ليلى حسن", role: "طبيبة", text: "أعتمد عليهم في مقاضي البيت والأدوية. الأمان والخصوصية أهم ما يميزهم." },
-              { name: "ياسين علي", role: "طالب جامعي", text: "تطبيق سريع جداً والعروض دائماً مميزة. المندوبين قمة في الاحترام." },
-            ].map((t, i) => (
-              <motion.div 
-                key={i}
-                whileHover={{ scale: 1.02 }}
-                className="bg-white/5 backdrop-blur-xl p-10 rounded-[40px] border border-white/10 space-y-8"
-              >
-                <Quote className="text-orange-500 h-12 w-12 opacity-50" />
-                <p className="text-xl text-white font-medium leading-relaxed italic text-right">"{t.text}"</p>
-                <div className="flex items-center gap-4 pt-6 border-t border-white/10 justify-end">
-                  <div className="text-right">
-                    <div className="text-lg font-black text-white">{t.name}</div>
-                    <div className="text-sm font-bold text-orange-500 uppercase tracking-wider">{t.role}</div>
-                  </div>
-                  <img src={`https://i.pravatar.cc/100?img=${i+30}`} className="w-14 h-14 rounded-full border-2 border-orange-500/30" alt={t.name} />
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* FAQ Section */}
       <section id="faq" className="py-32 bg-white">
-        <div className="container mx-auto px-6 max-w-4xl">
+        <div className="container mx-auto px-4 max-w-4xl">
           <div className="text-center mb-20 space-y-6">
-            <h2 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">لديك استفسار؟ <span className="text-orange-500">نحن هنا</span></h2>
-            <p className="text-lg text-slate-500 font-medium">كل ما تحتاج لمعرفته حول استخدام وصلي.</p>
+            <h2 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">محتاج مساعدة؟ <span className="text-orange-500">إحنا معاك</span></h2>
+            <p className="text-lg text-slate-500 font-medium">كل اللي محتاج تعرفه عن وصلي.</p>
           </div>
           
           <Accordion type="single" collapsible className="space-y-6">
             {[
-              { q: "ما الذي يميز وصلي عن غيره؟", a: "نحن نركز حصرياً على مدينة العبور، مما يمنحنا سرعة فائقة ومعرفة دقيقة بكل شارع وحي، بالإضافة لخدمة عملاء محلية متميزة." },
-              { q: "كيف يمكنني الانضمام كفرد في فريق التوصيل؟", a: "نحن نرحب دائماً بالمجتهدين. يمكنك التقديم عبر التطبيق في قسم 'انضم كمناديب' وسيتواصل معك فريقنا خلال 24 ساعة." },
-              { q: "هل الخدمة متوفرة على مدار الساعة؟", a: "نعم، وصلي يعمل 24/7 لخدمتكم، سواء كان طلباً متأخراً من مطعم أو حاجة ملحة من الصيدلية." },
-              { q: "ما هي طرق الدفع المتاحة؟", a: "نوفر جميع خيارات الدفع: نقداً عند الاستلام، البطاقات الائتمانية، والمحافظ الإلكترونية لتسهيل تجربتك." },
+              { q: "إيه اللي بيميز وصلي؟", a: "إحنا أسرع تطبيق دليفري متخصص في مدينة العبور، وبنقدم خدمة شاملة بتجمع بين توصيل الأكل والمشاوير الخاصة." },
+              { q: "إزاي أعمل أول طلب؟", a: "ببساطة حمل التطبيق، سجل دخولك، واختار الخدمة اللي محتاجها. لو واجهت أي مشكلة فريق الدعم معاك لحظة بلحظة." },
+              { q: "هل بتوصلوا لكل أحياء العبور؟", a: "نعم، وصلي بيغطي كل أحياء مدينة العبور بالكامل لضمان وصول الخدمة لكل بيت." },
+              { q: "إيه هي طرق الدفع؟", a: "متاح الدفع نقداً عند الاستلام، ومتاح كمان خيارات دفع إلكترونية لتسهيل طلبك." },
             ].map((item, i) => (
               <AccordionItem key={i} value={`item-${i}`} className="border-none bg-slate-50 rounded-[32px] px-8 sm:px-10">
                 <AccordionTrigger className="hover:no-underline font-black text-xl text-slate-900 py-8 text-right">
@@ -375,19 +306,19 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-20 mb-24">
             <div className="space-y-8 text-center sm:text-right">
               <div className="flex items-center gap-4 justify-center sm:justify-start">
-                <img src="/logo.jpg" alt="Wasly Logo" className="h-16 w-16 object-contain rounded-2xl" />
+                <img src="/logo.jpg" alt="Wasly Logo" className="h-16 w-16 object-contain rounded-2xl bg-white p-1 shadow-lg" />
                 <span className="text-3xl font-black tracking-tighter">وصلي</span>
               </div>
               <p className="text-slate-400 text-lg leading-relaxed font-medium">
-                نعيد تعريف مفهوم التوصيل في مصر، نبدأ من مدينة العبور لنصل إلى كل بيت بجودة عالمية.
+                أسرع تطبيق دليفري في مدينة العبور. مشاويرك وطلباتك كلها في مكان واحد.
               </p>
             </div>
 
             <div className="text-center sm:text-right">
               <h4 className="text-xl font-black mb-10 text-orange-500">الشركة</h4>
               <ul className="space-y-6 text-slate-400 text-base font-bold">
-                <li><button onClick={() => scrollToSection('how-it-works')} className="hover:text-white transition-all">من نحن</button></li>
-                <li><button onClick={() => window.location.href = "/auth"} className="hover:text-white transition-all">وظائف شاغرة</button></li>
+                <li><button onClick={() => scrollToSection('how-it-works')} className="hover:text-white transition-all">عن وصلي</button></li>
+                <li><button onClick={() => window.location.href = "/auth"} className="hover:text-white transition-all">انضم كطيار</button></li>
                 <li><button onClick={() => window.location.href = "/auth"} className="hover:text-white transition-all">سياسة الخصوصية</button></li>
               </ul>
             </div>
@@ -395,9 +326,9 @@ export default function Home() {
             <div className="text-center sm:text-right">
               <h4 className="text-xl font-black mb-10 text-orange-500">الخدمات</h4>
               <ul className="space-y-6 text-slate-400 text-base font-bold">
-                <li><button onClick={() => scrollToSection('services')} className="hover:text-white transition-all">توصيل مطاعم</button></li>
-                <li><button onClick={() => scrollToSection('services')} className="hover:text-white transition-all">شحن طرود</button></li>
-                <li><button onClick={() => scrollToSection('services')} className="hover:text-white transition-all">سوبر ماركت</button></li>
+                <li><button onClick={() => scrollToSection('services')} className="hover:text-white transition-all">توصيل أكل</button></li>
+                <li><button onClick={() => scrollToSection('services')} className="hover:text-white transition-all">مشاوير خاصة</button></li>
+                <li><button onClick={() => scrollToSection('services')} className="hover:text-white transition-all">طلبات صيدلية</button></li>
               </ul>
             </div>
 
@@ -406,19 +337,19 @@ export default function Home() {
               <ul className="space-y-6 text-slate-400 text-base font-bold">
                 <li className="flex items-center gap-4 justify-center sm:justify-start">
                   <MapPin className="h-5 w-5 text-orange-500" />
-                  مدينة العبور، الحي الخامس
+                  مدينة العبور، مصر
                 </li>
                 <li className="flex items-center gap-4 justify-center sm:justify-start">
                   <Bell className="h-5 w-5 text-orange-500" />
-                  دعم فني: 19XXX
+                  دعم فني متاح دائماً
                 </li>
               </ul>
             </div>
           </div>
           
           <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="text-slate-500 text-sm font-bold italic">صنع بكل حب لخدمة مدينة العبور ❤️</p>
-            <p className="text-slate-500 text-sm font-black tracking-widest uppercase">© 2026 WASLY PREMIUM DELIVERY. ALL RIGHTS RESERVED.</p>
+            <p className="text-slate-500 text-sm font-bold italic">صنع بكل حب لخدمة أهل العبور ❤️</p>
+            <p className="text-slate-500 text-sm font-black tracking-widest uppercase">© 2026 WASLY APP. ALL RIGHTS RESERVED.</p>
           </div>
         </div>
       </footer>
