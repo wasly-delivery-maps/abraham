@@ -10,10 +10,6 @@ export default function Home() {
   const { loading, isAuthenticated, user } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const containerRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -43,6 +39,13 @@ export default function Home() {
     window.location.href = dashboardMap[user?.role || "customer"] || "/customer/dashboard";
     return null;
   }
+
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-orange-100 selection:text-orange-600 overflow-x-hidden" dir="rtl" ref={containerRef}>
@@ -85,9 +88,8 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero Section - Immersive Design */}
+      {/* Hero Section */}
       <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
-        {/* Abstract Background Elements */}
         <div className="absolute top-0 right-0 -z-10 w-[60%] h-full bg-gradient-to-bl from-orange-50 to-white rounded-bl-[200px]"></div>
         <div className="absolute -top-20 -left-20 w-96 h-96 bg-blue-50/50 rounded-full blur-3xl"></div>
         
@@ -133,7 +135,6 @@ export default function Home() {
                     ابدأ تجربتك الآن
                     <ArrowRight className="h-5 w-5 group-hover:translate-x-[-5px] transition-transform" />
                   </span>
-                  <motion.div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></motion.div>
                 </Button>
               </Link>
               <button className="h-16 px-8 rounded-2xl bg-white border border-slate-100 text-slate-900 text-lg font-black shadow-xl shadow-slate-50 flex items-center justify-center gap-3 hover:bg-slate-50 transition-all">
@@ -177,7 +178,6 @@ export default function Home() {
             transition={{ duration: 1, ease: "easeOut" }}
             className="relative"
           >
-            {/* Main Hero Image with Glass Effect Frame */}
             <div className="relative z-10 p-4 bg-white/30 backdrop-blur-md rounded-[60px] border border-white/50 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)]">
               <div className="rounded-[50px] overflow-hidden">
                 <img 
@@ -188,7 +188,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Floating UI Elements */}
             <motion.div 
               animate={{ y: [0, -20, 0] }}
               transition={{ duration: 5, repeat: Infinity }}
@@ -216,12 +215,12 @@ export default function Home() {
                 <div className="text-sm font-black text-white">الحي الخامس، العبور</div>
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* Services - Grid with Modern Cards */}
-      <section className="py-32 bg-slate-50/50">
+      {/* Services Section */}
+      <section id="services" className="py-32 bg-slate-50/50">
         <div className="container mx-auto px-6">
           <div className="flex flex-col lg:flex-row justify-between items-end mb-20 gap-8">
             <div className="space-y-4 text-center lg:text-right">
@@ -261,16 +260,14 @@ export default function Home() {
                     اطلب الآن
                   </button>
                 </div>
-                {/* Abstract Background Decoration */}
-                <div className={`absolute -bottom-10 -left-10 w-32 h-32 bg-${s.color}-50 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity`}></div>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* How it Works - Modern Steps */}
-      <section className="py-32 overflow-hidden">
+      {/* How it Works Section */}
+      <section id="how-it-works" className="py-32 overflow-hidden">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
             <div className="relative order-2 lg:order-1">
@@ -280,15 +277,6 @@ export default function Home() {
                 className="relative z-10 rounded-[60px] shadow-2xl h-[600px] w-full object-cover" 
                 alt="App Experience" 
               />
-              <div className="absolute -bottom-10 -right-10 z-20 bg-white p-8 rounded-[40px] shadow-2xl border border-slate-50 max-w-xs">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                    <Star className="text-orange-500 fill-current h-6 w-6" />
-                  </div>
-                  <div className="text-lg font-black">سهولة تامة</div>
-                </div>
-                <p className="text-sm text-slate-500 font-medium">صممنا التطبيق ليكون رفيقك اليومي الأكثر سهولة وسرعة.</p>
-              </div>
             </div>
 
             <div className="space-y-12 order-1 lg:order-2">
@@ -319,13 +307,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials - Immersive Slider Style */}
-      <section className="py-32 bg-slate-900 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500 rounded-full blur-[150px]"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500 rounded-full blur-[150px]"></div>
-        </div>
-
+      {/* Testimonials Section */}
+      <section id="testimonials" className="py-32 bg-slate-900 relative overflow-hidden">
         <div className="container mx-auto px-6 relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-20 space-y-6">
             <h2 className="text-4xl sm:text-6xl font-black text-white">ثقة عملائنا هي <span className="text-orange-500 underline decoration-orange-500/30">محركنا</span></h2>
@@ -358,8 +341,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FAQ - Clean Modern Look */}
-      <section className="py-32 bg-white">
+      {/* FAQ Section */}
+      <section id="faq" className="py-32 bg-white">
         <div className="container mx-auto px-6 max-w-4xl">
           <div className="text-center mb-20 space-y-6">
             <h2 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">لديك استفسار؟ <span className="text-orange-500">نحن هنا</span></h2>
@@ -386,9 +369,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer - Premium Dark Design */}
+      {/* Footer Section */}
       <footer className="bg-slate-950 text-white pt-32 pb-16 relative overflow-hidden">
-        <div className="container mx-auto px-6">
+        <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-20 mb-24">
             <div className="space-y-8 text-center sm:text-right">
               <div className="flex items-center gap-4 justify-center sm:justify-start">
@@ -398,32 +381,23 @@ export default function Home() {
               <p className="text-slate-400 text-lg leading-relaxed font-medium">
                 نعيد تعريف مفهوم التوصيل في مصر، نبدأ من مدينة العبور لنصل إلى كل بيت بجودة عالمية.
               </p>
-              <div className="flex gap-4 justify-center sm:justify-start">
-                {['fb', 'tw', 'ig', 'li'].map(s => (
-                  <div key={s} className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-orange-500 transition-all cursor-pointer">
-                    <Globe className="h-5 w-5" />
-                  </div>
-                ))}
-              </div>
             </div>
 
             <div className="text-center sm:text-right">
               <h4 className="text-xl font-black mb-10 text-orange-500">الشركة</h4>
               <ul className="space-y-6 text-slate-400 text-base font-bold">
-                <li><button className="hover:text-white transition-all">من نحن</button></li>
-                <li><button className="hover:text-white transition-all">وظائف شاغرة</button></li>
-                <li><button className="hover:text-white transition-all">سياسة الخصوصية</button></li>
-                <li><button className="hover:text-white transition-all">الشروط والأحكام</button></li>
+                <li><button onClick={() => scrollToSection('how-it-works')} className="hover:text-white transition-all">من نحن</button></li>
+                <li><button onClick={() => window.location.href = "/auth"} className="hover:text-white transition-all">وظائف شاغرة</button></li>
+                <li><button onClick={() => window.location.href = "/auth"} className="hover:text-white transition-all">سياسة الخصوصية</button></li>
               </ul>
             </div>
 
             <div className="text-center sm:text-right">
               <h4 className="text-xl font-black mb-10 text-orange-500">الخدمات</h4>
               <ul className="space-y-6 text-slate-400 text-base font-bold">
-                <li><button className="hover:text-white transition-all">توصيل مطاعم</button></li>
-                <li><button className="hover:text-white transition-all">شحن طرود</button></li>
-                <li><button className="hover:text-white transition-all">طلبات السوبر ماركت</button></li>
-                <li><button className="hover:text-white transition-all">توصيل صيدليات</button></li>
+                <li><button onClick={() => scrollToSection('services')} className="hover:text-white transition-all">توصيل مطاعم</button></li>
+                <li><button onClick={() => scrollToSection('services')} className="hover:text-white transition-all">شحن طرود</button></li>
+                <li><button onClick={() => scrollToSection('services')} className="hover:text-white transition-all">سوبر ماركت</button></li>
               </ul>
             </div>
 
@@ -431,15 +405,11 @@ export default function Home() {
               <h4 className="text-xl font-black mb-10 text-orange-500">تواصل معنا</h4>
               <ul className="space-y-6 text-slate-400 text-base font-bold">
                 <li className="flex items-center gap-4 justify-center sm:justify-start">
-                  <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
-                    <MapPin className="h-5 w-5 text-orange-500" />
-                  </div>
+                  <MapPin className="h-5 w-5 text-orange-500" />
                   مدينة العبور، الحي الخامس
                 </li>
                 <li className="flex items-center gap-4 justify-center sm:justify-start">
-                  <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
-                    <Bell className="h-5 w-5 text-orange-500" />
-                  </div>
+                  <Bell className="h-5 w-5 text-orange-500" />
                   دعم فني: 19XXX
                 </li>
               </ul>
@@ -459,12 +429,6 @@ export default function Home() {
         body {
           font-family: 'Cairo', sans-serif;
           scroll-behavior: smooth;
-        }
-
-        .glass-panel {
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         ::-webkit-scrollbar {
